@@ -1,0 +1,16 @@
+# Deploy only what the lesson loads at runtime: index.html, app.js, style.css, swiftpal-bridge.js, assets/.
+# Dev tooling, design notes, card source and backups stay in the repo but are never shipped.
+tools/
+README.md
+VO_MANIFEST.md
+card.json
+*.md
+*.py
+*.bak
+*.orig
+*~
+backup/
+.DS_Store
+Thumbs.db
+node_modules/
+*.pptx

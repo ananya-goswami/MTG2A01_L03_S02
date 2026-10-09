@@ -1,0 +1,1948 @@
+/* UNIFIED ENGINE — Baloo 2 (Devanagari member of Ek Type's Baloo superfamily; SIL OFL 1.1),
+   as its own woff2 files (assets/fonts/). They used to be base64 INSIDE this stylesheet - 330KB of it - and a stylesheet
+   blocks the first paint until all of it has arrived; on its own the CSS is small, so the loader shows at once and the fonts
+   download alongside it (index.html preloads the landing's weights). NB the kit's "Baloo Bhai 2" is the
+   GUJARATI sibling with NO Devanagari glyphs — do not use it for Hindi. */
+@font-face{font-family:'Baloo 2';font-style:normal;font-weight:600;font-display:swap;src:url(assets/fonts/baloo2-600.woff2) format('woff2');}
+@font-face{font-family:'Baloo 2';font-style:normal;font-weight:700;font-display:swap;src:url(assets/fonts/baloo2-700.woff2) format('woff2');}
+@font-face{font-family:'Baloo 2';font-style:normal;font-weight:800;font-display:swap;src:url(assets/fonts/baloo2-800.woff2) format('woff2');}
+
+:root{
+  --bg:#FAF7F1;   /* THE ONE page/stage background — off-white (whisper-warm so white cards stay visible). Change it HERE and it changes everywhere; no theme may override the stage background. Pure white = #FFFFFF. */
+  --navy:#0B3D8C; --navy-dk:#072A6A;
+  --band-bg:#CBE8FF; --band-edge:#FFFFFF;                  /* r4/F6 DS: pill is #CBE8FF with a WHITE border */
+  --cream:#FFF6D8; --cream-edge:#F0E5C8;
+  --pic-bg:#F4F8FE; --pic-border:#7DA8DA;
+  /* FLN Assets Kit design tokens */
+  --selected:#386AF6; --selected-bg:#E6F0FF;
+  --correct:#00B132; --correct-bg:#CCF8D8;
+  --wrong:#F5A524; --wrong-bg:#FFF4DD;
+  --drag-bg:#D9ECFF; --drag-border:#8BBFFF;
+  --font-hi:"Baloo 2","Noto Sans Devanagari",system-ui,sans-serif;
+  --band-top:46px; --band-left:76.5px; --band-w:1214.59px; --band-h:84px;   /* r4/F6 DS header spec */
+  --band-pad-l:150px; --band-pad-r:150px; --band-radius:999px; --band-border:3px;
+  --band-font:30px;
+  --sw-hdr-left:16.5px; --sw-hdr-top:12px; --sw-hdr-w:132px;   /* r4/F6 DS: 132px circular avatar on the pill's left end */
+  --chip-size:70px; --chip-left:100px; --chip-top:84px;        /* r4/F6 DS: 70px chip at the avatar's bottom-right SHOULDER (pill right stays clean) */
+  --hint-top:33px; --hint-right:126px; --hint-size:60px;   /* hint sits just left of the volume chip */
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+/* r4/F8 chrome guards: no rubber-band overscroll, no native image-drag ghost (drag mechanics use pointer events) */
+html,body{height:100%;background:var(--bg);font-family:var(--font-hi);color:var(--navy);user-select:none;-webkit-user-select:none;touch-action:manipulation;overflow:hidden;overscroll-behavior:none;}
+body{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:0;}
+img{-webkit-user-drag:none;user-drag:none;}
+/* in-lesson: off-white letterbox matches the off-white stage; start screen: blue to match the starburst */
+body.is-start{background:#7FC8F4;}
+.stage-wrap{width:calc(1333px*var(--scale,1));height:calc(750px*var(--scale,1));position:relative;left:var(--safe-dx,0px);top:var(--safe-dy,0px);}   /* [responsive] centred in the safe area (app.js Screen.fit) */
+.stage{width:1333px;height:750px;position:absolute;top:0;left:0;transform-origin:top left;transform:scale(var(--scale,1));background:var(--bg);overflow:hidden;display:flex;flex-direction:column;}
+.stage-inner{flex:1;min-height:0;display:flex;flex-direction:column;transition:filter .25s ease;}
+.stage.blurred .stage-inner{filter:blur(5px);}
+/* [responsive] the bands around the stage (app.js Screen.bleed): the stage's OWN backdrop, mirrored at each of its edges -
+   left/right on a screen wider than 16:9, above/below on a taller one, the corners when a phone's safe area leaves both.
+   Each copy is the stage's own 1333x750 box with its background copied over, so it lands exactly where the stage's does
+   and the room / yard / fridge door just carries on past the edge. */
+.stage-bleed{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;}
+.stage-bleed i{position:absolute;left:0;top:0;width:1333px;height:750px;transform-origin:0 0;}
+.stage-bleed .b-l {transform:scale(var(--scale,1)) translateX(1px) scaleX(-1);}
+.stage-bleed .b-r {transform:scale(var(--scale,1)) translateX(2665px) scaleX(-1);}
+.stage-bleed .b-t {transform:scale(var(--scale,1)) translateY(1px) scaleY(-1);}
+.stage-bleed .b-b {transform:scale(var(--scale,1)) translateY(1499px) scaleY(-1);}
+.stage-bleed .b-tl{transform:scale(var(--scale,1)) translate(1px,1px) scale(-1);}
+.stage-bleed .b-tr{transform:scale(var(--scale,1)) translate(2665px,1px) scale(-1);}
+.stage-bleed .b-bl{transform:scale(var(--scale,1)) translate(1px,1499px) scale(-1);}
+.stage-bleed .b-br{transform:scale(var(--scale,1)) translate(2665px,1499px) scale(-1);}
+/* the stage's background colour, 1px inside its edges, under it (app.js Screen.bleed - review 2026-10-07 "line cuts") */
+.stage-wrap.bg-under::before{content:"";position:absolute;inset:1px;background:var(--stage-bg,transparent);pointer-events:none;}
+.stage-wrap.bg-under > .stage{background-color:transparent !important;}
+/* (review 2026-10-05: "I can see a line here") each band reaches 1 stage px in under the stage: butted edge to edge at a
+   fractional --scale, the stage's and the band's anti-aliased edges shared one screen column and the page showed
+   through it - a thin light line down the screen at the stage's side. */
+/* [responsive] a phone or tablet held upright (html.ask-rotate, app.js Screen): the lesson is landscape - a card over it
+   asks for a turn, a phone tipping onto its side. The lesson waits underneath (a voice line pauses until the turn). */
+.rotate-ask{position:fixed;inset:0;z-index:200000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:30px;
+  background:#47BCFD url("assets/startnew_bg_plain.webp") center/cover no-repeat;font-family:var(--font-hi);text-align:center;cursor:pointer;}
+html.ask-rotate .rotate-ask{display:flex;}
+.ra-phone{position:relative;width:84px;height:140px;border:7px solid #FFFFFF;border-radius:18px;background:rgba(255,255,255,.16);
+  box-shadow:0 8px 18px rgba(0,47,118,.25);animation:raTurn 2.6s ease-in-out infinite;}
+.ra-phone i{position:absolute;left:50%;bottom:8px;width:20px;height:5px;margin-left:-10px;border-radius:3px;background:#FFFFFF;}
+.ra-text{font-size:32px;font-weight:800;color:#FFFFFF;text-shadow:0 3px 0 #1F6FC9,0 6px 14px rgba(0,40,120,.3);}
+@keyframes raTurn{0%,15%{transform:rotate(0deg);}45%,80%{transform:rotate(-90deg);}100%{transform:rotate(0deg);}}
+/* [loading] a slide whose own files are still on their way (app.js Assets.whenSlide): a quiet spinner after 300ms */
+.asset-wait{position:fixed;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;z-index:99990;display:none;
+  pointer-events:none;border:6px solid rgba(25,135,252,.2);border-top-color:#1987FC;animation:awSpin .8s linear infinite;}
+.asset-wait.show{display:block;}
+@keyframes awSpin{to{transform:rotate(360deg);}}
+
+/* ===== HEADER (constant chrome) ===== */
+.header-row{position:relative;flex-shrink:0;height:150px;}   /* r4/F6 DS header band */
+.prompt-band{position:absolute;top:var(--band-top);left:var(--band-left);width:var(--band-w);height:var(--band-h);background:var(--band-bg);border:var(--band-border) solid var(--band-edge);border-radius:var(--band-radius);display:flex;align-items:center;justify-content:flex-start;padding:0 var(--band-pad-r) 0 var(--band-pad-l);z-index:1;box-shadow:0 3px 0 rgba(11,61,140,.05);}
+.prompt-band .prompt-text{font-weight:800;font-size:var(--band-font);color:var(--navy);letter-spacing:.2px;line-height:1.15;text-align:left;}
+/* volume/audio chip — RIGHT side of the header (the dynamic Swiftie now owns the left) */
+.audio-chip{position:absolute;top:var(--chip-top);left:var(--chip-left);width:var(--chip-size);height:var(--chip-size);z-index:41;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,.22));transition:transform .12s;border-radius:50%;background:transparent;border:none;display:flex;align-items:center;justify-content:center;padding:0;}
+.audio-chip img{width:100%;height:100%;object-fit:contain;}
+.audio-chip:hover{transform:scale(1.06);}
+.audio-chip:active{transform:scale(.95);}
+.audio-chip.playing{animation:audioPulse 1s ease-in-out infinite;}
+@keyframes audioPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+.hint-btn{position:absolute;top:var(--hint-top);right:var(--hint-right);width:var(--hint-size);height:var(--hint-size);background:transparent;border:none;cursor:pointer;transition:transform .15s,opacity .25s;z-index:5;visibility:hidden;opacity:0;display:flex;align-items:center;justify-content:center;padding:0;}
+.hint-btn img{width:100%;height:100%;object-fit:contain;}
+.hint-btn.show{visibility:visible;opacity:1;animation:hintPop .35s cubic-bezier(.34,1.5,.6,1);}
+@keyframes hintPop{from{transform:scale(.4);opacity:0;}to{transform:scale(1);opacity:1;}}
+.hint-btn:hover{transform:scale(1.05);} .hint-btn:active{transform:scale(.96);}
+.hint-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ===== SLIDE STAGE (changes per slide) =====
+   Activity area keeps a 150px gap on left & right (matches Q-format reference)
+   so content sits centred with breathing room, never edge-to-edge. */
+.slide-stage{flex:1;min-height:0;overflow:hidden;position:relative;padding:6px 150px 100px;display:flex;align-items:stretch;justify-content:center;}
+.slide-host{flex:1;min-height:0;display:flex;flex-direction:column;gap:18px;}
+
+/* === INTRO slide === */
+/* INTRO parade eases out of the 150px activity gap so the letter tiles can be larger */
+/* tapped (heard) → turns green */
+
+/* === MEET_LETTER slide === */
+
+/* === TAP / OPTIONS === */
+.q-row{display:flex;flex-direction:column;align-items:center;gap:24px;flex:1;min-height:0;}
+
+/* cards are compact + centred (not stretched to full height/width) */
+.opt-grid{display:grid;gap:20px;flex:1;min-height:0;width:100%;max-width:1100px;align-items:center;align-content:center;justify-content:center;}
+/* every option box is a white tile with a SOFT (blurred) shadow-border, no hard outline — Figma look */
+.opt-cell{background:#fff;border:2px solid #EEF3FA;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:transform .15s,border-color .15s,background .15s,box-shadow .15s;padding:12px;min-height:210px;box-shadow:0 12px 28px rgba(11,61,140,.14),0 2px 6px rgba(11,61,140,.06);}
+.opt-cell:hover{transform:translateY(-3px);border-color:var(--selected);box-shadow:0 8px 20px rgba(56,106,246,.18);}
+.opt-cell.correct{border-color:var(--correct);background:var(--correct-bg);box-shadow:0 5px 10px rgba(0,177,50,.15);}
+.opt-cell.wrong{border-color:var(--wrong);background:var(--wrong-bg);box-shadow:0 5px 10px rgba(245,165,36,.15);}
+.opt-cell .lbl{font-size:22px;font-weight:700;color:var(--navy);margin-top:4px;}
+
+/* === DRAG / DROP === */
+/* drag stage eases out of the 150px gap + single rows so 6 items fit, never clip.
+   No width:100% — let it stretch as a flex item so the -90px margins expand it
+   symmetrically (with width:100% the negative margins only shift it left). */
+/* Kit drag/drop zone design: dashed border, colored fill */
+/* dropped letter = small green corner badge — clear of the picture & neighbours */
+
+/* sequence slots */
+
+/* ===== GENDER skill (पुल्लिंग / स्त्रीलिंग) =====
+   Two NEUTRAL, non-gendered category colours (teal + purple) — deliberately NOT
+   blue/pink, to avoid boy/girl colour stereotyping. They only distinguish the two
+   categories for sorting; the noun pictures carry no colour cue. */
+
+/* MEET gender: picture box → gender badge */
+
+/* gender OPTION label cell (used inside .opt-cell) */
+
+/* gender-label STIMULUS (pick-the-picture-by-gender) */
+
+/* SORT into two gender bins */
+
+/* SHAPES (maths) — geometry rendered as SVG; mirrors the letter/picture chrome */
+/* container outline kept FAINT/light so the child focuses on the geometric shape
+   inside — a strong square-ish box border was being mistaken for a shape itself */
+/* shape name revealed on tap — sits on TOP of the shape (hear it + see it).
+   Height is always reserved so the shape doesn't jump when the name appears. */
+/* same faint/light box as the intro (slide-1) tiles, so the shape stays the focus */
+.opt-cell .shape-svg{filter:drop-shadow(0 3px 4px rgba(0,0,0,.10));}
+
+/* SHAPE SORT — clean, roomy bins (scoped so the Hindi gender-sort is untouched):
+   faint reference shape + label INSIDE a header, a generous drop area, small snapped
+   tiles that sit neatly in the box, and a clear gap down to the source tray. */
+
+/* COUNTING (maths) — tap-to-count OTO, cardinality, meet-number, make-set */
+.count-item{position:relative;width:190px;height:190px;border-radius:26px;background:#FBFDFF;border:2px solid #E7EEF8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s,background .15s;box-shadow:0 5px 12px rgba(11,61,140,.07);}
+.count-item:hover{transform:translateY(-3px);box-shadow:0 9px 18px rgba(11,61,140,.13);}
+.count-item.counted{background:#F0FBF4;border-color:#BEE9CC;}
+.count-item .count-badge{position:absolute;top:-16px;right:-16px;min-width:54px;height:54px;padding:0 8px;border-radius:999px;background:#00B132;color:#fff;font-family:var(--font-hi);font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,120,45,.35);opacity:0;transform:scale(.4);transition:opacity .18s,transform .18s;}
+.count-item.counted .count-badge{opacity:1;transform:scale(1);}
+
+/* cardinality set (stimulus) — larger, roomier */
+/* objects always in a SINGLE row (no wrap → no lopsided 3+1 layouts). Extra top
+   padding leaves room for the count-demo number badges to sit INSIDE the box. */
+/* the count stimulus is a FLAT illustration panel (no shadow/raised-card look) so it never reads as a
+   tappable answer button — only the gold-bordered option cards below are tappable */
+.count-set{display:flex;flex-wrap:nowrap;gap:18px;justify-content:center;align-items:center;max-width:none;padding:44px 32px 24px;border-radius:26px;background:rgba(255,255,255,.5);border:none;box-shadow:none;}   /* no callouts here → symmetric */
+/* ---- COMPARE_SETS (one-to-one matching → ज़्यादा / कम / बराबर) ---- */
+/* TEACH-by-doing count: the not-yet-counted objects in the active row invite a tap; counted ones settle */
+/* compare answer chips: shorter than the default 210px cells so the stimulus + chips fit one screen */
+/* MEET_COMPARE — teaching verdict badge (ज़्यादा / कम / बराबर) */
+/* MAKE_EQUAL — see-saw balance (produce equality) */
+.balance{position:relative;width:min(640px,94%);height:300px;margin:0 auto;}
+
+/* ============ VISUAL THEME — "Sunny Toybox" (opt-in via CARD.theme='toybox') ============
+   Scoped under .stage.thm-toybox. It styles the CARDS / see-saw only (warm borders, depth, bigger
+   targets) — it MUST NOT touch the stage background. The background is the single --bg token on EVERY
+   screen, themed or not; a theme that re-tints the stage (gradient / decor wash) is the exact bug we
+   kept chasing, so it is now pinned to --bg. */
+.stage.thm-toybox{ background:var(--bg); }   /* identical off-white to the base stage — no gradient, no colour dots */
+
+/* the two groups sit on a soft cream play-card with depth. NB: COMPARE_SETS shows this card AND the
+   answer cards on one screen, so the vertical budget is tight — keep these modest (bigger than base,
+   but small enough that card + options never overflow into each other). Verified by screenshot. */
+
+/* option cards: warm, springy, a touch bigger than base — but sized to co-exist with the play-card */
+.stage.thm-toybox .opt-cell{ background:#FFFDF7; border-color:#F7C24D; border-radius:28px;
+   box-shadow:0 10px 22px rgba(214,140,20,.18); }
+.stage.thm-toybox .opt-cell:hover{ transform:translateY(-5px) scale(1.02); }
+.stage.thm-toybox .opt-grid{ gap:30px; }
+
+/* teaching verdict badge: a touch grander */
+
+/* see-saw: warm wooden plank + friendly pans, scaled up */
+.stage.thm-toybox .balance{ width:min(720px,96%); height:320px; }
+/* an EMPTY pan (the right one at start) must not read as a broken/missing image — show a friendly
+   dashed "add here" drop-zone with a faint + so the child knows something goes there */
+
+/* ---- Patterns: MEET_PATTERN (teach) + PATTERN_BUILD (extend / fill-the-gap) ---- */
+/* CONSERVE_COUNT (S03): the counted items drift to new spots — same objects, same total */
+/* DENSE large sets (S04, counts up to 20; auto above 10 or with data.per_row rows-of-N grouping) */
+.count-set.dense{flex-wrap:wrap;max-width:700px;gap:12px;padding:22px 26px 16px;}
+/* ===== S02 (SME 20-question spec) count arrangements + themed actions + drag-match ===== */
+/* themed tap-count (pop / feed / basket) */
+/* count-then-drag-a-number-card (num_to_box / obj_to_num) */
+/* ===== S02 counting refinements (SME S01 review deck) ===== */
+/* test-phase numeral options: the NUMBER alone, larger (fingers are a tutorial aid only) */
+/* scattered count-set (misconception: "total changes when objects move") — jitter via inline transform */
+/* PICK_SET_BY_NUMBER — a big numeral stimulus + object-SET option cards */
+/* landing: TITLE first, image below and smaller (SME) */
+.sg-content.title-first #sgHero{order:2;}
+.sg-content.title-first .sg-title{order:1;}
+.sg-content.title-first .sg-hand{width:84px;height:84px;}
+.sg-content.title-first .sg-hand-num{font-size:30px;}
+/* ============= NUMBER-SEQUENCE PATH — नंबर क्रम (MTKGA01_L02_S04) ============= */
+/* additive: MEET_SEQUENCE (teach hop) · SEQUENCE_COMPLETE (fill the gap) · SEQUENCE_NEXT (pick). */
+/* ============= ORDERING / SERIATION — क्रम में लगाओ (MTKGA02_L02_S02) ============= */
+/* additive: MEET_ORDER (teach) · ORDER_BY_ATTR (order small→big) · PICK_EXTREME (tap the most). */
+.ord-pick.shake{animation:shake .4s;}
+.ord-obj-img{object-fit:contain;display:block;}
+.ord-obj-emoji{line-height:1;display:inline-block;}
+.ord-bar{border-radius:12px;height:46px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.14),0 3px 8px rgba(0,0,0,.12);}
+.ord-pick{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;}
+.ord-pick .lbl{font-family:var(--font-hi);font-weight:700;font-size:22px;color:var(--navy);}
+/* balance-scale weighing (ORDER_BY_WEIGHT — weight seriation via evidence, not looks) */
+/* weight variant runs compact so scale + strip + tray all fit the 1333×750 stage */
+/* ================= BLOCK TOWN — गिनो और बनाओ (flagship) ================= */
+/* each countable object is wrapped so the hint-demo can highlight it + badge it */
+
+/* MEET number intro: link "1"↔"🍎" — the numeral card glows + bounces, then (0.55s
+   later, following the VO "एक … सेब") the object glows + bounces. Lively, kid-friendly. */
+
+/* numeral option card */
+.opt-cell .num-glyph{font-family:var(--font-hi);font-size:104px;font-weight:800;color:var(--navy);line-height:1;}
+
+/* meet-number box (numeral + word) */
+
+/* make-set (productive counting) */
+/* VISUAL-FIRST finger-count art (pre-reader quantity visual — a hand showing N fingers) */
+/* DUAL-CODED counting option: big numeral on top, smaller supporting finger-hand below */   /* the NUMBER is the hero — it's what they're learning */  /* hand = small supporting anchor */
+/* landing hero — SHOW the concept on the start screen (shapes row / finger-hand / image) */
+.sg-hero{display:none;align-items:center;justify-content:center;gap:18px;margin-bottom:4px;}
+.sg-hero.show{display:flex;}
+.sg-art .sg-hand{width:112px;height:112px;object-fit:contain;}
+.sg-art .sg-hand-cell{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.sg-art .sg-hand-num{font-size:40px;font-weight:800;line-height:1;color:#0B3D8C;}
+.sg-hero img{height:118px;width:auto;object-fit:contain;}
+.sg-hero svg{filter:drop-shadow(0 3px 4px rgba(0,0,0,.12));}
+.sg-title.compact{font-size:42px;}
+/* ===== STORY (picture-story scenes + comprehension questions) — ported into the unified engine ===== */   /* top-anchored so the caption lands mid-stage, clear of the centered आगे button */
+.opt-cell.correct{position:relative;}
+.opt-cell.correct::after{content:"\2713";position:absolute;top:-14px;right:-14px;width:64px;height:64px;border-radius:50%;background:#00B132;color:#fff;font-size:38px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,120,45,.38);border:5px solid #fff;z-index:5;line-height:1;}
+/* ===== TAP-IN-SCENE ("tap the thing in the picture" — produce-style comprehension, NOT MCQ) ===== */
+/* layered-hint reveal states (A1/B2): dim the non-answers, calmly spotlight the correct one */
+.opt-cell.faded{opacity:.35;filter:saturate(.6);pointer-events:none;transition:opacity .3s,filter .3s;}
+.opt-cell.reveal-pulse{animation:revealPulse 1.1s ease-in-out 2;}
+@keyframes revealPulse{0%,100%{box-shadow:0 5px 12px rgba(0,177,50,.15);}50%{box-shadow:0 0 0 6px rgba(0,177,50,.28),0 10px 24px rgba(0,177,50,.30);}}
+/* hero present: drop the descriptive subtitle (visual-first) + lift the block clear of the start button */
+.sg-content.has-hero{margin-bottom:206px;}
+/* SOLID soft tray (NOT a dashed border — dashed reads as a drag-drop zone, but items only arrive via the add button) */
+/* × to remove an added item (discoverable); hidden while the count-demo runs */
+/* the add button SHOWS the object it adds (＋🍎) so a pre-reader knows what one tap places */
+/* the goal chip shows the OBJECT (डालो 2 🍎), not just a quantity */
+
+/* MATCH gender pairs — masculine picture tiles (bigger than letter tiles) */
+
+/* ===== NAV BUTTON — kit visual style (yellow pill) + Hindi label ===== */
+/* r4/F4: flat CTA pill — #FCB717, white border, kit INSET bevel (never a gradient) */
+.nav-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;font-family:var(--font-hi);font-weight:800;font-size:28px;color:#C2C2C2;background:#EDEDED;border:4.54px solid #FFFFFF;border-radius:44.56px;padding:10px 36px;min-width:186px;height:64px;cursor:not-allowed;transition:transform .15s,background .2s,color .2s,box-shadow .2s;box-shadow:0 6px 6px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;gap:10px;}
+.nav-btn.active{background:#FCB717;color:var(--navy);cursor:pointer;box-shadow:0 6px 6px rgba(0,0,0,.25), inset 4.54px 9.09px 12.12px rgba(255,255,255,.25), inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);}
+.nav-btn.active:hover{transform:translateX(-50%) translateY(-2px);} .nav-btn.active:active{transform:translateX(-50%) translateY(3px);box-shadow:0 3px 3px rgba(0,0,0,.25), inset 4.54px 9.09px 12.12px rgba(255,255,255,.25), inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);}
+.nav-btn::after{content:"→";font-size:28px;}
+
+/* ===== HINT / FEEDBACK OVERLAY — kit-style card + clean Swiftee ===== */
+/* CORRECT/celebration popup: SAME box + SAME mascot size as every other popup
+   (mascot keeps the default .hint-mascot 240px) — just centre it (no text here). */
+
+/* ===== BOOT LOADER — [engine CSS] r4/P2: white boot screen, self-dismisses (no tap gate) ===== */
+.boot-loader{position:fixed;inset:0;z-index:9999;background:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;}
+.boot-loader img{width:118px;height:118px;object-fit:contain;}   /* 118px = HI01H01_L02_S04 loader size (was 150px, read too big) */
+.boot-loader.done{opacity:0;pointer-events:none;transition:opacity .4s ease;}
+
+/* ===== TAP-TO-START GATE — uses provided title-screen art ===== */
+.start-gate{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:#47BCFD url("assets/startnew_bg_plain.webp") center/cover no-repeat;cursor:pointer;}
+.start-gate.hidden{display:none;}
+/* inner white tile is the provided image (border + faint rays baked in) */
+.sg-card{position:relative;width:1114px;height:456px;background:url("assets/start_card.webp") center/100% 100% no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+/* full-body standing mascot (feet included): size by HEIGHT so the whole body incl. feet shows;
+   the art frame is square with side padding, so it's constrained to the card height, not width. */
+.sg-mascot{position:absolute;left:8px;bottom:6px;height:230px;width:auto;z-index:3;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,47,118,.14));animation:sgFloat 2.6s ease-in-out infinite;}
+@keyframes sgFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+/* title block in the upper area, clear of the start-button image below */
+.sg-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:760px;text-align:center;margin-bottom:150px;}
+.sg-title{font-weight:800;font-size:60px;color:var(--navy);line-height:1.1;}
+/* r4: landing concept strip — SHOW the 3 ordering concepts (size/length/weight) as images, not words (Shruti pattern) */
+.sg-art{display:flex;gap:46px;align-items:flex-end;justify-content:center;margin-top:10px;}
+/* r4/P4: staggered pop-in — paused until body.loaded (set when the boot loader dismisses) */
+.sg-acell{display:flex;flex-direction:column;align-items:center;gap:6px;animation:fingerPop .5s cubic-bezier(.34,1.5,.6,1) both;animation-play-state:paused;}
+body.loaded .sg-acell{animation-play-state:running;}
+.sg-acell:nth-child(1){animation-delay:.15s;}
+.sg-acell:nth-child(2){animation-delay:.60s;}
+.sg-acell:nth-child(3){animation-delay:1.05s;}
+@keyframes fingerPop{0%{opacity:0;transform:scale(.2);}70%{opacity:1;transform:scale(1.18);}100%{opacity:1;transform:scale(1);}}
+.sg-acell img{width:106px;height:106px;object-fit:contain;filter:drop-shadow(0 5px 7px rgba(0,47,118,.16));}
+/* r4: concept-strip visual examples (words dropped) — each tile previews the ordering task itself */
+.sg-ex{height:106px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 5px 7px rgba(0,47,118,.16));}
+.sg-ex-size{align-items:flex-end;gap:9px;}
+.sg-ex-size .sg-disc{border-radius:50%;background:#4EA3F0;border:3px solid #2C7BD1;flex:0 0 auto;}
+.sg-ex-len{flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;width:110px;}
+.sg-ex-len .sg-bar{height:18px;border-radius:9px;background:#F5A623;border:2.5px solid #D98C14;}
+.sg-ex-wt svg{width:122px;height:106px;display:block;}
+/* start button = provided image (button + tapping hand), transparent bg */
+.sg-btn{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:4;font-family:var(--font-hi);font-weight:800;font-size:32px;color:var(--navy);background:#FCB717;border:4.54px solid #fff;border-radius:44.56px;padding:14px 54px;cursor:pointer;box-shadow:0 6px 6px rgba(0,0,0,.25), inset 4.54px 9.09px 12.12px rgba(255,255,255,.25), inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);animation:sgBtnPulse 1.4s ease-in-out infinite;}
+.sg-btn img{width:100%;height:auto;display:block;pointer-events:none;}
+.sg-btn:active{transform:translateX(-50%) translateY(3px);}
+@keyframes sgBtnPulse{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.03);}}
+/* landing "listen" button — a warm welcome plays on the title screen; tap to replay */
+.sg-vo{position:absolute;left:150px;bottom:34px;z-index:5;width:58px;height:58px;background:none;border:none;padding:0;cursor:pointer;animation:sgVoPulse 1.5s ease-in-out infinite;}
+.sg-vo img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;}
+.sg-vo:active{transform:scale(.92);}
+@keyframes sgVoPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.09);}}
+
+/* ===== NUDGE HAND — kit asset ===== */
+.nudge-hand{position:absolute;width:96px;height:96px;z-index:55;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.22));animation:nudgeMove 1s ease-in-out infinite;display:none;}
+.nudge-hand img{width:100%;height:100%;object-fit:contain;}
+.nudge-hand.show{display:block;}
+@keyframes nudgeMove{0%,100%{transform:translateY(2px);}50%{transform:translateY(-14px);}}
+
+/* ===== END / CELEBRATION ===== */
+.end-screen{position:absolute;inset:0;z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:transparent;overflow:hidden;}
+/* r4: immersive celebration (adopted from Shruti's build — end_screen.webp sunburst + centred mascot + subtitle) */
+.end-bg{position:fixed;inset:0;background:#FDE9A8 url("assets/end_screen.webp") center/cover no-repeat;display:none;pointer-events:none;z-index:0;}
+body.is-end .end-bg{display:block;}
+body.is-end{background:#FDE9A8 !important;}
+body.is-end .stage{background:transparent !important;}
+body.is-end .stage-inner{visibility:hidden;}
+.end-subtitle{font-weight:800;font-size:28px;color:var(--navy);text-align:center;z-index:3;margin:0 0 4px;}
+.end-subtitle:empty{display:none;}
+.end-screen .end-title{font-size:56px;color:var(--navy-dk);}
+.end-screen .end-mascot{width:330px;z-index:2;}
+/* [end swifty] as hindi-game-gender-identify: 330 px, and no shadow ([H11-193]: his open arms reach the picture's edges,
+   so a drop-shadow was cut by its box and showed as a faint rectangle behind him) */
+.end-mascot,.end-screen .end-mascot{width:330px !important;}
+.end-screen .end-mascot{filter:none !important;}
+.end-screen.show{display:flex;}
+.end-title{z-index:3;font-family:var(--font-hi);font-weight:800;font-size:44px;color:#0B3D8C;text-align:center;max-width:78%;line-height:1.25;text-shadow:0 2px 0 rgba(255,255,255,.7);animation:endPop .5s cubic-bezier(.34,1.5,.6,1);}
+.end-title:empty{display:none;}
+.end-mascot{width:240px;height:auto;object-fit:contain;font-size:200px;line-height:1;filter:drop-shadow(0 12px 22px rgba(0,47,118,.22));animation:endPop .55s cubic-bezier(.34,1.5,.6,1);z-index:2;}
+@keyframes endPop{from{transform:scale(.4);opacity:0;}to{transform:scale(1);opacity:1;}}
+/* "आगे बढ़ें" appears only after the celebration VO finishes */
+.end-btn{display:none;z-index:3;font-family:var(--font-hi);font-weight:800;font-size:28px;color:var(--navy);background:#FCB717;border:4.54px solid #FFFFFF;border-radius:44.56px;padding:14px 44px;cursor:pointer;box-shadow:0 6px 6px rgba(0,0,0,.25), inset 4.54px 9.09px 12.12px rgba(255,255,255,.25), inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);}
+.end-btn.show{display:inline-flex;align-items:center;animation:hintPop .4s cubic-bezier(.34,1.5,.6,1);}
+.end-btn:active{transform:translateY(3px);box-shadow:0 3px 3px rgba(0,0,0,.25), inset 4.54px 9.09px 12.12px rgba(255,255,255,.25), inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1;}
+.confetti i{position:absolute;top:-24px;width:12px;height:18px;border-radius:2px;opacity:.95;animation:confettiFall linear infinite;}
+@keyframes confettiFall{0%{transform:translateY(-24px) rotate(0);}100%{transform:translateY(820px) rotate(720deg);}}
+/* ---- game-feel: slide entrance + success sparkle particles + correct pop ---- */
+.slide-in{animation:slideIn .34s cubic-bezier(.2,.85,.3,1) both;}
+@keyframes slideIn{from{opacity:0;transform:translateY(16px) scale(.985);}to{opacity:1;transform:none;}}
+.opt-cell.correct{animation:correctPop .45s cubic-bezier(.3,1.4,.5,1);}
+@keyframes correctPop{0%{transform:scale(1);}45%{transform:scale(1.08);}100%{transform:scale(1);}}
+/* ---- feedback v2 (lead review): tap-to-answer cross+buzz · side confetti · dynamic Swiftie ---- */
+.opt-cell.crossed{opacity:.5;pointer-events:none;border-color:var(--wrong);background:var(--wrong-bg);position:relative;animation:buzzShake .4s;}
+.opt-cell.crossed::after{content:"\2715";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:110px;font-weight:900;color:rgba(226,32,44,.9);}
+@keyframes buzzShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-9px);}40%{transform:translateX(9px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}}
+.conf-shot{position:absolute;width:11px;height:15px;border-radius:2px;z-index:70;pointer-events:none;animation:confShot 1.1s cubic-bezier(.15,.6,.4,1) forwards;}
+@keyframes confShot{0%{transform:translate(0,0) rotate(0);opacity:1;}80%{opacity:1;}100%{transform:translate(var(--tx),var(--ty)) rotate(560deg);opacity:0;}}
+@keyframes swPop{0%{transform:scale(1);}40%{transform:scale(1.13) rotate(-3deg);}100%{transform:scale(1);}}
+
+/* ===== DEV VALIDATOR BANNER ===== */
+.dev-banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:99;background:#1a1a1a;color:#ff7;font-family:monospace;font-size:12px;padding:6px 12px;border-radius:6px;display:none;max-width:80%;}
+.dev-banner.show{display:block;}
+.dev-banner.ok{color:#7fff7f;}
+
+/* ===== PHASE TRANSITION (additive full-screen beat between arc phases — the "learning journey") ===== */
+.phase-transition{width:100%;min-height:100%;flex:1;align-self:stretch;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:30px;border-radius:28px;
+  background:radial-gradient(circle at 50% 38%,#EAF4FF 0%,var(--band-bg) 55%,#CFE6FF 100%);
+  animation:slideIn .34s cubic-bezier(.2,.85,.3,1) both;}
+
+/* ===== PHASE-TRANSITION PEEK GATE — [engine CSS] r4/P1 (Shruti's peek beat; kept ALONGSIDE our journey-map above) =====
+   Overlay (not a frame): blur the stage behind, Swiftie peeks up from the BOTTOM, a big magenta headline over it.
+   NB: our stage self-contains landing+slides (no fixed .start-bg sibling), so the wash lives INSIDE the 1333×750
+   stage (inset:0) → no letterbox seam, no body-level ::after needed. */
+.phase-gate{position:absolute;inset:0;z-index:85;display:none;align-items:flex-end;justify-content:center;background:rgba(242,247,250,.6);cursor:default;}
+.phase-gate.show{display:flex;}
+/* NB: superseded — the winning #phaseGateImg rule is the body-level gate further down
+   ("phase gate: full-viewport"). Size and motion are tuned THERE, not here. */
+.phase-gate #phaseGateImg{height:172px;width:auto;display:block;pointer-events:none;}
+.stage.gating .header-row{visibility:hidden;}          /* header hides while the gate is up */            /* one-Swiftie: the peeking Swiftie is the only one during a gate */
+/* magenta headline with a thick white stroke (Lilita One if present, else Baloo 2 fallback) */
+.pg-title{position:absolute;top:271px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  font-family:'Lilita One',var(--font-hi);font-weight:800;font-size:96px;line-height:1;
+  letter-spacing:0;text-align:center;color:#CD0FD5;
+  -webkit-text-stroke:10px #FFFFFF;paint-order:stroke fill;}
+.pg-title:empty{display:none;}
+/* First gate (landing → tutorial): the landing lives INSIDE the stage (not stage-inner), so blur it
+   directly; the wash above gives the frosted look, Swiftie + headline stay sharp on top. */
+.stage.gating .start-gate{filter:blur(5px);pointer-events:none;}
+
+/* ===== TEACHING / TUT-CARD FRAME — [engine CSS] r4/F1 (grid-paper teaching card) =====
+   Routed by mountSlide when slide.phase==='tutorial' (type-agnostic). Header hidden; prompt lives IN
+   the card; the full standing Swiftie straddles the bottom-left corner with a shoulder audio chip. */
+.stage.tut{background:#FFFFFF;}
+body.tut-page{background:#FFFFFF;}
+.stage.tut .header-row{display:none;}          /* header avatar off — the tut-mascot is the only Swiftie */
+.stage.tut .slide-stage{padding:64px 100px 22px;}
+.tut-card{flex:1;min-height:0;position:relative;border:10px solid #50AAF2;border-radius:34px;
+  background-color:#F2F7FA;
+  background-image:linear-gradient(to right,rgba(111,150,216,.16) 1.5px,transparent 1.5px),
+                   linear-gradient(to bottom,rgba(111,150,216,.16) 1.5px,transparent 1.5px);
+  background-size:46px 46px;
+  box-shadow:0 6px 18px rgba(11,61,140,.10);
+  display:flex;flex-direction:column;overflow:visible;}
+.tut-prompt{flex-shrink:0;min-height:92px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-weight:800;font-size:52px;color:var(--navy);padding:12px 60px 0;line-height:1.2;}
+.tut-content{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:0 30px;}
+.tut-card::after{content:"";flex-shrink:0;height:96px;}    /* reserves room for the straddling mascot */
+.tut-mascot{position:absolute;left:-34px;bottom:-14px;height:190px;width:auto;z-index:3;pointer-events:none;}
+.tut-audio{position:absolute;left:96px;bottom:-16px;width:58px;height:58px;z-index:4;cursor:pointer;}
+.tut-audio img{width:100%;height:100%;display:block;object-fit:contain;filter:drop-shadow(0 3px 6px rgba(0,0,0,.22));}
+.tut-audio.playing{animation:audioPulse 1s ease-in-out infinite;}   /* r4/F1: pulse while VO plays (shares setPlaying's .playing toggle) */
+.stage.tut .nav-btn{left:50%;right:auto;bottom:26px;transform:translateX(-50%);}
+
+/* ===== REVEAL GLOW (shared by the drag/sort/pattern reveal-on-max scaffolds: "watch — it goes HERE") ===== */
+
+/* ===== [16h] DEMO_COUNT — Phase-1 autonomous counting demo (lead's 3-phase contract) ===== */
+
+/* [16h] DEMO_COUNT per_row (teens read as ten-and-ones inside the tut frame) */
+
+/* ==========================================================================
+   LAYOUT PARITY WITH HI01H01_L02_S04_dist
+   Every rule below is copied verbatim from that build (line numbers noted).
+   Appended, not merged: this stylesheet is an append-only patch stack and a
+   later rule wins (R11). Two HI01 rules are deliberately NOT copied - see the
+   note at the end of this block.
+   ========================================================================== */
+
+/* --- tokens: HI01 header + mascot geometry (HI01 :root, lines 18 / 40-41) --- */
+:root{
+  --mascot-left:16.5px; --mascot-top:18px; --mascot-size:132px;
+  --chip-size:66px; --chip-left:100px; --chip-top:84px;
+  --hint-top:55px; --hint-right:50px; --hint-size:66px;
+}
+
+/* --- landing ground: body-level fixed layer (HI01 1117-1118) --- */
+.start-bg{position:fixed;inset:0;background:#47BCFD url("assets/startnew_bg_plain.webp") center/cover no-repeat;display:none;pointer-events:none;z-index:0;}
+body.is-start .start-bg{display:block;}
+
+/* --- speaker chips: inline-SVG sizing + the sound-wave arcs (HI01 1072-1083) --- */
+.audio-chip svg{width:100%;height:100%;display:block;}
+.sg-vo svg{width:100%;height:100%;display:block;}
+.audio-chip .wv{opacity:1;}
+.sg-vo .wv{opacity:1;}   /* [20a] was opacity:1 !important — that froze the arcs and BLOCKED the wave animation (Yasir: landing button static). No !important so the wv1/wv2 keyframes can toggle opacity like the in-lesson chip. */
+.audio-chip.playing .wv1{animation:wv1 1.2s steps(1) infinite;}
+.audio-chip.playing .wv2{animation:wv2 1.2s steps(1) infinite;}
+.sg-vo.playing .wv1{animation:wv1 1.2s steps(1) infinite;}
+.sg-vo.playing .wv2{animation:wv2 1.2s steps(1) infinite;}
+.tut-audio.playing .wv1{animation:wv1 1.2s steps(1) infinite;}
+.tut-audio.playing .wv2{animation:wv2 1.2s steps(1) infinite;}
+@keyframes wv1{0%{opacity:0;}33%{opacity:1;}100%{opacity:1;}}
+@keyframes wv2{0%{opacity:0;}66%{opacity:1;}100%{opacity:1;}}
+
+/* [20a VA-5] wave arcs visible at rest on every speaker chip (HI01 1106).
+   NB this LATER rule is what actually renders in HI01 - it pins the arcs on and
+   stops wv1/wv2 cycling. Copied so MTG matches HI01's rendered look exactly. */
+.audio-chip .wv,.tut-audio .wv,.sg-vo .wv{opacity:1;animation:none;}
+
+/* --- hint button: HI01's blue gradient disc + bulb rays (HI01 67-72, 1099-1103) --- */
+.hint-btn{position:absolute;top:var(--hint-top);right:var(--hint-right);width:var(--hint-size);height:var(--hint-size);background:linear-gradient(90deg,#1987FC,#1565F4);border:4px solid #FFFFFF;border-radius:50%;box-shadow:0 4px 4px rgba(0,0,0,.25);cursor:pointer;z-index:5;visibility:hidden;opacity:0;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .15s,opacity .25s;}
+.hint-btn svg{width:auto;height:58%;overflow:visible;display:block;}
+.hint-btn.show{visibility:visible;opacity:1;animation:hintPop .35s cubic-bezier(.34,1.5,.6,1);}
+/* HI01's line 70 redefines @keyframes hintPop here, byte-identical to this file's
+   own copy at line 52. Dropped rather than copied - a second identical definition
+   is exactly the duplication the kit flags (audioPulse ships 14x across the fleet). */
+.hint-btn:active{transform:scale(.96);}
+.hint-btn:disabled{opacity:.4;cursor:not-allowed;}
+.hint-btn .bulb-rays{opacity:0;}
+.hint-btn.hint-glow .bulb-rays{opacity:1;animation:bulbRays 1.1s ease-in-out infinite;}
+.hint-btn.hint-glow .bulb{filter:drop-shadow(0 0 6px #fff);}
+@keyframes bulbRays{0%,100%{opacity:.25}50%{opacity:1}}
+.hint-btn.hint-glow:disabled{opacity:1;}
+
+/* --- mascot: HI01's circle-avatar structure (HI01 881-883, 887-888, 921, 942) --- */
+.mascot-wrap{position:absolute;left:var(--mascot-left,16.5px);top:var(--mascot-top,18px);width:var(--mascot-size,132px);height:var(--mascot-size,132px);z-index:40;cursor:pointer;}
+.mascot-circle{width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;background:#9DDBF5;border:4px solid #FFFFFF;box-shadow:0 6px 14px rgba(0,47,118,.20);}
+.mascot-img{width:100%;height:100%;display:block;object-fit:cover;}
+.mascot-wrap.anim .mascot-circle{overflow:visible !important;background:transparent !important;border:none !important;box-shadow:none !important;}
+.mascot-wrap.anim .mascot-circle .mascot-img{position:static !important;inset:auto !important;width:100% !important;height:auto !important;object-fit:contain !important;transform:none !important;}
+.stage.gating .mascot-wrap{visibility:hidden;}            /* one-Swiftie: the peeking Swiftie is the only one during a gate */
+.stage.tut .mascot-wrap{display:none;}          /* header avatar off — the tut-mascot is the only Swiftie */
+/* KEPT FROM MTG, not from HI01: MTG's setSwMood() pops the avatar on every
+   reaction via .react, and HI01 has no equivalent rule. Renaming the wrapper to
+   .mascot-wrap would have silently dropped a working animation, so the existing
+   swPop is re-pointed at the new class rather than lost. */
+.mascot-wrap.react{animation:swPop .5s cubic-bezier(.34,1.5,.5,1);}
+
+/* --- landing subtitle line (HI01 796, 1058) --- */
+
+/* --- landing VO chip placement (HI01 821-824) --- */
+.sg-vo{position:absolute;left:96px;bottom:-16px;z-index:5;width:58px;height:58px;background:none;border:none;padding:0;cursor:pointer;animation:none;}   /* [25d] left:96/bottom:-16 = strilling's winning rule (its line 1106, !important) — "foot/leg line, moderate ~85px overlap". animation:none pinned explicitly to match strilling line 5601; only the wv1/wv2 sound-wave arcs animate, and only while playing. */
+.sg-vo img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;}
+.sg-vo:active{transform:scale(.92);}
+
+/* --- phase gate: full-viewport, body-level (HI01 916-918, 923-927, 1247-1256) --- */
+.phase-gate{position:fixed;inset:0;width:100vw;height:100dvh;z-index:100000;overflow:hidden;display:none;align-items:flex-end;justify-content:center;background:rgba(57,55,55,.6);backdrop-filter:blur(15.8px);-webkit-backdrop-filter:blur(15.8px);cursor:default;}
+.phase-gate.show{display:flex;}
+/* [peek-2] Swiftie roughly doubled (26vh -> 52vh, i.e. ~172 -> ~390 design px of the 750-tall
+   stage). Her head now clears the bottom edge by ~40% of the viewport instead of ~18%, which
+   is what "she comes up more" means here: she stays ANCHORED to that edge, because the clip is
+   a peek OVER it - lift her off and the ledge she leans on floats in mid-air. The negative
+   margin only pulls off the ~3.6% of empty canvas the clip keeps below that ledge, so it sits
+   on the edge rather than a dozen px above it. */
+/* [peek-3] 52vh -> 44vh. The headline is a flat 271px/96px and does NOT scale, so
+   on a short viewport Swiftie grew into it: 80px of clearance at 900px tall but only
+   8px at 755px, where her crest touched the letters. Shrinking her fixes it at every
+   height and leaves the headline exactly as designed. */
+.phase-gate #phaseGateImg,.phase-gate #phaseGateCv{height:clamp(300px,44vh,520px);width:auto;display:block;pointer-events:none;
+  margin-bottom:-1.7vh;animation:none;}
+/* [peek-4] review 2026-09-30: "do not touch the center title ... only increase the size of swifty a little more but
+   make sure swifty head and the center title have healthy space between them". Swifty 1.2x at every window size
+   (300-520px -> 360-624px); the margin keeps the ledge ON the bottom edge (3.86% of her height is empty canvas below
+   it). The title is NOT touched: its own rule (.pg-title, further down) still places it from her OLD height, so it
+   stays exactly where and as big as it was. Her crest (the clip's highest frame, 38% down its canvas) then rises
+   0.62 x the growth - measured on the gate at 7 window sizes, her head keeps >= ~80px clear of the title's ink. */
+.phase-gate #phaseGateImg,.phase-gate #phaseGateCv{height:clamp(360px,52.8vh,624px);margin-bottom:calc(clamp(360px,52.8vh,624px) * -0.0386);}
+/* No CSS entrance any more: the rise is IN the clip (it opens with her below the ledge), and
+   the old .5s pgPeek layered on top fought it - she jumped up, then rose again. Only the EXIT
+   is CSS, because the clip has to PARK on her smile for gates whose VO outruns it (the guided
+   line runs 6.9s against a 5.6s clip); app.js adds .leaving just before it closes the gate. */
+.phase-gate.leaving #phaseGateImg,.phase-gate.leaving #phaseGateCv{animation:pgDuck .52s cubic-bezier(.5,-.12,.72,.32) both;}
+@keyframes pgDuck{from{transform:translateY(0);}to{transform:translateY(112%);}}
+.pg-title{position:absolute;top:271px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  font-family:'Lilita One',var(--font-hi);font-weight:800;font-size:96px;line-height:1;
+  letter-spacing:0;text-align:center;color:#CD0FD5;
+  -webkit-text-stroke:10px #FFFFFF;paint-order:stroke fill;}
+.pg-title:empty{display:none;}
+.phase-gate{
+  background:rgba(57,55,55,.6);
+  backdrop-filter:blur(15.8px);
+  -webkit-backdrop-filter:blur(15.8px);
+}
+body.is-start .phase-gate{
+  background:rgba(57,55,55,.6) !important;
+  backdrop-filter:blur(15.8px) !important;
+  -webkit-backdrop-filter:blur(15.8px) !important;
+}
+
+/* DELIBERATELY NOT COPIED FROM HI01:
+   1. (SUPERSEDED - the hint button is now removed on request; see the
+      HINT BUTTON REMOVED block at the end of this file.)
+   2. `@keyframes storyKenBurns` suppression (HI01 1260+) - MTG has no .story-img.
+   ========================= END LAYOUT PARITY ============================== */
+
+/* ===== FLN ANIMATION KIT: reduced-motion BEGIN ===== */
+html.no-anim *, html.no-anim *::before, html.no-anim *::after{
+  animation:none!important; transition:none!important;
+}
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation:none!important; transition:none!important; }
+}
+/* ===== FLN ANIMATION KIT: reduced-motion END ===== */
+
+/* ===== FLN ANIMATION KIT: sky-drift BEGIN ===== */
+.start-bg{background-image:url("assets/startnew_bg_plain.webp");}   /* mandatory */
+
+.sg-glow,.sg-sky{position:fixed;inset:0;pointer-events:none;display:none;z-index:1;}
+body.is-start .sg-glow,body.is-start .sg-sky,
+body.is-end   .sg-glow,body.is-end   .sg-sky{display:block;}
+html.rotated .sg-glow,html.rotated .sg-sky{                            /* R2 */
+  inset:auto;left:50%;top:50%;width:100vh;height:100vw;
+  transform:translate(-50%,-50%) rotate(90deg);}
+
+.sg-glow{opacity:.75;background:radial-gradient(ellipse 38% 25% at 50% 79%,
+  rgba(255,255,255,.34) 0%,rgba(255,255,255,.13) 45%,rgba(255,255,255,0) 72%);
+  animation:sgBreathe 6.5s ease-in-out infinite;}
+@keyframes sgBreathe{0%,100%{opacity:.55;}50%{opacity:1;}}
+
+/* hole punched over the centre card - it is translucent, so elements showed through.
+   1114x456 design px, tracked by --scale. Hard edge: a real occlusion boundary. */
+.sg-sky{overflow:hidden;
+  --sg-hole-w:calc(1074px * var(--scale,1));   /* 40px inside the card's rounded corners */
+  --sg-hole-h:calc(416px * var(--scale,1));
+  -webkit-mask-image:linear-gradient(#000,#000),linear-gradient(#000,#000);
+          mask-image:linear-gradient(#000,#000),linear-gradient(#000,#000);
+  -webkit-mask-size:100% 100%,var(--sg-hole-w) var(--sg-hole-h);
+          mask-size:100% 100%,var(--sg-hole-w) var(--sg-hole-h);
+  -webkit-mask-position:center,center; mask-position:center,center;
+  -webkit-mask-repeat:no-repeat,no-repeat; mask-repeat:no-repeat,no-repeat;
+  -webkit-mask-composite:xor; mask-composite:exclude;
+}
+/* end screen has no visible occluder, so a hard edge reads as a sliced crescent.
+   Soft radial hole sized to the mascot instead. */
+body.is-end .sg-sky{
+  --sg-hole-w:calc(800px * var(--scale,1));
+  --sg-hole-h:calc(800px * var(--scale,1));
+  -webkit-mask-image:linear-gradient(#000,#000),
+                     radial-gradient(closest-side,#000 71%,rgba(0,0,0,0) 100%);
+          mask-image:linear-gradient(#000,#000),
+                     radial-gradient(closest-side,#000 71%,rgba(0,0,0,0) 100%);
+}
+
+.sg-sky i{position:absolute;left:50%;top:50%;width:var(--s);aspect-ratio:1;
+  margin:calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  background:center/contain no-repeat;opacity:0;
+  animation:sgFly var(--t) linear infinite;animation-delay:var(--d);}
+.sg-sky .s1{background-image:url("assets/bgdeco_star.svg");}
+.sg-sky .s2{background-image:url("assets/bgdeco_star_o.svg");}
+.sg-sky .s3{background-image:url("assets/bgdeco_spark.svg");}
+.sg-sky .s4{border-radius:50%;border:.22vmax solid rgba(255,255,255,.92);}
+.sg-sky .s5{border-radius:50%;background:rgba(255,255,255,.92);}
+
+/* transform keyed ONLY at 0% and 100% - that is what makes the path a straight ray */
+@keyframes sgFly{
+  0%{transform:translate(var(--x1),var(--y1));opacity:0;}
+  10%{opacity:var(--o);}
+  84%{opacity:var(--o);}
+  100%{transform:translate(var(--x2),var(--y2));opacity:0;}
+}
+
+/* glow: static shadow, animated opacity = composited. See Deviations. */
+.sg-sky i::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  background:inherit;border:inherit;
+  filter:drop-shadow(0 0 7px rgba(255,255,255,.95));
+  opacity:0;will-change:opacity;
+  animation:sgGlowOpacity var(--g) ease-in-out infinite alternate;
+  animation-delay:var(--gd);}
+@keyframes sgGlowOpacity{from{opacity:0;}to{opacity:1;}}
+/* ===== FLN ANIMATION KIT: sky-drift END ===== */
+
+/* ===== FLN ANIMATION KIT: sky-burst BEGIN ===== */
+.sg-sky i.popped{visibility:hidden;}
+.sg-burst{position:fixed;z-index:95;width:0;height:0;pointer-events:none;}
+
+/* data URIs, not file refs - external SVG masks are blocked under file:// */
+.sg-burst.k-star{--shape:url("data:image/svg+xml,%3Csvg%20width=%2264%22%20height=%2264%22%20viewBox=%220%200%2064%2064%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M32%205.5c1.6%200%203%20.9%203.7%202.4l6.1%2012.4%2013.7%202c1.6.2%203%201.4%203.5%203s.1%203.3-1.1%204.4l-9.9%209.6%202.3%2013.6c.3%201.6-.4%203.3-1.7%204.2s-3.1%201.1-4.6.3L32%2051l-12.2%206.4c-1.5.8-3.2.7-4.6-.3s-2-2.6-1.7-4.2l2.3-13.6-9.9-9.6c-1.2-1.1-1.6-2.9-1.1-4.4s1.9-2.7%203.5-3l13.7-2%206.1-12.4C29%206.4%2030.4%205.5%2032%205.5z%22%20fill=%22%23fff%22/%3E%3C/svg%3E");}
+.sg-burst.k-spark{--shape:url("data:image/svg+xml,%3Csvg%20width=%2264%22%20height=%2264%22%20viewBox=%220%200%2064%2064%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M32%202c1.6%2012.6%2015.4%2026.4%2030%2030-14.6%203.6-28.4%2017.4-30%2030-1.6-12.6-15.4-26.4-30-30C16.6%2028.4%2030.4%2014.6%2032%202z%22%20fill=%22%23fff%22/%3E%3C/svg%3E");}
+.sg-burst.k-dot{--shape:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23fff'/%3E%3C/svg%3E");}
+
+.sg-burst .fl{position:absolute;left:0;top:0;
+  width:calc(var(--bs) * 3);height:calc(var(--bs) * 3);
+  margin:calc(var(--bs) * -1.5) 0 0 calc(var(--bs) * -1.5);border-radius:50%;
+  background:radial-gradient(circle,rgba(244,250,255,1) 0%,
+    rgba(96,165,250,.92) 38%,rgba(30,58,138,0) 76%);
+  animation:sgFlash .36s ease-out forwards;}
+
+/* solid fill + two colour drop-shadows; they respect the mask alpha, so the halo
+   follows the star silhouette rather than a box */
+.sg-burst i{position:absolute;left:0;top:0;width:var(--ps);height:var(--ps);
+  margin:calc(var(--ps) / -2) 0 0 calc(var(--ps) / -2);
+  background:currentColor;
+  -webkit-mask:var(--shape) center/contain no-repeat;
+          mask:var(--shape) center/contain no-repeat;
+  filter:drop-shadow(0 0 3px currentColor) drop-shadow(0 0 8px currentColor);
+  animation:sgSpark var(--sd) cubic-bezier(.12,.72,.24,1) forwards;
+  animation-delay:var(--sdl);}
+
+@keyframes sgFlash{0%{transform:scale(.15);opacity:1;}100%{transform:scale(1.6);opacity:0;}}
+@keyframes sgSpark{           /* --gy = gravity drop */
+  0%{transform:translate(0,0) scale(.35);opacity:0;}
+  14%{opacity:1;transform:translate(calc(var(--dx) * .3),calc(var(--dy) * .3)) scale(1.12);}
+  100%{transform:translate(var(--dx),calc(var(--dy) + var(--gy))) scale(.3);opacity:0;}
+}
+/* ===== FLN ANIMATION KIT: sky-burst END ===== */
+
+/* ===== FLN ANIMATION KIT: nudge-press BEGIN ===== */
+@keyframes nhTapNew{
+  0%,100%{transform:translateY(0) scale(1);}
+  45%{transform:translateY(6px) scale(.93);}
+  62%{transform:translateY(6px) scale(.93);}   /* contact HELD 45->62% */
+}
+
+#nudgeHand{position:absolute;width:86px;height:108px;pointer-events:none;
+  opacity:0;transition:opacity .2s ease;z-index:40;}
+#nudgeHand.show{opacity:1;}
+#nudgeHand img{width:100%;height:100%;object-fit:contain;
+  animation:nhTapNew 1.3s ease-in-out infinite;}
+/* ===== FLN ANIMATION KIT: nudge-press END ===== */
+
+/* ===== FLN ANIMATION KIT: nudge-press (host override) BEGIN =====
+   R11 append-only override, NOT an edit of the rule above it. style.css:754 puts
+   `animation:nudgeMove 1s` on the .nudge-hand CONTAINER - the kit lists nudgeMove
+   as the naive bob (recipe 3, treatment F). Left running it would play alongside
+   nhTapNew on the child <img> and the hand would bob twice, out of phase.
+   The kit's #nudgeHand block re-sizes the box to 86x108, which is the SVG's own
+   75:94 ratio - nudge_hand_new.svg no longer letterboxes inside the old 96x96. */
+.nudge-hand{animation:none;}
+/* ===== FLN ANIMATION KIT: nudge-press (host override) END ===== */
+
+/* ===== FLN ANIMATION KIT: confetti BEGIN ===== */
+.fx-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:60;}
+.fx-confetti .p{position:absolute;top:0;left:var(--x);
+  animation:cfFall var(--fall) linear var(--delay) both;}
+/* Sway shares the rock's PERIOD and lags it by a quarter cycle. A fluttering plate
+   slides in the direction it is tilted - the swing and the rock are one motion, not
+   two independent ones. The negative delay is what creates the quarter-cycle lag. */
+.fx-confetti .w{display:block;perspective:600px;
+  animation:cfGlide var(--rockT) linear var(--delay) infinite both;}
+.fx-confetti .f{display:block;position:relative;transform-style:preserve-3d;
+  width:calc(var(--w) * var(--z));height:calc(var(--h) * var(--z));
+  opacity:var(--dim,1);
+  animation:cfRock var(--rockT) linear var(--delay) infinite both;}
+/* the minority that actually goes end-over-end */
+.fx-confetti .f.tum{animation:cfTumble var(--rockT) linear var(--delay) infinite both;}
+/* two real faces: front bright, back the same hue darkened */
+.fx-confetti .f::before,.fx-confetti .f::after{content:"";position:absolute;inset:0;
+  border-radius:inherit;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.fx-confetti .f::before{background:var(--c);}
+.fx-confetti .f::after{background:var(--c2);transform:rotateY(180deg);}
+/* Shape mix. Sizes are deliberately far apart - at 7-11px a rectangle and a square are
+   indistinguishable while tumbling, which makes the whole field read as "all squares". */
+.fx-confetti .sq{--w:8px;  --h:8px;  border-radius:1px;}   /* square    1:1   */
+.fx-confetti .rc{--w:6px;  --h:13px; border-radius:1px;}   /* rectangle 1:2.2 */
+.fx-confetti .ln{--w:2.5px;--h:16px; border-radius:2px;}   /* line      1:6.4 */
+.fx-confetti .st{--w:11px; --h:11px;}                      /* star - needs a few
+                                 more px than the rest for its points to read */
+/* clip-path goes on the FACES, not on .f - clip-path on .f would force
+   transform-style to flat and kill the two-sided tumble */
+.fx-confetti .st::before,.fx-confetti .st::after{
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,
+                    50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);}
+
+/* LINEAR - terminal velocity. `both` is load-bearing: without it delayed pieces
+   sit in a visible row on the top edge until their delay elapses.
+   --drift gives each piece a gentle lean, as if in a faint air current. */
+@keyframes cfFall{
+  0%{transform:translate(0,-40px);opacity:0;}
+  5%{opacity:1;}
+  86%{opacity:1;}
+  100%{transform:translate(var(--drift,0px),var(--dist,820px));opacity:0;}
+}
+/* GLIDE + BOB. Real flutter is NOT sinusoidal: the plate glides at near-constant
+   attitude, then turns sharply. Long glide, quick reversal, linear timing - the
+   keyframe percentages do the shaping.
+   The Y term is vertical speed modulation: the plate falls SLOWER broadside during
+   the glide (max drag) and quicker through the flip (edge-on, min drag). That
+   hesitate-then-drop is what the eye reads as paper. */
+@keyframes cfGlide{
+  0%  {transform:translate(calc(var(--sway) * -1), 0);}
+  45% {transform:translate(var(--sway), calc(var(--bob) * -1));}
+  50% {transform:translate(var(--sway), 0);}
+  95% {transform:translate(calc(var(--sway) * -1), calc(var(--bob) * -1));}
+  100%{transform:translate(calc(var(--sway) * -1), 0);}
+}
+/* FLUTTER - the default, ~78% of pieces. Rocks about ONE axis, capped well short of
+   edge-on, so the face stays toward the viewer. ease-in-out because a turning point
+   is a turning point: it decelerates at max tilt, like any pendulum. */
+/* FLIP. Holds attitude through the glide, then snaps over in 5% of the cycle.
+   Phase-locked to cfGlide by construction - both start at the beginning of a glide,
+   so no offset delay: the flip lands exactly on the direction reversal. */
+@keyframes cfRock{
+  0%  {transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(var(--amp));}
+  45% {transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(calc(var(--amp) * 0.86));}
+  50% {transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(calc(var(--amp) * -1));}
+  95% {transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(calc(var(--amp) * -0.86));}
+  100%{transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(var(--amp));}
+}
+/* TUMBLE - the other ~22%. One half revolution, face to face. The keyframes dwell
+   near the faces and sweep through edge-on in 16% of the cycle, because a real plate
+   hangs broadside where drag is highest and flips fast through the low-drag edge. */
+@keyframes cfTumble{
+  0%  {transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(0deg);}
+  42% {transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(72deg);}
+  58% {transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(108deg);}
+  100%{transform:rotateZ(var(--tilt)) rotateY(var(--yaw)) rotateX(180deg);}
+}
+/* ===== FLN ANIMATION KIT: confetti END ===== */
+
+/* ===== FLN ANIMATION KIT: answer-tempo BEGIN ===== */
+/* ONE tempo for all answer feedback. Both effects derive every duration from these
+   two numbers, so they cannot drift apart - change --fx-beat and the whole pair
+   retimes together; change --fx-reward and only the correct beat moves.
+   --fx-beat is the shipped buzzShake tempo (.4s) and is the anchor: the wrong
+   answer runs exactly one beat, the correct answer runs --fx-reward of them. */
+:root{
+  --fx-beat:.4s;
+  --fx-reward:2;
+}
+/* ===== FLN ANIMATION KIT: answer-tempo END ===== */
+
+/* ===== FLN ANIMATION KIT: correct-select BEGIN ===== */
+/* NO RINGS. The confirm is the tile's own border turning green, the tile pressing
+   in and popping back, and a few sparks lifting off its top edge - nothing else.
+   Earlier passes had a ring converging inward and two halos pulsing outward; both
+   were cut. On a small tile any extra ring reads as a flicker rather than as part
+   of the tile, and the confetti (recipe 7) already covers the celebratory register.
+   Every duration derives from --ckT, so retiming the beat is one number. */
+.ck-correct{
+  --ckT:calc(var(--fx-beat) * var(--fx-reward));   /* 2 beats = 800ms */
+  overflow:visible !important;                  /* the halo leaves the box - see Gotchas */
+  z-index:6;                                    /* ...and must not slide under a neighbour */
+  /* HOUSE RULE: the green outline IS the correct-mark. No fill, no tick.
+     Put on the tile's OWN border, as recipe 9 does - a separate ring layer would
+     sit inside the existing border and leave a grey rim around it. It also means
+     the mark survives `transition:none!important`: a killed transition still lands
+     on its end value, where a killed `animation ... both` never applies one (R5). */
+  background:var(--ck-face,#fff) !important;
+  border-color:var(--correct,#00B132) !important;
+  box-shadow:0 6px 16px rgba(0,177,50,.16) !important;
+  /* 70ms, matched with .wg-wrong: the verdict colour is the most important thing
+     on screen and must land inside the ~100ms "instantaneous" window. The softness
+     comes from the motion, not from ramping the colour. */
+  transition:border-color .07s linear, box-shadow .2s ease !important;
+  /* NOT the house cubic-bezier(.34,1.5,.6,1): a timing function runs between
+     EVERY pair of keyframes, so an overshooting spring applied to a four-stop
+     pop overshoots four times and the anticipation dip never reads. The spring
+     is already shaped by the percentages below - the easing just joins them. */
+  animation:ckPop calc(var(--ckT) * .68) ease-in-out both;
+}
+.ck-correct::after{content:none !important;display:none !important;}   /* no tick */
+
+.ck-fx{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;}
+.ck-fx > i{position:absolute;inset:0;border-radius:inherit;}
+
+/* THE CROWN - sparks over the TOP ARC only. A full 360 ring competes with the
+   screen-wide confetti; a crown stays local and reads as lift. */
+.ck-crown{overflow:visible;}
+.ck-crown i{position:absolute;left:50%;top:50%;width:var(--ss);height:var(--ss);
+  margin:calc(var(--ss) / -2) 0 0 calc(var(--ss) / -2);
+  background:var(--ck-spark,#FFC93C);
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,
+                    50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  animation:ckSpark calc(var(--ckT) * .72) cubic-bezier(.15,.7,.35,1)
+            calc(var(--ckT) * .27) both;}
+
+@keyframes ckPop{
+  0%  {transform:scale(1);}
+  11% {transform:scale(.966);}    /* ANTICIPATION - the tap presses the tile in  */
+  50% {transform:scale(1.055);}   /* peak, 272ms at the default tempo            */
+  72% {transform:scale(.992);}    /* one counter-bounce: a spring decays         */
+  100%{transform:scale(1);}
+}
+/* --x0/--y0 put each spark ON the tile's edge to begin with. Launching from the
+   centre (the obvious version) sends every spark straight across the digit the
+   child is reading - the sparks are decoration and must never cross the content. */
+@keyframes ckSpark{
+  0%  {transform:translate(var(--x0),var(--y0)) scale(.3) rotate(0deg);opacity:0;}
+  25% {opacity:1;}
+  100%{transform:translate(var(--sx),var(--sy)) scale(1) rotate(var(--sr));opacity:0;}
+}
+/* R5 - the decoration goes, the MARK stays. The border-color above already
+   survives the kill-switch; these just stop the dead layers rendering as
+   stationary green hoops parked at their `both` start state. */
+html.no-anim .ck-crown{display:none;}
+@media (prefers-reduced-motion: reduce){
+  .ck-crown{display:none;}
+}
+/* ===== FLN ANIMATION KIT: correct-select END ===== */
+
+/* ===== FLN ANIMATION KIT: wrong-select BEGIN ===== */
+/* Two states, because the fleet has two: `.wg-wrong` is a TRANSIENT correction that
+   RELEASES the tile back to tappable, `.wg-out` is elimination and stays. */
+.wg-wrong,.wg-out{
+  --wgT:var(--fx-beat);                         /* exactly one beat */
+  overflow:visible !important;
+  z-index:5;
+  background:var(--wg-face,#fff) !important;    /* no red flood */
+  border-color:var(--wrong,#F5A524) !important;
+  transition:border-color .07s linear !important;   /* matched with .ck-correct */
+}
+.wg-wrong::after,.wg-out::after{content:none !important;display:none !important;}  /* no cross */
+.wg-wrong{box-shadow:0 6px 16px rgba(245,165,36,.16) !important;
+  animation:wgNo var(--wgT) ease-in-out both;}
+.wg-out{pointer-events:none;box-shadow:none !important;
+  animation:wgNoOut calc(var(--wgT) * 1.6) ease-in-out both,
+            wgFade  calc(var(--wgT) * 1.6) ease-out both;}
+
+.wg-fx{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;}
+.wg-fx > i{position:absolute;inset:0;border-radius:inherit;}
+/* one soft outward pulse, so the "no" has a source instead of just a wobble */
+.wg-pulse{border:3px solid var(--wrong,#F5A524);
+  animation:wgPulse calc(var(--wgT) * .62) ease-out both;}
+.wg-out .wg-pulse{animation-duration:calc(var(--wgT) * .5);}
+
+/* Lateral buzz at the shipped tempo - buzzShake .4s, +-9 then +-6
+   (MTKGA01/style.css:662). Keeping that character matters more than being clever:
+   an earlier pass here pivoted the tile about its base like a head shaking "no",
+   which is truer to the gesture but reads slow and soft beside the rest of the
+   fleet.
+   What this DOES change is the decay. -9 -> +8 -> -5.5 -> +3 -> 0, where msShake
+   holds a flat +-7 for four beats: real oscillation loses energy, and a constant
+   amplitude reads as a machine buzzing rather than as a correction.
+   ease-in-out, because a turning point is a turning point - velocity is zero at
+   each reversal. */
+@keyframes wgNo{
+  0%  {transform:translateX(0);}
+  18% {transform:translateX(-9px);}
+  38% {transform:translateX(8px);}
+  60% {transform:translateX(-5.5px);}
+  80% {transform:translateX(3px);}
+  100%{transform:translateX(0);}
+}
+/* Same shake, then it settles SMALLER and stays there. One element owns exactly
+   ONE transform animation - a second `animation` also touching transform would
+   silently win outright and drop the shake. That is why the fade below is
+   filter + opacity only. */
+@keyframes wgNoOut{
+  0%  {transform:translateX(0)     scale(1);}
+  11% {transform:translateX(-9px)  scale(1);}
+  24% {transform:translateX(8px)   scale(1);}
+  37% {transform:translateX(-5.5px)scale(1);}
+  50% {transform:translateX(3px)   scale(1);}
+  62% {transform:translateX(0)     scale(1);}
+  100%{transform:translateX(0)     scale(.965);}
+}
+/* Recede by DESATURATING, not by dimming. The shipped opacity:.5 makes the tile's
+   own word or digit unreadable on a low-brightness tablet in a bright classroom -
+   which is exactly why a later rule already forces it back to opacity:1 !important
+   in MTKGA01 and MTKGA01_S03. This keeps the content legible and still recedes. */
+@keyframes wgFade{
+  0%,52%{filter:saturate(1);opacity:1;}
+  100%  {filter:saturate(.3);opacity:.72;}
+}
+@keyframes wgPulse{
+  0%  {transform:scale(1.02);opacity:.65;}
+  100%{transform:scale(1.16);opacity:0;}
+}
+/* THE RELEASE needs a class of its own. Dropping .wg-wrong also drops the
+   transition declared on it, so the red would snap off in one frame; .wg-rel is
+   added just before .wg-wrong comes off and outlives it by one transition, which
+   is what turns the release into a fade. It also needs no knowledge of whatever
+   neutral border colour the host activity uses. */
+.wg-rel{transition:border-color .22s ease, box-shadow .22s ease !important;}
+
+/* R5 - the red mark rides border-color, so it survives the kill-switch. What has
+   to survive in JS is the RELEASE: animationend never fires under no-anim, so the
+   class comes off on a timeout instead, or the tile stays red forever. */
+html.no-anim .wg-pulse{display:none;}
+html.no-anim .wg-out{opacity:.72;filter:saturate(.3);}
+@media (prefers-reduced-motion: reduce){
+  .wg-pulse{display:none;}
+  .wg-out{opacity:.72;filter:saturate(.3);}
+}
+/* ===== FLN ANIMATION KIT: wrong-select END ===== */
+
+/* ===== FLN ANIMATION KIT: answer-feedback (host override) BEGIN =====
+   R11. Append-only overrides, NOT edits of the rules above. The kit's classes are
+   single-class selectors (0,1,0) and every rule they have to beat here is
+   two-class (0,2,0), so without these the OLD animation wins outright on
+   specificity and the new beat never renders:
+     style.css:789  .opt-cell.correct{animation:correctPop .45s ...}
+     style.css:792  .opt-cell.crossed{... animation:buzzShake .4s;}
+   The tick (:627) and cross (:793) pseudo-elements are already suppressed by the
+   kit's own `content:none !important`, which beats a non-important declaration
+   whatever its specificity - those need nothing here.
+   Re-stated at (0,2,0) so the later rule wins on equal specificity. */
+.opt-cell.ck-correct{animation:ckPop calc(var(--ckT) * .68) ease-in-out both;}
+.opt-cell.wg-wrong{animation:wgNo var(--wgT) ease-in-out both;}
+.opt-cell.wg-out{animation:wgNoOut calc(var(--wgT) * 1.6) ease-in-out both,
+                           wgFade  calc(var(--wgT) * 1.6) ease-out both;}
+/* ===== FLN ANIMATION KIT: answer-feedback (host override) END ===== */
+
+/* ===== FLN ANIMATION KIT: object-outline (scope note) BEGIN =====
+   INERT IN THIS CARD, INSTALLED DELIBERATELY. MTG2A04_L02_S01 declares only
+   DEMO_COUNT, MAKE_SET, COUNT_HOW_MANY and CELEBRATION - there is no
+   tap-the-object slide for these classes to land on, so nothing below renders
+   today. The shared engine does carry TAP_PICTURE_BY_* and the .tis-hot hotspot
+   module, so the rules are here and ready the moment a card adds such a slide.
+   Engine A (.ol-alpha) needs cut-out art with a real alpha channel; this folder
+   has no assets/ at all yet, so check that before wiring a target.
+   ===== FLN ANIMATION KIT: object-outline (scope note) END ===== */
+
+/* ===== FLN ANIMATION KIT: object-outline BEGIN ===== */
+/* "Tap the right thing", where every target is a DIFFERENT shape.
+
+   TWO ENGINES, one set of state classes. `.is-correct` / `.is-wrong` / `.is-muted`
+   mean the same thing and are driven the same way whichever engine a target uses,
+   so a game can mix them in one scene:
+
+     .ol-alpha  the object is its OWN element with real transparency. The outline is
+                computed from its alpha by the browser - no traced path, no exported
+                ring, any silhouette, and it stays correct if the art is replaced.
+                It CAN wiggle: the outline is the element's own filter, so it travels
+                with the art.
+
+     .ol-band   the object is a REGION of a baked scene raster. It cannot be moved or
+                filtered on its own, so the outline is a pre-baked full-frame ring
+                painted through a mask, and the wrong-answer beat is a FLASH, not a
+                wiggle. Transforming it would slide the ring off the art it traces -
+                see Gotchas, this is the defect the whole approach exists to avoid.
+
+   Colour is the only thing a state changes: everything reads --ol-c. */
+.ol{
+  --ol-w:4px;                       /* stroke thickness, design px */
+  --ol-soft:5px;                    /* separation glow; set 0 on low-end devices */
+  --ol-idle:#FFFFFF;                /* "this is tappable" */
+  --ol-c:var(--ol-idle);            /* the ONE property a state changes */
+  --ol-amp:8px;                     /* wiggle travel */
+  --olT:var(--fx-beat,.4s);         /* SAME tempo token as recipes 19 + 20 */
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.ol.is-correct{--ol-c:var(--correct,#00B132);}
+.ol.is-wrong  {--ol-c:var(--wrong,#F5A524);}
+.ol.is-muted  {--ol-c:rgba(255,255,255,.30);--ol-soft:0px;}
+
+/* ---------- ENGINE A - outline from the object's own alpha ---------- */
+/* FOUR axis-aligned zero-blur passes. Chained drop-shadows dilate, so four axis
+   passes give a clean square-kernel dilation of exactly --ol-w. Do NOT "improve"
+   this by adding the four diagonals: each pass also shadows the previous passes'
+   output, so diagonals compound and the stroke blooms to ~2x thickness and welds
+   shut the gaps between a character's arm and body. Measured, not guessed.
+   The fifth pass is a soft glow - it is what separates a white outline from a
+   pale background in a busy scene. Set --ol-soft:0 to drop it (4 passes). */
+.ol-alpha{
+  filter:
+    drop-shadow( var(--ol-w) 0 0 var(--ol-c))
+    drop-shadow(calc(var(--ol-w) * -1) 0 0 var(--ol-c))
+    drop-shadow(0  var(--ol-w) 0 var(--ol-c))
+    drop-shadow(0 calc(var(--ol-w) * -1) 0 var(--ol-c))
+    drop-shadow(0 0 var(--ol-soft) var(--ol-c));
+  /* 70ms at the default beat - matched with the tile marks in recipes 19/20.
+     This is a ONE-OFF transition on a single element, not a running animation:
+     the kit's standing objection to animating `filter` is about the landing sky
+     doing it forever on ~87 elements, which is a different thing. */
+  transition:filter calc(var(--olT) * .175) linear;
+  transform-origin:var(--ol-origin,50% 100%);   /* scene objects rest on something */
+}
+.ol-alpha.is-wrong  {animation:olNo  var(--olT) ease-in-out both;}
+.ol-alpha.is-correct{animation:olYes calc(var(--olT) * 1.35) ease-in-out both;}
+
+/* Same decaying lateral buzz as the tile wrong-answer (recipe 20), to the same
+   ratios, so the two mechanics speak one language. Amplitude is a variable
+   because a 60px object and a 300px character cannot share a pixel figure. */
+@keyframes olNo{
+  0%  {transform:translateX(0);}
+  18% {transform:translateX(calc(var(--ol-amp) * -1));}
+  38% {transform:translateX(calc(var(--ol-amp) * .89));}
+  60% {transform:translateX(calc(var(--ol-amp) * -.61));}
+  80% {transform:translateX(calc(var(--ol-amp) * .33));}
+  100%{transform:translateX(0);}
+}
+/* Same shape as ckPop (recipe 19): anticipation dip, peak, one counter-bounce. */
+@keyframes olYes{
+  0%  {transform:scale(1);}
+  11% {transform:scale(.97);}
+  50% {transform:scale(1.06);}
+  72% {transform:scale(.995);}
+  100%{transform:scale(1);}
+}
+
+/* ---------- ENGINE B - pre-baked ring band over a scene raster ---------- */
+/* No preview tile: the band demo was removed from index.html. These rules are
+   kept so the block stays one pasteable unit and matches recipe 21 verbatim. */
+/* One full-frame alpha per object, painted through as a mask, so a single asset
+   serves idle, correct, wrong and muted just by changing the colour under it. */
+/* NEVER put a transform on this. It is a full-frame mask over the scene, so any
+   scale or translate slides the ring off the art it is tracing - which is exactly
+   the "untidy outline" defect. The wrong-answer beat is a flash on OPACITY, which
+   is composited and cannot move the ring. */
+
+/* R5 - the outline is INFORMATION. Colour rides a custom property and a
+   transition, both of which survive the kill-switch (a killed transition still
+   lands on its end value). Only the motion is dropped. */
+html.no-anim .ol-alpha{animation:none !important;}
+@media (prefers-reduced-motion: reduce){
+  .ol-alpha{animation:none !important;}
+}
+/* ===== FLN ANIMATION KIT: object-outline END ===== */
+
+/* ==========================================================================
+   LAYOUT PARITY WITH HI01 - PASS 2: THE LANDING SCREEN
+   The first pass took only .sg-sub and .sg-vo from the landing and left MTG's
+   own .start-gate / .sg-mascot / .sg-art / .sg-btn rules standing, so the card
+   furniture, the button and the ground were still MTG's. These are the rules
+   that were missed, verbatim from HI01 and in HI01's own order (it relies on
+   later-wins for the .sg-btn and .sg-art overrides).
+   ========================================================================== */
+
+/* --- the blue ground (HI01 49). MTG shipped #7FC8F4. --- */
+body.is-start{background:#47BCFD;}   /* [20a landing] new-blue ground */
+
+/* --- THE IMPORTANT ONE (HI01 785). MTG's .start-gate repainted
+       startnew_bg.webp - the plate WITH the decorations baked in - on top of
+       the body-level .start-bg that recipe 1 had just switched to the _plain
+       plate. That is the kit's "two sets of stars, one frozen one moving"
+       gotcha, and it also made the gate tap-anywhere (cursor:pointer). --- */
+.start-gate{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:transparent;cursor:default;}   /* [20a landing] transparent — the fixed .start-bg is the ground; [21c flag#1] cursor:default — hand-pointer belongs on .sg-btn/.sg-vo only, gate is not tap-anywhere */
+
+/* --- mascot: HI01 anchors her to the card corner at 208px and does NOT bob
+       (MTG had left:8/bottom:6/height:230 + sgFloat) (HI01 791) --- */
+.sg-mascot{position:absolute;left:-24px;bottom:-12px;width:208px;height:auto;z-index:3;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,47,118,.18));animation:none;}   /* [25d] CORRECTED. My 25c change to left:8/bottom:6 was WRONG: I copied strilling's BASE rule (its line 611) instead of its WINNING late override (line 1104 = left:-24/bottom:-12/width:208 !important) — which is what the engine already had. Moving her right by 32px is also what threw .sg-vo out of line, since left:96px is tuned to this position. "Hovering" = the sgFloat bob: strilling kills it at its line 5600 `animation:none !important`, so it must be OFF here too (I previously said strilling bobs as well — that was reading line 611 and missing 5600). */
+
+/* --- landing hides the in-lesson stage behind it (HI01 1119-1122) --- */
+body.is-start .stage-inner{visibility:hidden !important;}
+body.is-start .stage{background:transparent !important;}
+body.is-start .phase-gate{background:rgba(57,55,55,.6) !important;}
+.sg-art .shape-svg{filter:drop-shadow(0 5px 7px rgba(0,47,118,.16));}
+
+/* --- hero art cap (HI01 1317), then HI01's own later rebalance of the
+       has-hero margin + the cap together (HI01 1376-1377). Without the second
+       pair the content block keeps a 206px bottom margin and sits too high. --- */
+.sg-art img{max-height:180px;max-width:92%;width:auto;height:auto;object-fit:contain;}
+.sg-content.has-hero{margin-bottom:120px;}
+.sg-art img{max-height:250px;}
+
+/* --- the start button: HI01 kills sgBtnPulse and pins it to 64px. MTG's base
+       rule has padding 14px 54px and no height, so it grows to ~76px and
+       breathes from the moment the landing paints (HI01 1542-1548, 1556-1570) --- */
+.sg-btn{
+  animation:none;
+  padding:12px 36px;
+  min-width:186px;
+  height:64px;
+  bottom:40px;
+}
+.sg-btn{
+  animation:none;
+  min-width:186px;
+  height:64px;
+  bottom:40px;
+  /* [30m] centre the LINE BOX, do not balance it with padding. height:64px on a 4.54px border left
+     30.9px of content box for a 32px font, so the text sat low (my own 30l regression). Devanagari
+     matras/conjuncts also make one padding value read differently per string. */
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+  padding:0 36px;
+}
+/* ==================== END LANDING PARITY (PASS 2) ======================== */
+
+/* ==========================================================================
+   FLN GAME QA CHECKLIST - CSS REMEDIATION
+   Appended, never merged: this file is an append-only patch stack and a later
+   rule wins (R11). Each rule is tagged with the checklist item it satisfies.
+   Where the checklist supersedes the HI01 parity pass or the animation kit,
+   that is called out on the rule - the checklist was chosen deliberately.
+   ========================================================================== */
+
+/* --- [03] page background = approved palette. Supersedes the HI01 #47BCFD
+       ground copied in the parity pass. --- */
+body,body.is-start{background:#F2F7FA;}
+.start-bg{background-color:#F2F7FA;}
+
+/* --- [03] landing mascot: REVERTED to HI01H01_L02_S04 parity - 208px, left -24,
+       bottom -12 (same 560x550 asset). The earlier 180px/-3 override made Swifty
+       ~13% smaller than the reference and knocked the .sg-vo chip (left:96,
+       tuned to this position) off her leg.
+       No CSS animation - the waving play-once lives in the animated .webp. --- */
+.sg-mascot{width:208px;height:auto;left:-24px;bottom:-12px;animation:none;}
+
+/* --- [03][09] landing heading: SemiBold 64px, 100% line-height. Supersedes
+       both MTG's 60px and HI01's 42px .compact. --- */
+.sg-title,.sg-title.compact{font-size:64px;font-weight:600;line-height:1;color:#012F76;}
+
+/* --- [04] tutorial prompt: 64px / 800 / min-height 118px / nowrap / navy --- */
+.tut-prompt{min-height:118px;font-size:64px;font-weight:800;color:#012F76;
+  white-space:nowrap;line-height:1;}
+
+/* --- [09] prompt / header text: no override here - it is HI01's own rule (the top of this file): Baloo 2 ExtraBold
+       800 / 30px (--band-font) / 1.15 / navy #0B3D8C (review 2026-10-01: "this is not the correct font, use it exactly
+       from the game HI01H01_L02_S04"). The checklist's SemiBold 32px / #012F76 stood here. --- */
+
+/* --- [09] option and box labels: SemiBold 23.84px / 100% / #012F76 --- */
+.opt-cell .lbl{
+  font-size:23.84px;font-weight:600;line-height:1;color:#012F76;}
+
+/* --- [10] MCQ default card: white, 2.69px #D5D8DF, 16px radius, bottom ledge.
+       Supersedes the 2px #EEF3FA / 28px-radius / soft-shadow card. --- */
+.opt-cell{
+  background:#fff;
+  border:2.69px solid #D5D8DF;
+  border-radius:16px;
+  box-shadow:0 4px 0 #D9D9D9;
+}
+.opt-cell:hover{transform:none;border-color:#D5D8DF;box-shadow:0 6px 0 #D9D9D9;}
+.opt-cell:active{box-shadow:0 2px 0 #D9D9D9;}
+
+/* --- [10] MCQ correct: 5px #00B132, no tick badge. Widens the kit's recipe-19
+       mark to the checklist gauge; the kit still owns the motion (ckPop). --- */
+.opt-cell.ck-correct{border:5px solid var(--correct,#00B132) !important;}
+/* --- [10] MCQ wrong: 5px #F5A524 + shake, auto-reverts, STAYS TAPPABLE.
+       The checklist requires a transient correction, so the wrong answer now
+       uses the kit's .wg-wrong (release) instead of .wg-out (elimination), and
+       the old .crossed lock is lifted below. --- */
+.opt-cell.wg-wrong{border:5px solid var(--wrong,#F5A524) !important;}
+
+/* --- [10] .crossed must no longer eliminate: the checklist says the wrong card
+       auto-reverts after ~900ms and stays tappable. This neutralises the three
+       things style.css:792-793 did - dim, lock, and paint a 110px cross. --- */
+.opt-cell.crossed{
+  opacity:1 !important;
+  pointer-events:auto !important;
+  background:#fff !important;
+  animation:none;
+}
+.opt-cell.crossed::after{content:none !important;display:none !important;}
+
+/* --- [10] header carries no enlarge/bounce CSS animation. style.css:47 put
+       audioPulse (scale 1.12) on the header chip; all header motion must come
+       from the artwork itself. The in-slide .tut-audio chip is not the header
+       and keeps its pulse. --- */
+.audio-chip.playing{animation:none;}
+
+/* --- [11] speaker chip container is transparent with NO filter - the SVG is
+       the chip. style.css:43 had a drop-shadow that reads as a blue crescent. --- */
+.audio-chip{filter:none;background:transparent;}
+
+/* --- [13] confetti = the FLN animation kit's recipe 7 AS BUILT (review 2026-09-30: "these are all square-shaped
+       and not covering the full horizontal space - take the correct confetti of all types of shapes from the FLN
+       animation tool"): stars, rectangles, lines and squares, two-faced, fluttering / tumbling at terminal velocity.
+       The old override here forced every piece to a 10x10 square, took the stars' outline off and retimed the fall
+       to 3s ease-out; it is gone. The pieces fall in .fx-layer (index.html), which covers the whole window; they are
+       sized with the stage (--scale), so they look the same next to the game at any window size. --- */
+/* --fx-size (review 2026-09-30: "increase the size of confetti"): every piece 1.5x the kit's size - same shapes, same
+   aspect ratios; the slower fall is the `fall` option at the call site (app.js confettiCannon) */
+.fx-layer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:5000;--fx-size:1.5;}
+.fx-layer .fx-confetti .f{width:calc(var(--w) * var(--z) * var(--scale, 1) * var(--fx-size, 1));
+  height:calc(var(--h) * var(--z) * var(--scale, 1) * var(--fx-size, 1));}
+
+/* --- [08] celebration screen carries NO headline text - star burst, mascot
+       and the CTA only. --- */
+.end-screen .end-title,.end-screen .end-subtitle{display:none !important;}
+
+/* --- [08] celebration letterbox colour --- */
+body.is-end{background:#FDE9A8;}
+
+/* --- [09] Devanagari sits on a shared shirorekha baseline: per-glyph
+       ink-centering is for digits/Latin only. The engine's centerAllGlyphs()
+       wraps glyphs in .ink; neutralise it wherever the text is Devanagari. --- */
+.prompt-band .prompt-text .ink,.tut-prompt .ink,.sg-title .ink,.opt-cell .lbl .ink{
+  display:inline !important;transform:none !important;vertical-align:baseline !important;}
+/* ==================== END QA CHECKLIST CSS =============================== */
+
+/* --- [10] SPECIFICITY FIX. The MCQ card rules above are single-class (0,1,0)
+       and style.css:320 `.stage.thm-toybox .opt-cell` is (0,2,0), so the toybox
+       theme's #FFFDF7 / #F7C24D / 28px card kept winning. Restated at (0,2,0)
+       so the checklist card spec is what actually renders. --- */
+.stage.thm-toybox .opt-cell,.stage .opt-cell{
+  background:#fff;
+  border:2.69px solid #D5D8DF;
+  border-radius:16px;
+  box-shadow:0 4px 0 #D9D9D9;
+}
+.stage.thm-toybox .opt-cell:hover,.stage .opt-cell:hover{
+  transform:none;border-color:#D5D8DF;box-shadow:0 6px 0 #D9D9D9;}
+.stage.thm-toybox .opt-cell:active,.stage .opt-cell:active{box-shadow:0 2px 0 #D9D9D9;}
+/* the correct/wrong marks must still outrank the theme too */
+.stage .opt-cell.ck-correct{border:5px solid var(--correct,#00B132) !important;}
+.stage .opt-cell.wg-wrong{border:5px solid var(--wrong,#F5A524) !important;}
+
+/* ==========================================================================
+   IN-LESSON LAYOUT PARITY WITH HI01  (tutorial / guided / practice pages)
+   .tut-card, .tut-prompt and .tut-content already matched byte for byte; what
+   differed was the spacing around them and one override of my own. Verbatim
+   HI01 unless noted.
+   ========================================================================== */
+
+/* --- REVERTING MY OWN QA OVERRIDE. Checklist item 04 asks for the tutorial
+       prompt at 64px / nowrap / min-height 118px. That spec suits a short
+       title; this card's prompt is a full sentence, and nowrap at 64px forced
+       it onto one 1591px line that filled the card and pushed the content into
+       the bottom third - visible in the screenshot. HI01 renders the same
+       element at 52px with normal wrapping, which is what is restored here.
+       Flagged rather than silently dropped: item 04 and the HI01 reference
+       genuinely disagree, and the reference is what was asked for. --- */
+.tut-prompt{flex-shrink:0;min-height:92px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-weight:800;font-size:52px;color:var(--navy);padding:12px 60px 0;line-height:1.2;}
+
+/* --- breathing room around the card (HI01 943): MTG had 64px 100px 22px, so
+       the card grew 664px tall against HI01's 562px and crowded the nav pill --- */
+.stage.tut .slide-stage{padding:96px 100px 92px;}
+
+/* --- room reserved inside the card for the straddling mascot (HI01 954) --- */
+.tut-card::after{content:"";flex-shrink:0;height:132px;}    /* reserves room for the straddling mascot */
+
+/* --- the in-slide speaker chip sits ON Swiftie's leg, not off her side (HI01 956) --- */
+.tut-audio{position:absolute;left:78px;bottom:-16px;width:58px;height:58px;z-index:4;cursor:pointer;}   /* [25c] 96 -> 78 = the strilling reference: chip sits ON Swiftie's leg (~74% of the mascot width) instead of drifting off her right side at ~84% (Yasir 2026-07-25; this was gap #7 in _ENGINE_GAP_AUDIT_2026-07-25.md) */
+
+/* --- [30j] HI01 removed the in-slide chip throb too: "the button must not move
+       while a clip plays". .playing is still toggled, it just no longer scales. --- */
+.tut-audio.playing{animation:none;}
+
+/* --- the nav pill: HI01's gauge (752) and its tutorial lift (960). MTG had
+       bottom:26px in tut, giving 13px clearance - the pill sat ON the card
+       border. HI01 reserves 92px below the card and lifts the pill to 128px. --- */
+.nav-btn{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:10;font-family:var(--font-hi);font-weight:800;font-size:26px;color:#C2C2C2;background:#EDEDED;border:3px solid #FFFFFF;border-radius:9999px;padding:10px 36px;min-width:170px;height:62px;cursor:not-allowed;transition:transform .15s,background .2s,color .2s,box-shadow .2s;box-shadow:0 4px 0 #D6D6D6;display:flex;align-items:center;justify-content:center;gap:8px;}   /* [25c] matched to the strilling reference (26px/170x62/3px border/0 4px 0 shadow) and lifted bottom:20 -> 32 so the pill CLEARS the teaching-card border instead of sitting on it (Yasir 2026-07-25) */
+.stage.tut .nav-btn{left:50%;right:auto;bottom:128px;transform:translateX(-50%);}   /* [25e] ported from the Strilling reference (measured, headless): it reserves 92px below the tut-card and lifts the pill to 128px, giving 42px clearance from the card border. Ours reserved 22px / bottom:26px -> 13px clearance = the pill sitting ON the border (Yasir reported 3x). Reference declares nav-btn twice, 152 then 128 — 128 is the winner. */
+
+/* --- dev nav panel (HI01 1063-1069) --- */
+.dev-nav{position:fixed;bottom:8px;right:8px;z-index:99999;display:flex;align-items:center;gap:5px;background:rgba(18,26,44,.9);border-radius:11px;padding:5px 8px;box-shadow:0 6px 22px rgba(0,0,0,.35);font-family:system-ui,Arial,sans-serif;opacity:.9;}
+.dev-nav:hover{opacity:1;}
+.dev-nav-btn{background:#2b3a55;color:#fff;border:none;border-radius:8px;padding:6px 11px;font-size:15px;line-height:1;cursor:pointer;}
+.dev-nav-btn:hover{background:#3c5278;}
+.dev-nav-btn:active{transform:translateY(1px);}
+.dev-nav-sel{border:none;border-radius:8px;padding:4px 6px;font-size:12px;max-width:150px;background:#eef2f8;color:#12203c;cursor:pointer;}
+.dev-nav-lbl{color:#fff;font-size:13px;font-weight:700;min-width:78px;text-align:center;letter-spacing:.02em;}
+/* ================= END IN-LESSON LAYOUT PARITY =========================== */
+
+/* --- the last of my QA override to undo: HI01's .tut-prompt declares no
+       `white-space` at all, so copying that rule could not overwrite the
+       `nowrap` I had added and it survived. Reset explicitly. A wrapped prompt
+       is the whole point here - this card's prompts are sentences. --- */
+.tut-prompt{white-space:normal;}
+
+/* --- HEADER PROMPT SITS 40px TOO FAR RIGHT (HI01 :root line 37).
+       The band itself already matched HI01 exactly (1538x106 @212,58); what
+       differed was its LEFT padding - HI01 runs --band-pad-l:110px against
+       MTG's 150px, so every prompt in the game started 40px further right and
+       read as off-centre under the overlapping mascot avatar. Right padding is
+       150px in both and is unchanged, so the text just gains 40px of run.
+       One token, so it applies to every prompt band throughout the game. --- */
+:root{ --band-pad-l:110px; }
+
+/* ==========================================================================
+   HINT BUTTON REMOVED THROUGHOUT (requested)
+   Same mechanism HI01 uses at its line 1367, and for the same reason it gives:
+   removed with display:none rather than by deleting the node and its call
+   sites, because $("hintBtn") is dereferenced UNGUARDED at every one of them
+   (21 in app.js) - dropping the element would throw on the first wrong answer
+   in every mechanic. This way the bulb cannot render, cannot be tapped, and is
+   out of the accessibility tree, while the now-inert classList/disabled calls
+   stay harmless. Covers the whole game: one rule, no per-slide exceptions.
+   Knock-on, stated rather than hidden: with no bulb to tap, the hint_used xAPI
+   verb can no longer fire, and checklist items 05/12 (hint bulb behaviour) are
+   moot by removal. The scaffold ladder still runs re-listen -> reveal; only the
+   manual bulb is gone.
+   ========================================================================== */
+.hint-btn{display:none !important;}
+
+/* --- [landing card bg] room scene inside the white card frame.
+       start_card.webp stays as the frame (9px white border, ~46px outer radius);
+       its translucent-white fill is covered by the room image, inset 9px with the
+       matching 37px inner radius. z-index:-1 + isolation keeps it above the frame
+       but under the title, blocks, CTA, mascot and VO chip. --- */
+.sg-card{isolation:isolate;}
+.sg-card::before{content:"";position:absolute;inset:9px;border-radius:37px;z-index:-1;pointer-events:none;
+  background:url("assets/background_1st_screen.webp") center/100% 100% no-repeat;}   /* 100% 100%, not cover: the 16:9 art in a 2.5:1 box - cover cropped the posters/lamp; this shows the whole scene edge to edge */
+
+/* --- [landing fx] ambient life for the room art inside the card.
+       .sg-fx sits exactly over the room image (inset 9 / radius 37, same as
+       .sg-card::before) at z-index:-1 - after ::before in DOM order, so it paints
+       over the art but under the title, pencil, CTA, Swifty and VO chip.
+       Coordinates below are fx-local (card px - 9). Only transform/opacity
+       animate (GPU-cheap on low-end tablets); no filter:blur - the softness is
+       baked into the gradients. --- */
+.sg-fx{position:absolute;inset:9px;border-radius:37px;overflow:hidden;z-index:-1;pointer-events:none;}
+
+/* soft lens flare, NO sun (review 2026-09-28: "delete the sunbeam - a sun flare without the sun").
+   Modelled on the reference: out-of-focus flare discs, not a light source -
+   - a BIG hazy disc, warm white, brightest a little off-centre, fading to a faint warm-red rim
+     (the defocused edge of a lens ghost picks up a colour fringe);
+   - a SMALLER violet disc overlapping the big one's upper-left edge (a second ghost, different
+     coating colour);
+   - a soft haze lobe inside the big disc and one small, soft glint - a reflection, not a sun:
+     no white-hot core, no rays, no rainbow ring.
+   All circles use closest-side so the stops are measured from their own edge (no clipping).
+   screen blend = light is only added. Slow breathe + a few px drift; opacity/transform only. */
+.sg-sun{position:absolute;left:170px;top:70px;width:0;height:0;pointer-events:none;}
+.sg-flare2{position:absolute;left:0;top:0;width:0;height:0;mix-blend-mode:screen;pointer-events:none;
+  animation:sgFlare2 9s ease-in-out infinite alternate;}
+.sg-flare2 i{position:absolute;display:block;border-radius:50%;}
+/* intensities halved (review 2026-09-28: "too much sunlight") */
+.fl-big{left:110px;top:5px;width:180px;height:180px;
+  background:radial-gradient(circle closest-side,
+    rgba(255,246,230,.22) 0,rgba(255,240,218,.17) 45%,rgba(255,228,204,.12) 78%,
+    rgba(255,172,150,.13) 90%,rgba(255,120,110,.08) 96%,transparent 100%);}
+.fl-violet{left:62px;top:22px;width:92px;height:92px;
+  background:radial-gradient(circle closest-side,
+    rgba(130,120,255,.07) 0,rgba(135,110,255,.11) 55%,rgba(160,90,250,.15) 84%,rgba(200,80,220,.08) 94%,transparent 100%);}
+.fl-haze{left:200px;top:60px;width:90px;height:90px;
+  background:radial-gradient(circle closest-side,rgba(255,252,244,.2) 0,rgba(255,248,236,.1) 55%,transparent 100%);}
+.fl-glint{left:194px;top:70px;width:26px;height:26px;
+  background:radial-gradient(circle closest-side,rgba(255,240,200,.45) 0,rgba(255,224,168,.22) 45%,transparent 100%);}
+@keyframes sgFlare2{
+  0%  {opacity:.75;transform:translate(0,0);}
+  100%{opacity:.9; transform:translate(6px,3px);}
+}
+
+/* sunlit dust: drawn by the [landing dust] particle system in app.js. screen blend
+   so specks only ever ADD light to the art. */
+.sg-dust{position:absolute;left:0;top:0;width:1096px;height:438px;mix-blend-mode:screen;pointer-events:none;}
+
+/* study-lamp light (review 2026-09-29: "light of lamp should only come from inside"). The painted lamp faces down-left;
+   its lit OPENING and the shade around it were traced from the art (card px, via a 3x render). Two parts, both inside
+   .sg-lamp (fx 890,-30, 160px box), which flickers them together - smoothly and continuously, by BRIGHTNESS ONLY (a
+   scale would push the clipped light past the traced edges):
+   ::before - the bulb's glow, CLIPPED to the opening, so it can only brighten the inside of the shade (the old round
+              glow also lit the shade's orange outside, as if the light shone through it);
+   ::after  - the light the lamp throws onto the wall, starting BELOW the shade: its top edge follows the shade's lower
+              rim, from the left tip of the opening to the rim's lowest point, and it spreads down and left from there
+              (the way the lamp points), fading out before its own edges, so it never touches the shade itself. */
+.sg-lamp{position:absolute;left:890px;top:-30px;width:160px;height:160px;mix-blend-mode:screen;pointer-events:none;
+  animation:sgLampFlicker 5.2s ease-in-out infinite;}
+.sg-lamp::before{content:"";position:absolute;left:0;top:0;width:160px;height:160px;
+  background:radial-gradient(ellipse 64px 36px at 79px 80px,rgba(255,246,206,.92) 0,rgba(255,226,146,.5) 42%,rgba(255,208,116,.18) 78%,transparent 100%);
+  clip-path:polygon(19.1px 66.8px,21.2px 64.4px,23.3px 63.7px,25.4px 63.4px,27.4px 63.4px,29.5px 63.4px,31.6px 63.7px,33.7px 63.7px,35.8px 64.1px,37.9px 64.4px,39.9px 64.8px,42.0px 64.8px,44.1px 65.1px,46.2px 65.4px,48.3px 65.8px,50.4px 66.1px,52.4px 66.5px,54.5px 66.8px,56.6px 67.2px,58.7px 67.9px,60.8px 68.6px,62.9px 69.3px,64.9px 68.9px,67.0px 69.3px,69.1px 70.0px,71.2px 70.3px,73.3px 71.0px,75.4px 71.7px,77.4px 72.4px,79.5px 73.4px,81.6px 73.8px,83.7px 74.5px,85.8px 75.5px,87.9px 76.2px,89.9px 77.2px,92.0px 77.9px,94.1px 79.0px,96.2px 79.7px,98.3px 80.7px,100.4px 82.1px,102.4px 83.2px,104.5px 84.2px,106.6px 85.2px,108.7px 85.9px,110.8px 87.0px,112.9px 88.4px,114.9px 89.4px,117.0px 90.4px,119.1px 91.5px,121.2px 92.9px,123.3px 94.3px,125.4px 96.0px,127.4px 97.4px,129.5px 99.5px,131.6px 101.9px,132.7px 104.0px,132.7px 104.0px,131.6px 105.4px,129.5px 106.4px,127.4px 106.8px,125.4px 107.1px,123.3px 107.1px,121.2px 107.1px,119.1px 107.1px,117.0px 107.1px,114.9px 106.8px,112.9px 106.4px,110.8px 106.1px,108.7px 105.7px,106.6px 105.4px,104.5px 105.0px,102.4px 105.0px,100.4px 104.7px,98.3px 104.7px,96.2px 104.0px,94.1px 103.6px,92.0px 102.9px,89.9px 102.6px,87.9px 102.6px,85.8px 102.6px,83.7px 101.9px,81.6px 101.2px,79.5px 100.2px,77.4px 99.5px,75.4px 98.8px,73.3px 98.4px,71.2px 97.7px,69.1px 97.0px,67.0px 96.3px,64.9px 95.7px,62.9px 94.6px,60.8px 93.6px,58.7px 92.5px,56.6px 91.5px,54.5px 90.4px,52.4px 89.8px,50.4px 89.1px,48.3px 88.0px,46.2px 86.6px,44.1px 85.9px,42.0px 85.2px,39.9px 83.5px,37.9px 82.5px,35.8px 81.4px,33.7px 80.0px,31.6px 79.3px,29.5px 77.9px,27.4px 76.2px,25.4px 74.8px,23.3px 73.1px,21.2px 71.3px,19.1px 68.2px);}
+.sg-lamp::after{content:"";position:absolute;left:-110px;top:40px;width:330px;height:250px;
+  background:radial-gradient(ellipse 125px 120px at 132px 64px,rgba(255,230,160,.44) 0,rgba(255,214,130,.21) 40%,rgba(255,206,120,.07) 72%,transparent 100%);
+  clip-path:polygon(0.0px 61.2px,120.4px 27.2px,122.5px 31.0px,124.6px 33.1px,126.7px 35.2px,128.8px 36.6px,130.8px 37.9px,132.9px 39.7px,135.0px 41.1px,137.1px 42.1px,139.2px 43.5px,141.3px 44.5px,143.3px 45.6px,145.4px 46.6px,147.5px 47.7px,149.6px 48.7px,151.7px 49.8px,153.8px 50.4px,155.8px 51.5px,157.9px 52.5px,160.0px 53.2px,162.1px 54.3px,164.2px 55.3px,166.3px 56.0px,168.3px 56.7px,170.4px 57.7px,172.5px 58.1px,174.6px 58.8px,176.7px 59.5px,178.8px 60.2px,180.8px 60.9px,182.9px 61.6px,185.0px 62.2px,187.1px 62.9px,189.2px 63.3px,191.3px 64.0px,193.3px 64.7px,195.4px 65.0px,197.5px 65.7px,199.6px 66.1px,201.7px 66.8px,203.8px 67.1px,205.8px 67.5px,207.9px 67.8px,210.0px 68.2px,212.1px 68.5px,214.2px 68.8px,216.3px 69.2px,218.3px 69.5px,220.4px 69.9px,222.5px 69.9px,224.6px 70.2px,226.7px 70.6px,251.7px 250.0px,0.0px 250.0px);}
+@keyframes sgLampFlicker{
+    0%{opacity:.8;}
+   14%{opacity:1;}
+   27%{opacity:.86;}
+   36%{opacity:.55;}
+   44%{opacity:.96;}
+   60%{opacity:.82;}
+   76%{opacity:1;}
+   88%{opacity:.64;}
+  100%{opacity:.8;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sg-flare2,.sg-lamp{animation:none;}
+}
+
+/* ==================== START BUTTON AS ART ====================
+   The landing button is an SVG image, not a CSS pill: these rules strip the CSS pill so only the
+   art draws. The play button (.sg-btn--play, assets/btn-play-blob.svg) sets its own size below. */
+.sg-btn.sg-btn--art{
+  background:none;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  padding:0;
+  min-width:0;
+  width:195px;          /* 268 * 64/88 */
+  height:auto;
+  bottom:30px;          /* 40px - the 14*64/88 shadow margin */
+  line-height:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.sg-btn.sg-btn--art img{width:100%;height:auto;display:block;pointer-events:none;user-select:none;}
+.sg-btn.sg-btn--art:focus-visible{outline:3px solid #0B3D8C;outline-offset:-6px;border-radius:40px;}
+
+/* शुरू करें pill replaced by the gold/navy blob play button (assets/btn-play-blob.svg, 1429x1296).
+   Same #sgBtn, same handler, same aria-label - only the art and its size change. */
+.sg-btn.sg-btn--art.sg-btn--play{width:112px;bottom:28px;}
+.sg-btn.sg-btn--art.sg-btn--play:focus-visible{border-radius:50%;outline-offset:2px;}
+
+/* --- [landing card clear] the sky hole now covers the WHOLE card - white border and
+       corners included - instead of 1074x416 (20px inside the border, so stars rode
+       over the frame). A rounded-rect SVG (1122x464 = card + 4px each side, rx 50 =
+       the frame's ~46px outer radius + 4) keeps the corners honest; it scales
+       uniformly with --scale so the radius never distorts. Pairs with the sky-drift
+       change in app.js that starts every lane just outside this box. --- */
+body.is-start .sg-sky{
+  --sg-hole-w:calc(1122px * var(--scale,1));
+  --sg-hole-h:calc(464px * var(--scale,1));
+  -webkit-mask-image:linear-gradient(#000,#000),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1122 464'%3E%3Crect width='1122' height='464' rx='50'/%3E%3C/svg%3E");
+          mask-image:linear-gradient(#000,#000),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1122 464'%3E%3Crect width='1122' height='464' rx='50'/%3E%3C/svg%3E");
+}
+
+/* landing title (लंबाई मापना) nudged up a touch (review 2026-09-28). position:relative + top moves
+   only the title - the pencil and play button below keep their places. */
+.sg-content .sg-title{position:relative;top:-10px;}
+
+/* --- [landing title] लंबाई मापना - STICKER look matched to the reference heading (review 2026-09-28:
+       "this heading should have a good shadow same like in image 2"). Chosen by a 4-design / 3-judge
+       panel rendering each candidate on the real landing art against the reference crop.
+       Font unchanged on purpose (user: keep the thick font): Baloo 2 ExtraBold 800, 64px, #F85A00.
+       Pure text-shadow (no -webkit-text-stroke: it paints INSIDE glyphs and thins Devanagari). --- */
+.sg-title,.sg-title.compact{font-family:"Baloo 2","Noto Sans Devanagari",sans-serif;font-weight:800;
+  font-size:64px;line-height:1.15;color:#F85A00;white-space:nowrap;letter-spacing:.5px;transform:none;
+  text-shadow:
+    4.5px 0px 0 #fff,
+    4.41px 0.76px 0 #fff,
+    4.16px 1.49px 0 #fff,
+    3.74px 2.17px 0 #fff,
+    3.18px 2.76px 0 #fff,
+    2.5px 3.24px 0 #fff,
+    1.72px 3.6px 0 #fff,
+    0.88px 3.83px 0 #fff,
+    0px 3.9px 0 #fff,
+    -0.88px 3.83px 0 #fff,
+    -1.72px 3.6px 0 #fff,
+    -2.5px 3.24px 0 #fff,
+    -3.18px 2.76px 0 #fff,
+    -3.74px 2.17px 0 #fff,
+    -4.16px 1.49px 0 #fff,
+    -4.41px 0.76px 0 #fff,
+    -4.5px 0px 0 #fff,
+    -4.41px -0.76px 0 #fff,
+    -4.16px -1.49px 0 #fff,
+    -3.74px -2.17px 0 #fff,
+    -3.18px -2.76px 0 #fff,
+    -2.5px -3.24px 0 #fff,
+    -1.72px -3.6px 0 #fff,
+    -0.88px -3.83px 0 #fff,
+    0px -3.9px 0 #fff,
+    0.88px -3.83px 0 #fff,
+    1.72px -3.6px 0 #fff,
+    2.5px -3.24px 0 #fff,
+    3.18px -2.76px 0 #fff,
+    3.74px -2.17px 0 #fff,
+    4.16px -1.49px 0 #fff,
+    4.41px -0.76px 0 #fff,
+    2.43px 0.42px 0 #fff,
+    2.06px 1.19px 0 #fff,
+    1.38px 1.78px 0 #fff,
+    0.48px 2.1px 0 #fff,
+    -0.48px 2.1px 0 #fff,
+    -1.38px 1.78px 0 #fff,
+    -2.06px 1.19px 0 #fff,
+    -2.43px 0.42px 0 #fff,
+    -2.43px -0.42px 0 #fff,
+    -2.06px -1.19px 0 #fff,
+    -1.38px -1.78px 0 #fff,
+    -0.48px -2.1px 0 #fff,
+    0.48px -2.1px 0 #fff,
+    1.38px -1.78px 0 #fff,
+    2.06px -1.19px 0 #fff,
+    2.43px -0.42px 0 #fff,
+    4.5px 4.8px 0.8px #2F82DE,
+    4.41px 5.56px 0.8px #2F82DE,
+    4.16px 6.29px 0.8px #2F82DE,
+    3.74px 6.97px 0.8px #2F82DE,
+    3.18px 7.56px 0.8px #2F82DE,
+    2.5px 8.04px 0.8px #2F82DE,
+    1.72px 8.4px 0.8px #2F82DE,
+    0.88px 8.63px 0.8px #2F82DE,
+    0px 8.7px 0.8px #2F82DE,
+    -0.88px 8.63px 0.8px #2F82DE,
+    -1.72px 8.4px 0.8px #2F82DE,
+    -2.5px 8.04px 0.8px #2F82DE,
+    -3.18px 7.56px 0.8px #2F82DE,
+    -3.74px 6.97px 0.8px #2F82DE,
+    -4.16px 6.29px 0.8px #2F82DE,
+    -4.41px 5.56px 0.8px #2F82DE,
+    -4.5px 4.8px 0.8px #2F82DE,
+    -4.41px 4.04px 0.8px #2F82DE,
+    -4.16px 3.31px 0.8px #2F82DE,
+    -3.74px 2.63px 0.8px #2F82DE,
+    -3.18px 2.04px 0.8px #2F82DE,
+    -2.5px 1.56px 0.8px #2F82DE,
+    -1.72px 1.2px 0.8px #2F82DE,
+    -0.88px 0.97px 0.8px #2F82DE,
+    0px 0.9px 0.8px #2F82DE,
+    0.88px 0.97px 0.8px #2F82DE,
+    1.72px 1.2px 0.8px #2F82DE,
+    2.5px 1.56px 0.8px #2F82DE,
+    3.18px 2.04px 0.8px #2F82DE,
+    3.74px 2.63px 0.8px #2F82DE,
+    4.16px 3.31px 0.8px #2F82DE,
+    4.41px 4.04px 0.8px #2F82DE,
+    2.43px 5.22px 0 #2F82DE,
+    2.06px 5.99px 0 #2F82DE,
+    1.38px 6.58px 0 #2F82DE,
+    0.48px 6.9px 0 #2F82DE,
+    -0.48px 6.9px 0 #2F82DE,
+    -1.38px 6.58px 0 #2F82DE,
+    -2.06px 5.99px 0 #2F82DE,
+    -2.43px 5.22px 0 #2F82DE,
+    -2.43px 4.38px 0 #2F82DE,
+    -2.06px 3.61px 0 #2F82DE,
+    -1.38px 3.02px 0 #2F82DE,
+    -0.48px 2.7px 0 #2F82DE,
+    0.48px 2.7px 0 #2F82DE,
+    1.38px 3.02px 0 #2F82DE,
+    2.06px 3.61px 0 #2F82DE,
+    2.43px 4.38px 0 #2F82DE,
+    0 4.8px 0 #2F82DE,
+    0 8px 12px rgba(0,40,120,.26);}
+
+/* ==================== QA CHECKLIST PASS (2026-09-28) ====================
+   Later-wins overrides for the FLN QA checklist. Each block names its item. */
+
+/* [07] Veil: #39373799 + 15.8px blur over the WHOLE viewport, uniform. The stage used to get
+   its own extra filter:blur(5px) under the veil, so it read blurrier than the letterbox -
+   the backdrop blur alone now does all of it, identically everywhere. */
+.stage.blurred .stage-inner{filter:none;}
+.stage.gating .start-gate{filter:none;}
+/* [07] the gate headline, as HI01H01_L02_S04 draws it: 96px, 271px from the top, a 10px white stroke, centred on the
+   screen (left 50% + translateX(-50%), above). Review 2026-09-30: "has the size of this text reduced? make it back to
+   normal" - the earlier QA scaling, min(96px, 7.4vw, 11vh), shrank it on every ordinary laptop window (77px at 1445x704).
+   It now shrinks ONLY where 96px cannot fit: a screen narrower than the longest line (687px at 96px = 7.2 x the size)
+   plus 24px each side, or one so short that the text would reach Swiftie (her crest = the gate's height minus her own,
+   clamp(300px,44vh,520px)); the top moves up with it so it always stays 16px above her. */
+.pg-title{
+  --pg-crest:calc(100dvh - clamp(300px,44vh,520px));
+  --pg-f:max(32px,min(96px,calc((100vw - 48px) / 7.2),calc(var(--pg-crest) - 40px)));
+  font-size:var(--pg-f);top:min(271px,calc(var(--pg-crest) - 16px - var(--pg-f)));
+  -webkit-text-stroke:calc(var(--pg-f) * 10 / 96) #FFFFFF;}
+/* [peek-5] the headline waits for Swiftie: hidden while she peeks and rises, pops in when app.js adds .talking (her
+   first open-mouth frame, the same tick the VO starts), and fades as she ducks. The keyframes carry the
+   translateX(-50%) centring so the pop scales about the headline's own centre. Under the reduced-motion kill the
+   animation is dropped and the end state stays, so the headline still appears on cue. */
+.phase-gate .pg-title{opacity:0;}
+.phase-gate.talking .pg-title{opacity:1;animation:pgTitleIn .38s cubic-bezier(.34,1.5,.6,1) both;}
+.phase-gate.talking.leaving .pg-title{animation:pgTitleOut .3s ease-in both;}
+@keyframes pgTitleIn{from{opacity:0;transform:translateX(-50%) scale(.6);}to{opacity:1;transform:translateX(-50%) scale(1);}}
+@keyframes pgTitleOut{to{opacity:0;transform:translateX(-50%) scale(.92);}}
+
+/* [10] WRONG card: the shake never played. A wrong tap carries BOTH .crossed and .wg-wrong, and
+   `.opt-cell.crossed{animation:none}` (same specificity, later) beat `.opt-cell.wg-wrong{animation:wgNo}`.
+   At (0,3,0) the shake wins; the red border + ~900ms release are unchanged. No cross icon. */
+.opt-cell.crossed.wg-wrong{animation:wgNo var(--wgT) ease-in-out both;}
+/* [10] CORRECT card: never the tick badge - including the REVEAL path, which added only .correct
+   and so showed the old 64px green tick with a thin border. It now gets .ck-correct (app.js). */
+.opt-cell.correct::after,.stage .opt-cell.correct::after{content:none !important;display:none !important;}
+/* [10] MCQ default card: hover LIFTS (ledge 6px, face up 2px), press SINKS (ledge 2px, face down 2px).
+   The earlier hover only thickened the ledge with transform:none, so the card never moved. */
+.stage.thm-toybox .opt-cell:hover,.stage .opt-cell:hover{transform:translateY(-2px);box-shadow:0 6px 0 #D9D9D9;}
+.stage.thm-toybox .opt-cell:active,.stage .opt-cell:active{transform:translateY(2px);box-shadow:0 2px 0 #D9D9D9;}
+/* [10] HEADER: no enlarge/bounce CSS animation - motion comes from the animated image files only.
+   .mascot-wrap.react popped the header Swiftie to 1.13x on every mood change; the chip grew on hover. */
+.mascot-wrap.react{animation:none !important;}
+.audio-chip:hover{transform:none;}   /* [QA 05] gentle wrong-submit shake on the MAKE_SET row */
+
+/* [12] the nudge hand = FLN animation kit recipe 3, treatment C (the plain press, `nhTapNew` in the kit's nudge-press
+   block above: contact held 45->62%) + recipe 4, the TAP RIPPLE (review 2026-09-30: "the hand nudge doesn't have the
+   correct tapping effect, it has a circular one - use the toolkit's hand nudge with the tapping ripple"). The old
+   two-layer clipped hand and its plain white contact ring are gone. */
+/* ===== FLN ANIMATION KIT: nudge-ripple BEGIN ===== */
+/* Each layer is on a 120-unit square canvas centred on the ripple origin, so
+   background-size:contain + transform-origin:50% 50% scales it about the fingertip.
+   GEOMETRY: #nudgeHand is 86x108; nudge_hand_new.svg (75x94, viewBox 33 24 75 94)
+   renders at object-fit:contain scale 1.1467 -> fingertip at (34.2, 15.8).
+   The 94.6px FX square is offset to centre exactly there. The layers sit BEHIND the hand (the span comes first)
+   and run the SAME 1.3s as nhTapNew, so the ripple breaks on the frame the finger touches. Assets: the kit's own
+   nudge_fx_ring_outer / _inner / _sparks.svg (from MTKGA02_L01_S01, byte-identical), kept flat in assets/. */
+#nudgeHand .nh-tapfx{position:absolute;width:94.6px;height:94.6px;
+  left:-13.08px;top:-31.48px;pointer-events:none;}
+#nudgeHand .nh-tapfx i{position:absolute;inset:0;display:block;
+  background-repeat:no-repeat;background-position:center;background-size:contain;
+  transform-origin:50% 50%;opacity:0;}
+#nudgeHand .nh-tapfx .fx-ro{background-image:url(assets/nudge_fx_ring_outer.svg);
+  animation:nhRippleOuter 1.3s ease-out infinite;}
+#nudgeHand .nh-tapfx .fx-ri{background-image:url(assets/nudge_fx_ring_inner.svg);
+  animation:nhRippleInner 1.3s ease-out infinite;}
+#nudgeHand .nh-tapfx .fx-sp{background-image:url(assets/nudge_fx_sparks.svg);
+  animation:nhSparkPop 1.3s ease-out infinite;}
+
+/* inner leads, outer trails - one ripple rolling out */
+@keyframes nhRippleInner{0%,38%{opacity:0;transform:scale(.30);}47%{opacity:1;transform:scale(.74);}
+  70%{opacity:.5;transform:scale(1.10);}90%,100%{opacity:0;transform:scale(1.34);}}
+@keyframes nhRippleOuter{0%,45%{opacity:0;transform:scale(.55);}56%{opacity:.95;transform:scale(.88);}
+  78%{opacity:.4;transform:scale(1.20);}96%,100%{opacity:0;transform:scale(1.46);}}
+@keyframes nhSparkPop{0%,42%{opacity:0;transform:scale(.55);}52%{opacity:1;transform:scale(1);}
+  68%{opacity:1;transform:scale(1.06);}86%,100%{opacity:0;transform:scale(1.18);}}
+/* ===== FLN ANIMATION KIT: nudge-ripple END ===== */
+#nudgeHand img{position:relative;display:block;}   /* over the ripple (the span is absolute and comes first) */
+@media (prefers-reduced-motion:reduce){ #nudgeHand img,#nudgeHand .nh-tapfx i{animation:none;} }
+
+/* [03] landing mascot = EXACTLY HI01H01_L02_S04's first screen (review 2026-09-29: "take exactly the
+   size from the 1st screen of HI01H01"): 208px wide, left -24, bottom -12, and its VO chip at
+   left 96 / bottom -16 on her leg. Supersedes the checklist's ~180px/-3 (which drew her 13% smaller
+   than the reference). Same animation as HI01's new_landing_swiftee_anim.webp, but re-encoded 2026-09-29
+   ("swifty is getting glitched"): its clip snaps between two poses at frames 1->2 and 29->30. It now STARTS at the
+   clip's frame 2 (frames 0-1 were the end pose - the loop's seam - flashing at the start) and the 29->30 snap has 3
+   cross-fade frames (60ms): 37 frames, 3.24s, plays once, same last frame. It is drawn by app.js [landing mascot
+   player] on a canvas where the browser can (Chrome blanked the <img> for 1-2 frames at frame changes); the <img>
+   stays the fallback. Original kept outside the game folder.
+   will-change:transform = her own GPU layer. Without it Chrome paints her through the drop-shadow
+   filter surface shared with the card FX (dust canvas / flare / lamp) at reduced resampling quality:
+   measured 87% of the sharpest Chrome can draw this 560px frame; with it 97%, also after a resize. */
+.sg-mascot{width:208px;height:auto;left:-24px;bottom:-12px;animation:none;will-change:transform;}
+.sg-vo{left:96px;bottom:-16px;}
+
+/* [04] SPEAKING = white text-stroke outline while that word's VO plays (the tutorial prompt while
+   the prompt is spoken, the big running numeral while its number is spoken - app.js toggles
+   .speaking). paint-order puts the stroke BEHIND the fill, so it rings the letters instead of
+   eating into Devanagari strokes; the soft shadow keeps the ring visible on the white card. */
+.tut-prompt.speaking{
+  -webkit-text-stroke:8px #FFFFFF;paint-order:stroke fill;
+  text-shadow:0 0 14px rgba(25,135,252,.35);transition:text-shadow .15s ease;}
+/* [04] tutorial prompt per the checklist type spec: 64px / 800 / min-height 118px / nowrap / navy.
+   (Was held at HI01's 52px wrapping, because an EARLIER prompt was a long sentence that could not
+   fit one line at 64px. The current three prompts fit on one line - measured in the harness.) */
+.tut-prompt{font-size:64px;font-weight:800;min-height:118px;white-space:nowrap;color:#012F76;line-height:1.1;}
+/* [09] option / box labels: SemiBold 23.84px / 100% / #012F76. `.makeset-target .ms-label`
+   (28px / 800) out-specified the checklist rule for .ms-label, so the spec is restated at its level. */
+.opt-cell .lbl{font-size:23.84px;font-weight:600;line-height:1;color:#012F76;}
+
+/* [10] Next / Continue use the REAL default + deactive button ASSETS, not a CSS-only fake state.
+   assets/btn-next-{default,deactive}.svg and btn-continue-{default,deactive}.svg carry the face,
+   rim and the label (as outlines). The state class only swaps which asset shows. The button keeps
+   its text node for screen readers; it is painted transparent.
+   NEXT (review 2026-09-30: "remove the word आगे, keep only the arrow in the middle; the 1st screen's
+   button style, but this button's wider pill shape"): btn-next-* are the play button's gold / grey
+   sets (btn-play-blob*.svg) built on the same 170x62 pill, with the arrow alone, centred. Their
+   shadows are the play button's navy-tinted ones (grey while it waits). */
+.nav-btn,.stage .nav-btn{width:170px;min-width:170px;height:62px;padding:0;border:0;border-radius:9999px;
+  color:transparent;font-size:0;box-shadow:none;filter:drop-shadow(0 4px 4px rgba(70,70,82,.22));}
+.nav-btn::after{content:none;}
+.nav-btn.active,.stage .nav-btn.active{color:transparent;box-shadow:none;filter:drop-shadow(0 7px 7px rgba(12,46,92,.32)) drop-shadow(0 2px 2px rgba(12,46,92,.18));}
+.nav-btn.active:active{box-shadow:none;filter:drop-shadow(0 3px 3px rgba(12,46,92,.28));}
+.end-btn{width:200px;height:70px;padding:0;border:0;
+  color:transparent;font-size:0;box-shadow:none;filter:drop-shadow(0 6px 6px rgba(0,0,0,.25));}
+.end-btn:active{box-shadow:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25));}
+.end-btn:disabled{filter:drop-shadow(0 4px 0 #D6D6D6);cursor:default;}
+
+/* ==================== PLAY BUTTON: WAIT -> POP -> IDLE PULSE (review 2026-09-28) ====================
+   Behaviour matches the reference game (HI02H11_L01_S01): grey + disabled while the landing greeting
+   speaks, gold + live the moment it ends, and the strong idle pulse after 5s untouched. The swap is
+   in app.js (setStartBtnReady); this is the look.
+   SHADOW: drop-shadow() on the <img>, so it follows the blob's own outline (a box-shadow would draw
+   a rectangle). Navy-tinted like the reference's 0 10px 16px rgba(12,46,92,.30). */
+.sg-btn.sg-btn--play img{filter:drop-shadow(0 9px 9px rgba(12,46,92,.34)) drop-shadow(0 2px 2px rgba(12,46,92,.20));}
+.sg-btn.sg-btn--play.sg-waiting img{filter:drop-shadow(0 5px 5px rgba(70,70,82,.22));}
+.sg-btn.sg-waiting{cursor:default;animation:none;}
+.sg-btn.sg-waiting:active{transform:translateX(-50%);}
+/* the gold ring that bursts out of the button - behind the art (the button is its own stacking context) */
+.sg-btn.sg-btn--play::before{content:"";position:absolute;left:8%;right:8%;top:6%;bottom:10%;border-radius:50%;
+  z-index:-1;pointer-events:none;opacity:0;}
+/* POP: the one-shot "I'm ready" when the greeting ends */
+.sg-btn.sg-btn--play.sg-pop{animation:sgPlayPop .6s cubic-bezier(.34,1.3,.5,1) both;}
+.sg-btn.sg-btn--play.sg-pop::before{animation:sgPlayHalo .75s ease-out both;}
+@keyframes sgPlayPop{
+  0%  {transform:translateX(-50%) scale(1);}
+  35% {transform:translateX(-50%) scale(1.20);}
+  60% {transform:translateX(-50%) scale(.93);}
+  80% {transform:translateX(-50%) scale(1.05);}
+  100%{transform:translateX(-50%) scale(1);}
+}
+/* IDLE PULSE: the reference's sgBtnPulseStrong + sgBtnHalo, verbatim timings */
+.sg-btn.sg-btn--play.idle-pulse{animation:sgPlayPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite;}
+.sg-btn.sg-btn--play.idle-pulse::before{animation:sgPlayHalo 1.15s ease-out infinite;}
+@keyframes sgPlayPulse{
+  0%,100%{transform:translateX(-50%) scale(1);}
+  30%    {transform:translateX(-50%) scale(1.10);}
+  58%    {transform:translateX(-50%) scale(.985);}
+}
+@keyframes sgPlayHalo{
+  0%  {opacity:1;box-shadow:0 0 0 0    rgba(248,190,42,.60);}
+  72% {opacity:1;box-shadow:0 0 0 26px rgba(248,190,42,0);}
+  100%{opacity:0;box-shadow:0 0 0 0    rgba(248,190,42,0);}
+}
+@media (prefers-reduced-motion:reduce){
+  .sg-btn.sg-btn--play.sg-pop,.sg-btn.sg-btn--play.idle-pulse,
+  .sg-btn.sg-btn--play.sg-pop::before,.sg-btn.sg-btn--play.idle-pulse::before{animation:none;}
+}
+
+/* ==================== QA checklist pass (2026-10-05) ==================== */
+/* Next: it PULSES the moment it turns active (the VO + the CTA of the screen are done) - the play button's pulse, on
+   the individual `scale` property so it never fights the transform that centres it */
+.nav-btn.active,.stage .nav-btn.active{animation:navReadyPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite;}
+.nav-btn.active:active{animation:none;}
+@keyframes navReadyPulse{0%,100%{scale:1;}30%{scale:1.08;}58%{scale:.985;}}
+/* the title screen's speaker button is DISABLED while the greeting speaks, enabled again after it */
+/* (the title screen's speaker is never disabled - review 2026-10-05; .sg-vo.is-disabled removed) */
+/* the third feedback layer on a 3-option question: the right card keeps a soft green ring while the hand points at it;
+   the wrong ones are locked (.locked: faded, untappable) */
+.mq-opt.hint-on{border-color:#00B132;box-shadow:0 4px 0 #D9D9D9,0 0 0 6px rgba(0,177,50,.28);}
+.mq-opt.locked{pointer-events:none;}
+@media (prefers-reduced-motion:reduce){ .nav-btn.active,.stage .nav-btn.active{animation:none;} }
+/* review 2026-10-05: "remove this disabled button from all the screens - only show the next button or play button when
+   each screen's activity is complete". The waiting (deactive) state is no longer SHOWN: the button keeps its place
+   and all its logic (setNavActive / setStartBtnReady), it is just invisible and untappable until it turns active -
+   then it appears with its pulse (Next) / its pop + pulse (Play). */
+.nav-btn:not(.active),.stage .nav-btn:not(.active){visibility:hidden !important;pointer-events:none !important;}
+.sg-btn.sg-waiting{visibility:hidden !important;pointer-events:none !important;}
+/* review 2026-10-05: the end screen's "आगे बढ़ें →" pill is now the ARROW ALONE on a rounded square, the game's gold button
+   style (assets/btn-continue-arrow*.svg). The button keeps "आगे बढ़ें" as its text for screen readers (painted transparent). */
+.end-btn,.end-btn.show{width:108px;height:88px;min-width:0;padding:0;border:0;border-radius:26px;
+  color:transparent;font-size:0;
+  filter:drop-shadow(0 6px 6px rgba(12,46,92,.28));}
+.end-btn:disabled{filter:drop-shadow(0 4px 4px rgba(70,70,82,.2));}
+/* ==================== [ref buttons] review 2026-10-06: "take the buttons from https://hi-02-h11-l01-s01.vercel.app/ -
+   the play button, next button and end screen button" - measured from that game in Chrome (computed styles):
+   PLAY  its round gold button, assets/btn-play-round(-waiting).svg (copied from it), 140px
+   NEXT  its CSS pill: #FCB717, 3px white rim, 170x62, the bevel + drop shadows, a 52px navy "→" (Baloo 2)
+   END   its CSS pill: #FCB717, 4px white rim, 14px 44px padding (~134x88), the same shadows + "→"
+   They replace this game's own SVG buttons (btn-play-blob / btn-next / btn-continue-arrow). The waiting / deactive
+   states are still hidden (review 2026-10-05); the Next pulse stays. */
+.sg-btn.sg-btn--art.sg-btn--play{width:140px;bottom:12px;}   /* (bigger than the old 112px blob: 16px lower, so it clears the cube row) */
+.sg-btn.sg-btn--play img,.sg-btn.sg-btn--play.sg-waiting img{filter:none;}
+.nav-btn,.stage .nav-btn,.nav-btn.active,.stage .nav-btn.active{width:170px;min-width:170px;height:62px;padding:0;
+  display:flex;align-items:center;justify-content:center;border:3px solid #FFFFFF;border-radius:9999px;box-sizing:border-box;
+  background:#FCB717;color:#0B3D8C;font-size:0;font-family:var(--font-hi);font-weight:800;filter:none;
+  box-shadow:0 6px 6px rgba(0,0,0,.25),inset 4.54px 9.09px 12.12px rgba(255,255,255,.25),inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);}
+.nav-btn::after,.stage .nav-btn::after{content:"→";font-size:52px;line-height:1;color:#0B3D8C;font-family:var(--font-hi);font-weight:800;}
+.nav-btn.active:active,.stage .nav-btn.active:active{box-shadow:0 3px 3px rgba(0,0,0,.25),inset 4.54px 9.09px 12.12px rgba(255,255,255,.25),inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);filter:none;}
+.end-btn,.end-btn.show{width:auto;height:88px;min-width:0;padding:14px 44px;box-sizing:border-box;align-items:center;justify-content:center;
+  border:4px solid #FFFFFF;border-radius:44.56px;background:#FCB717;color:#0B3D8C;font-size:0;filter:none;
+  box-shadow:0 6px 6px rgba(0,0,0,.25),inset 4.54px 9.09px 12.12px rgba(255,255,255,.25),inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);}
+.end-btn::after{content:"→";font-size:52px;line-height:1;color:#0B3D8C;font-family:var(--font-hi);font-weight:800;}
+.end-btn:active{transform:translateY(3px);box-shadow:0 3px 3px rgba(0,0,0,.25),inset 4.54px 9.09px 12.12px rgba(255,255,255,.25),inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);}
+.end-btn:disabled{background:#EDEDED;color:#C2C2C2;box-shadow:0 4px 0 #D6D6D6;cursor:default;}
+.end-btn:disabled::after{color:#C2C2C2;}
+/* review 2026-10-06: "remove the yellow beam coming out of this button" - the gold halo ring (::before, sgPlayHalo) is off;
+   the button's own pop and pulse stay */
+.sg-btn.sg-btn--play::before,.sg-btn.sg-btn--play.sg-pop::before,.sg-btn.sg-btn--play.idle-pulse::before{content:none;display:none;animation:none;}
+/* [mcq cards] review 2026-10-06: "make sure these blocks are same in all such mcq scenes - when the green outline comes the
+   behaviour should be the same in all mcq screens": every answer card one width (whatever its number); the right one gets
+   T1's green - a 5px #00B132 rim + the same soft #00B132 glow - and one small pop; the others dim (app.js) */
+.mq-opt{width:200px;min-width:200px;box-sizing:border-box;}
+.mq-opts.in .mq-opt.correct{border:5px solid #00B132;background:#EFFBF2;opacity:1;
+  box-shadow:0 4px 0 #A8E3B9,0 0 6px #00B132,0 0 14px rgba(0,177,50,.45);animation:mqRight .45s cubic-bezier(.3,1.6,.5,1) both;}
+@keyframes mqRight{0%{scale:1;}45%{scale:1.08;}100%{scale:1;}}
+.mq-opt.faded{transition:opacity .3s;}
+@media (prefers-reduced-motion:reduce){ .mq-opts.in .mq-opt.correct{animation:none;} }
+
+/* ==================== [pv kit] the place-value addition screens (app.js PVK + PVModules) ====================
+   One look for both games, in MTG2A04's own tokens: navy #012F76 text, the answer cards' white face / 2.69px #D5D8DF
+   rim / 0 4px 0 #D9D9D9 ledge, the gold button (#FCB717, white rim, the bevel), Baloo 2 800. The deck's colours for
+   place value: tens green (the rods), ones orange (the cubes) - the table's two heads carry them. */
+.tut-card.tc-pv .tut-content{position:relative;}
+.pv-stage{position:absolute;width:1333px;height:750px;pointer-events:none;z-index:2;}
+.pv-stage > *{position:absolute;pointer-events:auto;}
+.pv-hide{opacity:0 !important;pointer-events:none !important;}
+.pv-gone{opacity:0 !important;pointer-events:none !important;transition:opacity .45s ease-out !important;}
+.pv-pop{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) both;}
+@keyframes pvPop{0%{opacity:0;scale:.55;}100%{opacity:1;scale:1;}}
+
+/* the table */
+.pv-table{box-sizing:border-box;background:#fff;border:3px solid #B7DCFB;border-radius:18px;overflow:hidden;pointer-events:none !important;z-index:1;
+  box-shadow:0 4px 0 #D5E6F7,0 10px 24px rgba(0,47,118,.10);transition:opacity .35s;}
+.pv-th{position:absolute;top:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-bottom:3px solid #B7DCFB;
+  font-family:var(--font-hi);font-weight:800;line-height:1;transition:background .25s,color .25s;}
+.pv-th-t{left:0;background:#E7F6DC;color:#2E7D0F;}
+.pv-th-o{background:#FFF1D8;color:#B35A00;}
+.pv-th.hl{animation:pvHead .9s ease-in-out infinite;}
+.pv-th-t.hl{background:#C9EDB0;}
+.pv-th-o.hl{background:#FFDDA3;}
+@keyframes pvHead{0%,100%{box-shadow:inset 0 0 0 0 rgba(255,255,255,0);}50%{box-shadow:inset 0 0 0 4px rgba(255,255,255,.9);}}
+.pv-div{position:absolute;top:0;bottom:0;width:3px;background:#B7DCFB;}
+
+/* the blocks */
+.pv-blk{box-sizing:content-box;user-select:none;-webkit-user-drag:none;-webkit-tap-highlight-color:transparent;z-index:5;
+  filter:drop-shadow(0 2px 2px rgba(12,46,92,.28));transition:opacity .3s;}
+.pv-blk.pv-tap{cursor:pointer;}
+.pv-cube.pv-tap{padding:5px;margin:-5px;}                      /* a bigger touch area than the cube itself */
+.pv-rod.pv-tap,.pv-rod.pv-grab{padding:4px 9px;margin:-4px -9px;cursor:pointer;}
+.pv-rod.pv-grab{touch-action:none;cursor:grab;}
+.pv-blk.lift{scale:1.08;cursor:grabbing;filter:drop-shadow(0 8px 10px rgba(12,46,92,.35));}
+.pv-blk.pulse{animation:pvBlkPulse 1.1s ease-in-out infinite;}
+@keyframes pvBlkPulse{0%,100%{scale:1;filter:drop-shadow(0 2px 2px rgba(12,46,92,.28));}
+  50%{scale:1.1;filter:drop-shadow(0 0 5px rgba(255,196,26,.95)) drop-shadow(0 2px 2px rgba(12,46,92,.28));}}
+.pv-blk.hl{animation:pvBlkHl .9s ease-in-out 2;}
+@keyframes pvBlkHl{0%,100%{filter:drop-shadow(0 2px 2px rgba(12,46,92,.28));}
+  50%{filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(255,196,26,1));scale:1.08;}}
+.pv-blk.pv-on{filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px rgba(255,170,0,.95));}
+.pv-ghost{z-index:4;opacity:.28;filter:grayscale(1);pointer-events:none !important;}
+.pv-ghostdrag{z-index:29;opacity:.55;pointer-events:none !important;}
+.pv-new{filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px rgba(255,194,26,.95));}
+.pv-blk.moving{z-index:30;}
+
+/* numbers and the equation */
+.pv-num{display:flex;align-items:center;justify-content:center;box-sizing:border-box;transform:translateX(-50%);padding:0 14px;
+  background:#fff;border:2.69px solid #D5D8DF;box-shadow:0 4px 0 #D9D9D9;font-family:var(--font-hi);font-weight:800;line-height:1;color:#012F76;z-index:6;}
+.pv-eq .pv-num{transform:none;}
+.pv-d{display:inline-block;transition:color .2s,scale .2s,text-shadow .2s;}
+.pv-d.hl-t{color:#2E7D0F;scale:1.25;text-shadow:0 0 10px rgba(110,200,40,.65);}
+.pv-d.hl-o{color:#E07800;scale:1.25;text-shadow:0 0 10px rgba(255,160,0,.65);}
+.pv-q{border:3px dashed #8DB8E8;color:#5A7CAD;box-shadow:none;background:#F4F9FF;}
+.pv-q.pulse{animation:pvQ 1.2s ease-in-out 3;}
+@keyframes pvQ{0%,100%{scale:1;}50%{scale:1.08;}}
+.pv-q.filled{border:5px solid #00B132;border-style:solid;background:#EFFBF2;color:#012F76;box-shadow:0 4px 0 #A8E3B9,0 0 6px #00B132;}
+.pv-eq{display:flex;align-items:center;gap:16px;transform:translateX(-50%);transform-origin:50% 0;z-index:6;transition:scale .5s;}
+.pv-eq.big{scale:1.36;}
+.pv-op{font-family:var(--font-hi);font-weight:800;line-height:1;color:#012F76;}
+.pv-sym{transform:translateX(-50%);pointer-events:none !important;}
+.pv-total{z-index:7;}
+.pv-fly{z-index:60;pointer-events:none !important;}
+.pv-dig{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);
+  border:3px solid #fff;font-family:var(--font-hi);font-weight:800;font-size:28px;line-height:1;color:#fff;z-index:7;box-shadow:0 3px 6px rgba(0,47,118,.25);}
+.pv-dig-t{background:#3E9B16;}
+.pv-dig-o{background:#F08A00;}
+
+/* the people on a story page */
+.pv-person{transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none !important;z-index:3;}
+.pv-avs{display:flex;align-items:center;justify-content:center;}
+.pv-av{display:block;height:auto;filter:drop-shadow(0 4px 8px rgba(0,47,118,.18));}
+.pv-name{font-family:var(--font-hi);font-weight:800;font-size:26px;line-height:1.1;color:#012F76;}
+
+/* the + buttons, the दहाई बनाओ button, the ten's ring and target place */
+.pv-src{display:flex;align-items:center;gap:10px;height:64px;padding:0 10px 0 18px;box-sizing:border-box;transform:translateX(-50%);
+  border-radius:20px;background:#fff;border:3px solid #B7DCFB;box-shadow:0 4px 0 #CFE3F7;cursor:pointer;-webkit-tap-highlight-color:transparent;z-index:8;transition:opacity .25s,filter .25s;}
+.pv-src img{height:44px;width:auto;pointer-events:none;}
+.pv-src img[src*="pv_cube"]{height:30px;}
+.pv-plus{width:42px;height:42px;border-radius:50%;background:#1987FC;color:#fff;font-family:var(--font-hi);font-weight:800;font-size:36px;
+  line-height:42px;text-align:center;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);}
+.pv-src:active{translate:0 2px;box-shadow:0 2px 0 #CFE3F7;}
+.pv-src.off{opacity:.4;filter:grayscale(.8);pointer-events:none;}
+.pv-src.demo{pointer-events:none;}
+.pv-src.pulse{animation:pvBtnPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite;}
+@keyframes pvBtnPulse{0%,100%{scale:1;}30%{scale:1.1;}58%{scale:.985;}}
+.pv-make{height:62px;padding:0 28px;box-sizing:border-box;transform:translateX(-50%);border:3px solid #fff;border-radius:9999px;background:#FCB717;
+  color:#0B3D8C;font-family:var(--font-hi);font-weight:800;font-size:28px;line-height:1;white-space:nowrap;cursor:pointer;z-index:8;
+  box-shadow:0 6px 6px rgba(0,0,0,.25),inset 4.54px 9.09px 12.12px rgba(255,255,255,.25),inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);
+  -webkit-tap-highlight-color:transparent;transition:background .25s,color .25s,opacity .3s;}
+.pv-make.off{background:#EDEDED;color:#B9B9B9;box-shadow:0 4px 0 #D6D6D6;}
+.pv-make.pulse{animation:pvBtnPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite;}
+.pv-ring{box-sizing:border-box;border:4px dashed #FF8A00;border-radius:14px;background:rgba(255,170,40,.10);pointer-events:none !important;z-index:4;}
+.pv-ring:not(.pv-hide){animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) both,pvRing 1.2s ease-in-out .45s infinite;}
+@keyframes pvRing{0%,100%{border-color:#FF8A00;}50%{border-color:#FFC266;}}
+.pv-target{box-sizing:border-box;border:3px dashed #2E7D0F;border-radius:10px;background:rgba(150,220,90,.22);pointer-events:none !important;z-index:3;
+  animation:pvTarget 1.1s ease-in-out infinite;}
+@keyframes pvTarget{0%,100%{opacity:.55;}50%{opacity:1;}}
+.pv-hand{width:86px;height:108px;z-index:45;pointer-events:none !important;opacity:0;transition:opacity .2s,scale .12s;transform-origin:34px 16px;}
+.pv-hand.on{opacity:1;}
+.pv-hand.press{scale:.9;}
+
+/* the answer cards (MTG2A04's .mq-opt - its rules came with its measuring screens, kept here for these) */
+.mq-opts{position:absolute;left:0;right:0;display:flex;justify-content:center;gap:30px;z-index:20;opacity:0;pointer-events:none;transition:top .5s ease,opacity .3s;}
+.mq-opts.in{opacity:1;pointer-events:auto;}
+.mq-opts.pv-hide{opacity:0 !important;}
+.mq-opt{min-width:190px;height:84px;padding:0 22px;border-radius:16px;background:#fff;border:2.69px solid #D5D8DF;box-shadow:0 4px 0 #D9D9D9;
+  font-family:var(--font-hi);font-weight:800;font-size:34px;color:#012F76;cursor:pointer;opacity:0;scale:.6;
+  transition:border-color .15s,background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
+.mq-opts.in .mq-opt{animation:mdPop .45s cubic-bezier(.3,1.6,.5,1) forwards;}
+.mq-opts.in .mq-opt:nth-child(2){animation-delay:.12s;}
+.mq-opts.in .mq-opt:nth-child(3){animation-delay:.24s;}
+.mq-opt:active{box-shadow:0 2px 0 #D9D9D9;translate:0 2px;}
+.mq-opt.wrong{border:5px solid #F5A524;}
+.mq-opt.correct{border:5px solid #00B132;background:#EFFBF2;}
+.mq-opt.faded{opacity:.45 !important;}
+@keyframes mdPop{0%{opacity:0;scale:.3;}100%{opacity:1;scale:1;}}
+
+/* the number pad */
+.pv-ans{display:flex;gap:10px;padding:10px;border-radius:20px;background:#fff;border:3px solid #B7DCFB;box-shadow:0 4px 0 #CFE3F7;cursor:pointer;z-index:8;
+  transition:border-color .2s,background .2s,opacity .3s;-webkit-tap-highlight-color:transparent;}
+.pv-ans.open{cursor:default;}
+.pv-ans.wrong{border-color:#F5A524;}
+.pv-ans.ok{border:5px solid #00B132;background:#EFFBF2;}
+.pv-slot{width:66px;height:76px;box-sizing:border-box;border-radius:14px;border:2.69px dashed #8DB8E8;background:#F7FBFF;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-hi);font-weight:800;font-size:46px;line-height:1;color:#012F76;}
+.pv-slot.on{border-style:solid;border-color:#1987FC;animation:pvSlot 1s ease-in-out infinite;}
+@keyframes pvSlot{0%,100%{box-shadow:0 0 0 0 rgba(25,135,252,0);}50%{box-shadow:0 0 0 5px rgba(25,135,252,.22);}}
+.pv-pad{display:grid;grid-template-columns:repeat(3,58px);gap:10px;padding:12px;border-radius:22px;background:#EAF4FF;border:3px solid #B7DCFB;z-index:8;transition:opacity .3s;}
+.pv-key{width:58px;height:58px;padding:0;border-radius:50%;background:#fff;border:2.69px solid #D5D8DF;box-shadow:0 4px 0 #D9D9D9;cursor:pointer;
+  font-family:var(--font-hi);font-weight:800;font-size:30px;line-height:1;color:#012F76;-webkit-tap-highlight-color:transparent;transition:opacity .2s;}
+.pv-key:active{translate:0 2px;box-shadow:0 2px 0 #D9D9D9;}
+.pv-key.pv-back{font-size:24px;color:#5A7CAD;}
+.pv-key.hint-on{border:4px solid #00B132;box-shadow:0 4px 0 #A8E3B9,0 0 0 6px rgba(0,177,50,.25);}
+.pv-key.locked{opacity:.35;pointer-events:none;}
+@media (prefers-reduced-motion:reduce){
+  .pv-pop,.pv-blk.pulse,.pv-blk.hl,.pv-src.pulse,.pv-make.pulse,.pv-ring:not(.pv-hide),.pv-target,.pv-q.pulse,.pv-slot.on,.pv-th.hl,.mq-opts.in .mq-opt{animation:none;opacity:1;scale:1;}
+}
+
+/* ==================== [landing pv] the first screen's picture: the two children, their blocks, the equation ==================== */
+.sg-content.has-hero{max-width:1000px;}
+.sg-content .sg-title{top:-14px;}
+#sgHero{margin-top:0;}
+.sgp{display:flex;align-items:center;justify-content:center;gap:34px;}
+.sgp-kid{display:flex;align-items:flex-end;gap:12px;}
+.sgp-r{flex-direction:row-reverse;}
+.sg-art .sgp-av{width:118px;height:118px;max-height:none;max-width:none;filter:drop-shadow(0 6px 10px rgba(0,47,118,.22));}
+.sgp-blocks{display:flex;align-items:flex-end;gap:5px;padding-bottom:4px;}
+.sg-art .sgp-rod{width:auto;height:88px;max-height:none;filter:drop-shadow(0 2px 2px rgba(12,46,92,.3));}
+.sgp-cubes{display:flex;flex-direction:column-reverse;flex-wrap:wrap-reverse;max-height:90px;gap:2px;margin-left:4px;}
+.sg-art .sgp-cube{width:20px;height:auto;max-height:none;filter:drop-shadow(0 1px 1px rgba(12,46,92,.3));}
+.sgp-eq{display:flex;align-items:center;gap:12px;padding:10px 22px;border-radius:24px;background:rgba(255,255,255,.94);
+  border:3px solid #fff;box-shadow:0 6px 0 rgba(0,47,118,.12),0 12px 26px rgba(0,47,118,.18);}
+.sgp-n{min-width:74px;height:64px;padding:0 10px;box-sizing:border-box;border-radius:16px;background:#fff;border:2.69px solid #D5D8DF;box-shadow:0 4px 0 #D9D9D9;
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-hi);font-weight:800;font-size:44px;line-height:1;color:#012F76;}
+.sgp-q{border:3px dashed #8DB8E8;background:#F4F9FF;color:#5A7CAD;box-shadow:none;}
+.sgp-op{font-family:var(--font-hi);font-weight:800;font-size:46px;line-height:1;color:#012F76;}
+.sgp .sgp-av,.sgp .sgp-rod,.sgp .sgp-cube,.sgp .sgp-n,.sgp .sgp-op{opacity:0;}
+.sgp.go .sgp-av,.sgp.go .sgp-rod,.sgp.go .sgp-cube,.sgp.go .sgp-n,.sgp.go .sgp-op{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) var(--d,0s) both;}
+.sgp.go .sgp-q{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) var(--d,0s) both,pvQ 1.3s ease-in-out calc(var(--d,0s) + .5s) 2;}
+@media (prefers-reduced-motion:reduce){ .sgp .sgp-av,.sgp .sgp-rod,.sgp .sgp-cube,.sgp .sgp-n,.sgp .sgp-op{opacity:1;animation:none !important;} }
+/* a supplied whole figure (Pari, Aaru - make_characters.py) stands beside its blocks in place of the round portrait,
+   taller than the row: it overhangs it above and below, so the title and the play button keep their places */
+.sg-art .sgp-full{width:auto;height:224px;max-height:none;max-width:none;margin:-22px 0 -106px;filter:drop-shadow(0 8px 10px rgba(0,47,118,.18));}
+/* each child on the inner side of their blocks - next to the equation, clear of Swiftie's corner and the title */
+.sgp-l.sgp-has-full{flex-direction:row-reverse;}
+.sgp-r.sgp-has-full{flex-direction:row;}

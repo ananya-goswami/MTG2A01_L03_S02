@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">   <!-- [responsive] the page fills the whole screen (notch, home bar); app.js fits the stage inside the safe area -->
+<title>SwiftPAL · MTG2A01_L03_S02 · संख्या जोड़, नई दहाई बनाकर</title>
+<link rel="icon" href="data:,">   <!-- [QA 15] no favicon request: the browser's automatic /favicon.ico 404 was the last console error -->
+<!-- [QA 02] No blank white flash before the loader. style.css is a separate
+     request, so without this the very first paint is unstyled. This inline rule
+     lands the loader's own colour on the first frame. -->
+<style>html,body{background:#FFFFFF;margin:0;}</style>
+<link rel="stylesheet" href="style.css">
+<!-- [loading] the landing's own files start downloading with the page, alongside style.css - not only once app.js has
+     arrived and asked for them (the boot loader waits for exactly these: app.js Assets, CRIT). http(s) only: on
+     file:// a preload of a fetch() fails, and local files need no head start. -->
+<script>(function(){ if(!/^https?:$/.test(location.protocol)) return;
+  [["assets/fonts/baloo2-800.woff2", "font", "font/woff2"], ["assets/gif/new_landing_swiftee_anim.webp", "fetch"],
+   ["assets/startnew_bg_plain.webp", "image"], ["assets/background_1st_screen.webp", "image"], ["assets/pv_rod.webp", "image"]
+  ].forEach(function(f){ var l = document.createElement("link"); l.rel = "preload"; l.href = f[0]; l.as = f[1];
+    if(f[2]) l.type = f[2]; if(f[1] !== "image") l.crossOrigin = "anonymous"; document.head.appendChild(l); });
+})();</script>
+</head>
+<body class="is-start">
+<div class="start-bg" aria-hidden="true"></div>
+<!-- landing sky: the decorations baked into startnew_bg.webp cannot move, so a matching
+     layer drifts + twinkles above it. Edge-masked, so it never competes with the centre card.
+     Elements are generated at runtime by FLNMotion.sky (animation kit recipe 1). -->
+<div class="sg-glow" aria-hidden="true"></div>
+<div class="sg-sky"  aria-hidden="true"></div>
+<div class="end-bg"  aria-hidden="true"></div>   <!-- [20a] body-level: position:fixed must NOT sit inside the transformed .stage or it gets hijacked to the stage box (leaves letterbox band) -->
+
+<!-- BOOT LOADER — [template] r4/P2: white boot screen, no-tap auto-dismiss (see boot()) -->
+<div class="boot-loader" id="bootLoader">
+  <img src="assets/gif/loader.webp" alt="">
+</div>
+
+<div class="stage-wrap">
+<!-- [responsive] the bands beside / above the stage: 8 mirrored copies of the stage's own backdrop (app.js Screen.bleed) -->
+<div class="stage-bleed" id="stageBleed" aria-hidden="true"><i class="b-l"></i><i class="b-r"></i><i class="b-t"></i><i class="b-b"></i><i class="b-tl"></i><i class="b-tr"></i><i class="b-bl"></i><i class="b-br"></i></div>
+<div class="stage" id="stage">
+
+  <div class="stage-inner">
+    <!-- HEADER -->
+    <div class="header-row">
+      <div class="prompt-band"><div class="prompt-text" id="promptText">…</div></div>
+      <div class="audio-chip" id="audioChip" title="आवाज़ सुनो"><svg viewBox="0 0 62 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Audio"><g filter="url(#hdrChipShadow)"><rect x="8" y="4" width="46" height="44" rx="22" fill="url(#hdrChipGrad)"/><rect x="6" y="2" width="50" height="48" rx="24" stroke="white" stroke-width="4"/><path d="M29.8466 19.0574C29.8804 19.0524 29.9145 19.0496 29.9487 19.0488C30.6094 19.0317 31.0021 19.5124 31.0015 20.1414C31.0008 20.9661 31.0003 21.7911 31.0005 22.6158L31.001 27.7212L31.0009 30.5591C31.0009 31.0364 31.0122 31.5472 30.9863 32.0228C30.9662 32.2709 30.902 32.4608 30.7251 32.643C30.3831 32.9952 29.8337 33.0842 29.4386 32.7671C29.0784 32.4781 28.7473 32.1159 28.4181 31.7862L26.4414 29.8087C26.1771 29.5426 25.9071 29.2636 25.6339 29.0081C25.0227 28.9649 24.3645 29.017 23.7487 28.9979C23.445 28.9885 23.1625 29.0211 22.8589 28.9606C22.3751 28.8616 22.0618 28.4823 22.0642 27.9824C22.0706 26.5937 22.0287 25.1949 22.0828 23.8081C22.0884 23.6626 22.2302 23.4334 22.3309 23.3252C22.454 23.1907 22.6146 23.0963 22.792 23.0543C23.0567 22.9904 23.5328 23.016 23.8224 23.0128C24.4143 23.0063 25.0171 23.0277 25.609 23.0073C25.6794 22.9529 25.8505 22.7743 25.919 22.706L26.5305 22.0945L28.5396 20.0838C28.9157 19.7059 29.3217 19.1749 29.8466 19.0574Z" fill="white"/><path class="wv wv2" d="M36.2367 18.6905C36.8783 18.6449 37.3041 19.231 37.6725 19.6829C38.7675 21.0046 39.4982 22.5894 39.7923 24.2804C40.2503 26.8763 39.6548 29.5478 38.1378 31.7035C37.8393 32.1274 37.508 32.5324 37.149 32.9063C36.9404 33.1236 36.7646 33.2558 36.4622 33.3081C36.2013 33.3412 35.9378 33.2717 35.7272 33.1144C35.5185 32.9615 35.3816 32.7298 35.3483 32.4733C35.2786 31.9235 35.5696 31.6821 35.8914 31.3297C36.0448 31.1639 36.1901 30.9908 36.3269 30.811C38.3669 28.136 38.4986 24.4654 36.6555 21.6511C36.4826 21.3899 36.2966 21.1376 36.0984 20.8951C35.8252 20.5652 35.3947 20.2691 35.3472 19.8184C35.2845 19.2225 35.6439 18.768 36.2367 18.6905Z" fill="white"/><path class="wv wv1" d="M33.3868 21.5044C33.9769 21.4549 34.2563 21.7845 34.5981 22.1981C35.1982 22.924 35.6149 23.7691 35.8211 24.6886C36.171 26.2384 35.8867 27.8637 35.0314 29.2026C34.7421 29.6568 34.2333 30.3745 33.6937 30.4946C33.1633 30.5437 32.6759 30.2927 32.5495 29.7376C32.3921 29.0462 32.9849 28.6956 33.3274 28.1763C34.2088 26.833 34.1932 25.0908 33.288 23.7635C33.0747 23.4522 32.6159 23.0564 32.5518 22.7133C32.4377 22.1027 32.7745 21.619 33.3868 21.5044Z" fill="white"/></g><defs><filter id="hdrChipShadow" x="0" y="0" width="62" height="60" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset dy="4"/><feGaussianBlur stdDeviation="2"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/><feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/><feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/></filter><linearGradient id="hdrChipGrad" x1="8" y1="26" x2="54" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="#1987FC"/><stop offset="1" stop-color="#1565F4"/></linearGradient></defs></svg></div>
+      <button class="hint-btn" id="hintBtn" title="संकेत">
+        <svg viewBox="25 17 22 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="bulb-rays" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round">
+            <line x1="36" y1="14" x2="36" y2="10"/>
+            <line x1="25" y1="18" x2="22" y2="15"/>
+            <line x1="47" y1="18" x2="50" y2="15"/>
+            <line x1="21" y1="27" x2="17" y2="26.5"/>
+            <line x1="51" y1="27" x2="55" y2="26.5"/>
+          </g>
+          <path class="bulb" d="M42.7872 19.7599C41.561 18.7514 40.125 18.0293 38.5841 17.6464C37.0432 17.2635 35.4363 17.2294 33.8806 17.5466C31.8091 17.965 29.9086 18.9894 28.4202 20.4896C26.9317 21.9899 25.9225 23.8985 25.5206 25.9733C25.227 27.5289 25.2804 29.1301 25.6768 30.6628C26.0732 32.1954 26.8029 33.6217 27.8139 34.8399C28.7522 35.8987 29.29 37.2526 29.3339 38.6666V42.6666C29.3339 43.7275 29.7553 44.7449 30.5055 45.495C31.2556 46.2452 32.273 46.6666 33.3339 46.6666H38.6672C39.7281 46.6666 40.7455 46.2452 41.4957 45.495C42.2458 44.7449 42.6672 43.7275 42.6672 42.6666V38.9199C42.712 37.3588 43.2855 35.8592 44.2939 34.6666C46.0607 32.481 46.8936 29.6864 46.6115 26.8901C46.3293 24.0938 44.955 21.5219 42.7872 19.7333V19.7599ZM40.0006 42.6666C40.0006 43.0202 39.8601 43.3594 39.61 43.6094C39.36 43.8595 39.0209 43.9999 38.6672 43.9999H33.3339C32.9803 43.9999 32.6411 43.8595 32.3911 43.6094C32.141 43.3594 32.0006 43.0202 32.0006 42.6666V41.3333H40.0006V42.6666ZM42.2272 33.0133C40.8866 34.6034 40.1044 36.5893 40.0006 38.6666H37.3339V34.6666C37.3339 34.313 37.1934 33.9738 36.9434 33.7238C36.6933 33.4737 36.3542 33.3333 36.0006 33.3333C35.647 33.3333 35.3078 33.4737 35.0578 33.7238C34.8077 33.9738 34.6672 34.313 34.6672 34.6666V38.6666H32.0006C31.9654 36.6241 31.2098 34.6596 29.8672 33.1199C28.9814 32.0586 28.3858 30.7858 28.1383 29.4257C27.8909 28.0656 28.0001 26.6646 28.4554 25.3593C28.9106 24.054 29.6963 22.8889 30.7359 21.9777C31.7755 21.0665 33.0335 20.4402 34.3872 20.1599C35.5506 19.9204 36.7528 19.9429 37.9064 20.2259C39.06 20.5089 40.1361 21.0452 41.0566 21.7959C41.9771 22.5466 42.7189 23.4928 43.2281 24.566C43.7374 25.6391 44.0012 26.8121 44.0006 27.9999C44.0093 29.8262 43.3824 31.5987 42.2272 33.0133Z" fill="white"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- SLIDE STAGE (engine swaps slides here) -->
+    <div class="slide-stage">
+      <div class="slide-host" id="slideHost"></div>
+      <div class="nudge-hand" id="nudgeHand">
+        <!-- FLN animation kit recipes 3 (treatment C, the plain press) + 4 (the tap ripple), review 2026-09-30:
+             two wavefronts and three sparks break out of the fingertip as it touches, BEHIND the hand -->
+        <span class="nh-tapfx" aria-hidden="true"><i class="fx-ro"></i><i class="fx-ri"></i><i class="fx-sp"></i></span>
+        <img data-src="assets/nudge_hand_new.svg" alt="">   <!-- [loading] data-src: its file arrives with the lesson's UI art (app.js Assets), not ahead of the landing's -->
+      </div>
+    </div>
+
+    <!-- Swiftie buddy: persistent, reacting character (replaces the static header photo + feedback popup) -->
+    <div class="mascot-wrap" id="swBuddy"><div class="mascot-circle"><img class="mascot-img" id="swBuddyImg" alt=""></div></div>
+
+    <!-- Nav button — kit-style pill, floats bottom-right -->
+    <button class="nav-btn" id="navBtn" disabled>आगे</button>
+  </div>
+
+
+  <!-- TAP-TO-START — uses provided title-screen art -->
+  <div class="start-gate" id="startGate">
+    <div class="sg-card">
+      <!-- ambient scene FX over the room art: sun flare in the window, sunlit dust, lamp-bulb flicker (decorative only) -->
+      <div class="sg-fx" aria-hidden="true">
+        <!-- soft lens flare in the window, no sun / no rays: one big hazy disc, a smaller violet disc
+             overlapping it, a faint glint and a soft haze lobe. .sg-sun stays as a 0x0 anchor - the
+             dust system in app.js reads the light source position from it. -->
+        <div class="sg-sun"></div>
+        <div class="sg-flare2">
+          <i class="fl-big"></i><i class="fl-violet"></i><i class="fl-haze"></i><i class="fl-glint"></i>
+        </div>
+        <div class="sg-lamp"></div>
+        <canvas class="sg-dust" id="sgDust"></canvas>   <!-- sunlit dust: physics particle system, see app.js [landing dust] -->
+      </div>
+      <img class="sg-mascot" data-src="assets/gif/new_landing_swiftee_anim.webp" alt="Swiftee"
+           onerror="this.style.display='none'">
+      <div class="sg-content">
+        <div class="sg-title" id="sgTitle">संख्या जोड़, नई दहाई बनाकर</div>
+
+        <!-- r4/#2: concept strip is now DATA-DRIVEN — the engine fills #sgHero from
+             CARD.landing_hero (kind:"concept_strip"). Each tile is a visual example of the
+             ordering task (no words); a new game just declares its cells in card.json. -->
+        <div class="sg-art" id="sgHero"></div>
+      </div>
+      <button class="sg-vo" id="sgVo" type="button" aria-label="सुनो"><svg viewBox="0 0 62 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Audio"><g filter="url(#sgChipShadow)"><rect x="8" y="4" width="46" height="44" rx="22" fill="url(#sgChipGrad)"/><rect x="6" y="2" width="50" height="48" rx="24" stroke="white" stroke-width="4"/><path d="M29.8466 19.0574C29.8804 19.0524 29.9145 19.0496 29.9487 19.0488C30.6094 19.0317 31.0021 19.5124 31.0015 20.1414C31.0008 20.9661 31.0003 21.7911 31.0005 22.6158L31.001 27.7212L31.0009 30.5591C31.0009 31.0364 31.0122 31.5472 30.9863 32.0228C30.9662 32.2709 30.902 32.4608 30.7251 32.643C30.3831 32.9952 29.8337 33.0842 29.4386 32.7671C29.0784 32.4781 28.7473 32.1159 28.4181 31.7862L26.4414 29.8087C26.1771 29.5426 25.9071 29.2636 25.6339 29.0081C25.0227 28.9649 24.3645 29.017 23.7487 28.9979C23.445 28.9885 23.1625 29.0211 22.8589 28.9606C22.3751 28.8616 22.0618 28.4823 22.0642 27.9824C22.0706 26.5937 22.0287 25.1949 22.0828 23.8081C22.0884 23.6626 22.2302 23.4334 22.3309 23.3252C22.454 23.1907 22.6146 23.0963 22.792 23.0543C23.0567 22.9904 23.5328 23.016 23.8224 23.0128C24.4143 23.0063 25.0171 23.0277 25.609 23.0073C25.6794 22.9529 25.8505 22.7743 25.919 22.706L26.5305 22.0945L28.5396 20.0838C28.9157 19.7059 29.3217 19.1749 29.8466 19.0574Z" fill="white"/><path class="wv wv2" d="M36.2367 18.6905C36.8783 18.6449 37.3041 19.231 37.6725 19.6829C38.7675 21.0046 39.4982 22.5894 39.7923 24.2804C40.2503 26.8763 39.6548 29.5478 38.1378 31.7035C37.8393 32.1274 37.508 32.5324 37.149 32.9063C36.9404 33.1236 36.7646 33.2558 36.4622 33.3081C36.2013 33.3412 35.9378 33.2717 35.7272 33.1144C35.5185 32.9615 35.3816 32.7298 35.3483 32.4733C35.2786 31.9235 35.5696 31.6821 35.8914 31.3297C36.0448 31.1639 36.1901 30.9908 36.3269 30.811C38.3669 28.136 38.4986 24.4654 36.6555 21.6511C36.4826 21.3899 36.2966 21.1376 36.0984 20.8951C35.8252 20.5652 35.3947 20.2691 35.3472 19.8184C35.2845 19.2225 35.6439 18.768 36.2367 18.6905Z" fill="white"/><path class="wv wv1" d="M33.3868 21.5044C33.9769 21.4549 34.2563 21.7845 34.5981 22.1981C35.1982 22.924 35.6149 23.7691 35.8211 24.6886C36.171 26.2384 35.8867 27.8637 35.0314 29.2026C34.7421 29.6568 34.2333 30.3745 33.6937 30.4946C33.1633 30.5437 32.6759 30.2927 32.5495 29.7376C32.3921 29.0462 32.9849 28.6956 33.3274 28.1763C34.2088 26.833 34.1932 25.0908 33.288 23.7635C33.0747 23.4522 32.6159 23.0564 32.5518 22.7133C32.4377 22.1027 32.7745 21.619 33.3868 21.5044Z" fill="white"/></g><defs><filter id="sgChipShadow" x="0" y="0" width="62" height="60" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset dy="4"/><feGaussianBlur stdDeviation="2"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/><feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/><feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/></filter><linearGradient id="sgChipGrad" x1="8" y1="26" x2="54" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="#1987FC"/><stop offset="1" stop-color="#1565F4"/></linearGradient></defs></svg></button>
+      <button class="sg-btn sg-btn--art sg-btn--play sg-waiting" id="sgBtn" type="button" aria-label="शुरू करें" aria-disabled="true"><img src="assets/btn-play-round-waiting.svg" alt="" draggable="false"></button>
+    </div>
+  </div>
+
+  <!-- END / CELEBRATION -->
+  <div class="end-screen" id="endScreen">
+    <div class="confetti" id="confetti"></div>
+    <div class="end-title" id="endTitle"></div>
+    <div class="end-subtitle" id="endSubtitle"></div>
+    <img class="end-mascot" data-src="assets/last_swifty_still.webp" alt="Swiftee"
+         onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'end-mascot',textContent:'🎉'}))">
+    <button class="end-btn" id="endBtn">आगे बढ़ें →</button>
+  </div>
+
+  <!-- DEV VALIDATOR BANNER -->
+  <div class="dev-banner" id="devBanner"></div>
+
+</div></div>
+
+
+<!-- PHASE-TRANSITION PEEK GATE - [20a PT-3] BODY-LEVEL so position:fixed covers the FULL
+     viewport (a transformed ancestor like the scaled .stage would hijack fixed positioning
+     and shrink the gate with the stage - production pattern). -->
+<div class="phase-gate" id="phaseGate">
+    <div class="pg-title" id="phaseGateTitle"></div>
+    <img id="phaseGateImg" alt="">   <!-- (its picture: a blob: URL of peeking.webp per gate, app.js restartPeek) -->
+    <canvas id="phaseGateCv" style="display:none" aria-hidden="true"></canvas>   <!-- [peek-7] the same clip, drawn by app.js PeekPlayer; the <img> is its fallback -->
+</div>
+
+<!-- CORRECT-ANSWER CONFETTI (FLN animation kit recipe 7) - BODY-LEVEL for the same reason: it falls over the WHOLE
+     window, the letterbox beside the stage included (review 2026-09-30: "not covering the full horizontal space");
+     inside .stage-inner it was clipped to the scaled 1333px stage. -->
+<div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+
+<!-- [responsive] a phone or tablet held upright: the lesson is landscape - a card asks for a turn (html.ask-rotate,
+     app.js Screen). On Android a tap on it goes full screen in landscape, which turns the screen by itself. -->
+<div class="rotate-ask" id="rotateAsk" role="dialog" aria-label="फ़ोन को घुमाइए">
+  <div class="ra-phone" aria-hidden="true"><i></i></div>
+  <div class="ra-text">फ़ोन को घुमाइए</div>
+</div>
+
+<!-- ============ CARD DATA (embedded; in prod the compiler does this) ============ -->
+<script type="application/json" id="cardData">
+{
+ "version": "0.1",
+ "skill_code": "MTG2A01_L03_S02",
+ "lo_code": "MTG2A01_L03",
+ "grade": "G2",
+ "attribute": "A01",
+ "skill_type": "CORE",
+ "part_label": "",
+ "theme": "toybox",
+ "title": {
+  "hi": "संख्या जोड़, नई दहाई बनाकर",
+  "en": "Add horizontally with regrouping"
+ },
+ "landing_hero": {
+  "kind": "pv_story",
+  "a": 26,
+  "b": 18,
+  "people": [
+   "pari",
+   "aaru"
+  ]
+ },
+ "skill_description_hi": "दो अंकों वाली दो संख्याओं को हासिल (नई दहाई बनाकर) के साथ क्षैतिज रूप में जोड़ता है।",
+ "phase_distribution": {
+  "tutorial": 7,
+  "guided": 3,
+  "practice": 5
+ },
+ "scaffold_rules": {
+  "nudge_timeout_ms": {
+   "tutorial": 7000,
+   "guided": 7000,
+   "practice": 7000,
+   "independent": 7000
+  },
+  "max_attempts": 3
+ },
+ "signals_expected": [
+  "slide_entered",
+  "slide_completed",
+  "pv_build_done",
+  "pv_ten_made",
+  "pv_merge_done",
+  "mcq_correct",
+  "numpad_correct",
+  "mastery_score",
+  "lesson_completed"
+ ],
+ "assets": {
+  "audio_ext": "ogg",
+  "img_ext": "webp",
+  "audio": {
+   "vo_cel": "assets/voiceover/vo_cel.ogg",
+   "vo_g1_ask": "assets/voiceover/vo_g1_ask.ogg",
+   "vo_g1_correct": "assets/voiceover/vo_g1_correct.ogg",
+   "vo_g1_great": "assets/voiceover/vo_g1_great.ogg",
+   "vo_g1_hint_a": "assets/voiceover/vo_g1_hint_a.ogg",
+   "vo_g1_hint_b": "assets/voiceover/vo_g1_hint_b.ogg",
+   "vo_g1_prompt": "assets/voiceover/vo_g1_prompt.ogg",
+   "vo_g1_try_again": "assets/voiceover/vo_g1_try_again.ogg",
+   "vo_g2_correct": "assets/voiceover/vo_g2_correct.ogg",
+   "vo_g2_hint_a": "assets/voiceover/vo_g2_hint_a.ogg",
+   "vo_g2_hint_b": "assets/voiceover/vo_g2_hint_b.ogg",
+   "vo_g2_prompt": "assets/voiceover/vo_g2_prompt.ogg",
+   "vo_g3_correct": "assets/voiceover/vo_g3_correct.ogg",
+   "vo_g3_hint_a": "assets/voiceover/vo_g3_hint_a.ogg",
+   "vo_g3_hint_b": "assets/voiceover/vo_g3_hint_b.ogg",
+   "vo_g3_prompt": "assets/voiceover/vo_g3_prompt.ogg",
+   "vo_hint_dd_1": "assets/voiceover/vo_hint_dd_1.ogg",
+   "vo_hint_tap": "assets/voiceover/vo_hint_tap.ogg",
+   "vo_landing": "assets/voiceover/vo_landing.ogg",
+   "vo_num_1": "assets/voiceover/vo_num_1.ogg",
+   "vo_num_10": "assets/voiceover/vo_num_10.ogg",
+   "vo_num_2": "assets/voiceover/vo_num_2.ogg",
+   "vo_num_3": "assets/voiceover/vo_num_3.ogg",
+   "vo_num_4": "assets/voiceover/vo_num_4.ogg",
+   "vo_num_5": "assets/voiceover/vo_num_5.ogg",
+   "vo_num_6": "assets/voiceover/vo_num_6.ogg",
+   "vo_num_7": "assets/voiceover/vo_num_7.ogg",
+   "vo_num_8": "assets/voiceover/vo_num_8.ogg",
+   "vo_num_9": "assets/voiceover/vo_num_9.ogg",
+   "vo_p1_correct": "assets/voiceover/vo_p1_correct.ogg",
+   "vo_p1_hint_a": "assets/voiceover/vo_p1_hint_a.ogg",
+   "vo_p1_hint_b": "assets/voiceover/vo_p1_hint_b.ogg",
+   "vo_p1_keys": "assets/voiceover/vo_p1_keys.ogg",
+   "vo_p1_prompt": "assets/voiceover/vo_p1_prompt.ogg",
+   "vo_p1_try_again": "assets/voiceover/vo_p1_try_again.ogg",
+   "vo_p2_correct": "assets/voiceover/vo_p2_correct.ogg",
+   "vo_p2_hint_a": "assets/voiceover/vo_p2_hint_a.ogg",
+   "vo_p2_hint_b": "assets/voiceover/vo_p2_hint_b.ogg",
+   "vo_p2_prompt": "assets/voiceover/vo_p2_prompt.ogg",
+   "vo_p3_correct": "assets/voiceover/vo_p3_correct.ogg",
+   "vo_p3_h_tables": "assets/voiceover/vo_p3_h_tables.ogg",
+   "vo_p3_prompt": "assets/voiceover/vo_p3_prompt.ogg",
+   "vo_p4_correct": "assets/voiceover/vo_p4_correct.ogg",
+   "vo_pt_guided": "assets/voiceover/vo_pt_guided.ogg",
+   "vo_pt_practice": "assets/voiceover/vo_pt_practice.ogg",
+   "vo_pt_tutorial": "assets/voiceover/vo_pt_tutorial.ogg",
+   "vo_t1_count_intro": "assets/voiceover/vo_t1_count_intro.ogg",
+   "vo_t1_know": "assets/voiceover/vo_t1_know.ogg",
+   "vo_t1_made": "assets/voiceover/vo_t1_made.ogg",
+   "vo_t1_make": "assets/voiceover/vo_t1_make.ogg",
+   "vo_t1_move": "assets/voiceover/vo_t1_move.ogg",
+   "vo_t1_rest_intro": "assets/voiceover/vo_t1_rest_intro.ogg",
+   "vo_t1_total": "assets/voiceover/vo_t1_total.ogg",
+   "vo_t2_a": "assets/voiceover/vo_t2_a.ogg",
+   "vo_t2_ask": "assets/voiceover/vo_t2_ask.ogg",
+   "vo_t2_b": "assets/voiceover/vo_t2_b.ogg",
+   "vo_t2_intro": "assets/voiceover/vo_t2_intro.ogg",
+   "vo_t3_a_digits": "assets/voiceover/vo_t3_a_digits.ogg",
+   "vo_t3_a_ones": "assets/voiceover/vo_t3_a_ones.ogg",
+   "vo_t3_a_tens": "assets/voiceover/vo_t3_a_tens.ogg",
+   "vo_t3_b_build": "assets/voiceover/vo_t3_b_build.ogg",
+   "vo_t3_b_digits": "assets/voiceover/vo_t3_b_digits.ogg",
+   "vo_t3_done": "assets/voiceover/vo_t3_done.ogg",
+   "vo_t3_head": "assets/voiceover/vo_t3_head.ogg",
+   "vo_t3_intro": "assets/voiceover/vo_t3_intro.ogg",
+   "vo_t3_know": "assets/voiceover/vo_t3_know.ogg",
+   "vo_t3_merge": "assets/voiceover/vo_t3_merge.ogg",
+   "vo_t3_ones": "assets/voiceover/vo_t3_ones.ogg",
+   "vo_t3_ones_sum": "assets/voiceover/vo_t3_ones_sum.ogg",
+   "vo_t3_place": "assets/voiceover/vo_t3_place.ogg",
+   "vo_t3_tens": "assets/voiceover/vo_t3_tens.ogg",
+   "vo_t3_tens_sum": "assets/voiceover/vo_t3_tens_sum.ogg",
+   "vo_t3_total": "assets/voiceover/vo_t3_total.ogg",
+   "vo_t4_eq": "assets/voiceover/vo_t4_eq.ogg",
+   "vo_t4_total": "assets/voiceover/vo_t4_total.ogg",
+   "vo_t5_a": "assets/voiceover/vo_t5_a.ogg",
+   "vo_t5_ask": "assets/voiceover/vo_t5_ask.ogg",
+   "vo_t5_b": "assets/voiceover/vo_t5_b.ogg",
+   "vo_t5_head": "assets/voiceover/vo_t5_head.ogg",
+   "vo_t6_a_build": "assets/voiceover/vo_t6_a_build.ogg",
+   "vo_t6_a_digits": "assets/voiceover/vo_t6_a_digits.ogg",
+   "vo_t6_b_build": "assets/voiceover/vo_t6_b_build.ogg",
+   "vo_t6_b_digits": "assets/voiceover/vo_t6_b_digits.ogg",
+   "vo_t6_done": "assets/voiceover/vo_t6_done.ogg",
+   "vo_t6_intro": "assets/voiceover/vo_t6_intro.ogg",
+   "vo_t6_know": "assets/voiceover/vo_t6_know.ogg",
+   "vo_t6_make": "assets/voiceover/vo_t6_make.ogg",
+   "vo_t6_ones": "assets/voiceover/vo_t6_ones.ogg",
+   "vo_t6_ones_sum": "assets/voiceover/vo_t6_ones_sum.ogg",
+   "vo_t6_tens": "assets/voiceover/vo_t6_tens.ogg",
+   "vo_t6_tens_sum": "assets/voiceover/vo_t6_tens_sum.ogg",
+   "vo_t6_total": "assets/voiceover/vo_t6_total.ogg",
+   "vo_t7_eq": "assets/voiceover/vo_t7_eq.ogg",
+   "vo_t7_total": "assets/voiceover/vo_t7_total.ogg"
+  }
+ },
+ "slides": [
+  {
+   "id": "T1",
+   "phase": "tutorial",
+   "eis": "iconic",
+   "type": "PV_MAKE_TEN",
+   "prompt_hi": "10 इकाइयाँ = 1 दहाई",
+   "audio": {
+    "count_intro": "vo_t1_count_intro",
+    "know": "vo_t1_know",
+    "make": "vo_t1_make",
+    "made": "vo_t1_made",
+    "move": "vo_t1_move",
+    "rest_intro": "vo_t1_rest_intro",
+    "total": "vo_t1_total"
+   },
+   "data": {
+    "n": 13,
+    "count_clips": [
+     "vo_num_1",
+     "vo_num_2",
+     "vo_num_3",
+     "vo_num_4",
+     "vo_num_5",
+     "vo_num_6",
+     "vo_num_7",
+     "vo_num_8",
+     "vo_num_9",
+     "vo_num_10"
+    ]
+   }
+  },
+  {
+   "id": "T2",
+   "phase": "tutorial",
+   "eis": "iconic",
+   "type": "STORY",
+   "prompt_hi": "कुल कितने ब्लॉक्स?",
+   "audio": {
+    "intro": "vo_t2_intro",
+    "a": "vo_t2_a",
+    "b": "vo_t2_b",
+    "ask": "vo_t2_ask"
+   },
+   "data": {
+    "mode": "ask",
+    "a": 27,
+    "b": 15,
+    "people": [
+     {
+      "who": "pari",
+      "name": "परी"
+     },
+     {
+      "who": "aaru",
+      "name": "आरु"
+     }
+    ]
+   }
+  },
+  {
+   "id": "T3",
+   "phase": "tutorial",
+   "eis": "iconic",
+   "type": "PV_DEMO",
+   "prompt_hi": "आइए, 27 और 15 को जोड़ते हैं।",
+   "audio": {
+    "head": "vo_t3_head",
+    "intro": "vo_t3_intro",
+    "a_digits": "vo_t3_a_digits",
+    "a_tens": "vo_t3_a_tens",
+    "a_ones": "vo_t3_a_ones",
+    "b_digits": "vo_t3_b_digits",
+    "b_build": "vo_t3_b_build",
+    "merge": "vo_t3_merge",
+    "ones": "vo_t3_ones",
+    "ones_sum": "vo_t3_ones_sum",
+    "know": "vo_t3_know",
+    "make": "vo_t1_make",
+    "place": "vo_t3_place",
+    "dd_try": "vo_hint_dd_1",
+    "tens": "vo_t3_tens",
+    "tens_sum": "vo_t3_tens_sum",
+    "total": "vo_t3_total",
+    "done": "vo_t3_done"
+   },
+   "data": {
+    "a": 27,
+    "b": 15,
+    "build": [
+     "swifty",
+     "child"
+    ],
+    "ghost_auto": true
+   }
+  },
+  {
+   "id": "T4",
+   "phase": "tutorial",
+   "eis": "iconic",
+   "type": "STORY",
+   "prompt_hi": "कुल कितने ब्लॉक्स?",
+   "audio": {
+    "eq": "vo_t4_eq",
+    "total": "vo_t4_total"
+   },
+   "data": {
+    "mode": "sum",
+    "a": 27,
+    "b": 15,
+    "people": [
+     {
+      "who": "pari",
+      "name": "परी"
+     },
+     {
+      "who": "aaru",
+      "name": "आरु"
+     }
+    ],
+    "total": {
+     "who": [
+      "pari",
+      "aaru"
+     ],
+     "name": "कुल"
+    }
+   }
+  },
+  {
+   "id": "T5",
+   "phase": "tutorial",
+   "eis": "iconic",
+   "type": "STORY",
+   "prompt_hi": "एक और उदाहरण देखते हैं।",
+   "audio": {
+    "head": "vo_t5_head",
+    "a": "vo_t5_a",
+    "b": "vo_t5_b",
+    "ask": "vo_t5_ask"
+   },
+   "data": {
+    "mode": "ask",
+    "a": 36,
+    "b": 25,
+    "people": [
+     {
+      "who": "pari",
+      "name": "परी"
+     },
+     {
+      "who": "amma",
+      "name": "अम्मा"
+     }
+    ]
+   }
+  },
+  {
+   "id": "T6",
+   "phase": "tutorial",
+   "eis": "iconic",
+   "type": "PV_DEMO",
+   "prompt_hi": "आइए, 36 और 25 को जोड़ते हैं।",
+   "audio": {
+    "intro": "vo_t6_intro",
+    "a_digits": "vo_t6_a_digits",
+    "a_build": "vo_t6_a_build",
+    "b_digits": "vo_t6_b_digits",
+    "b_build": "vo_t6_b_build",
+    "merge": "vo_t3_merge",
+    "ones": "vo_t6_ones",
+    "ones_sum": "vo_t6_ones_sum",
+    "know": "vo_t6_know",
+    "make": "vo_t6_make",
+    "place": "vo_t3_place",
+    "dd_try": "vo_hint_dd_1",
+    "tens": "vo_t6_tens",
+    "tens_sum": "vo_t6_tens_sum",
+    "total": "vo_t6_total",
+    "done": "vo_t6_done"
+   },
+   "data": {
+    "a": 36,
+    "b": 25,
+    "build": [
+     "child",
+     "child"
+    ],
+    "ghost_auto": false,
+    "ghost_idle": 5000
+   }
+  },
+  {
+   "id": "T7",
+   "phase": "tutorial",
+   "eis": "iconic",
+   "type": "STORY",
+   "prompt_hi": "कुल कितने ब्लॉक्स?",
+   "audio": {
+    "eq": "vo_t7_eq",
+    "total": "vo_t7_total"
+   },
+   "data": {
+    "mode": "sum",
+    "a": 36,
+    "b": 25,
+    "people": [
+     {
+      "who": "pari",
+      "name": "परी"
+     },
+     {
+      "who": "amma",
+      "name": "अम्मा"
+     }
+    ],
+    "total": {
+     "who": "pari",
+     "name": "परी"
+    }
+   }
+  },
+  {
+   "id": "G1",
+   "phase": "guided",
+   "eis": "iconic",
+   "type": "PV_MERGE_MCQ",
+   "prompt_hi": "संख्याएँ जोड़िए।",
+   "audio": {
+    "prompt": "vo_g1_prompt",
+    "great": "vo_g1_great",
+    "ask": "vo_g1_ask",
+    "correct": "vo_g1_correct",
+    "try_again": "vo_g1_try_again",
+    "hint_a": "vo_g1_hint_a",
+    "hint_b": "vo_g1_hint_b",
+    "nudge": "vo_hint_tap",
+    "dd_try": "vo_hint_dd_1"
+   },
+   "data": {
+    "a": 28,
+    "b": 15,
+    "options": [
+     33,
+     16,
+     43
+    ]
+   }
+  },
+  {
+   "id": "G2",
+   "phase": "guided",
+   "eis": "iconic",
+   "type": "PV_MERGE_MCQ",
+   "prompt_hi": "संख्याएँ जोड़िए।",
+   "audio": {
+    "prompt": "vo_g2_prompt",
+    "great": "vo_g1_great",
+    "ask": "vo_g1_ask",
+    "correct": "vo_g2_correct",
+    "try_again": "vo_g1_try_again",
+    "hint_a": "vo_g2_hint_a",
+    "hint_b": "vo_g2_hint_b",
+    "nudge": "vo_hint_tap",
+    "dd_try": "vo_hint_dd_1"
+   },
+   "data": {
+    "a": 46,
+    "b": 24,
+    "options": [
+     70,
+     61,
+     60
+    ]
+   }
+  },
+  {
+   "id": "G3",
+   "phase": "guided",
+   "eis": "iconic",
+   "type": "PV_MERGE_MCQ",
+   "prompt_hi": "संख्याएँ जोड़िए।",
+   "audio": {
+    "prompt": "vo_g3_prompt",
+    "great": "vo_g1_great",
+    "ask": "vo_g1_ask",
+    "correct": "vo_g3_correct",
+    "try_again": "vo_g1_try_again",
+    "hint_a": "vo_g3_hint_a",
+    "hint_b": "vo_g3_hint_b",
+    "nudge": "vo_hint_tap",
+    "dd_try": "vo_hint_dd_1"
+   },
+   "data": {
+    "a": 58,
+    "b": 36,
+    "options": [
+     84,
+     94,
+     81
+    ]
+   }
+  },
+  {
+   "id": "P1",
+   "phase": "practice",
+   "eis": "iconic",
+   "type": "PV_NUMPAD",
+   "prompt_hi": "संख्याएँ जोड़िए।",
+   "audio": {
+    "prompt": "vo_p1_prompt",
+    "correct": "vo_p1_correct",
+    "try_again": "vo_p1_try_again",
+    "hint_a": "vo_p1_hint_a",
+    "hint_b": "vo_p1_hint_b",
+    "keys": "vo_p1_keys"
+   },
+   "data": {
+    "a": 24,
+    "b": 46
+   }
+  },
+  {
+   "id": "P2",
+   "phase": "practice",
+   "eis": "iconic",
+   "type": "PV_NUMPAD",
+   "prompt_hi": "संख्याएँ जोड़िए।",
+   "audio": {
+    "prompt": "vo_p2_prompt",
+    "correct": "vo_p2_correct",
+    "try_again": "vo_p1_try_again",
+    "hint_a": "vo_p2_hint_a",
+    "hint_b": "vo_p2_hint_b",
+    "keys": "vo_p1_keys"
+   },
+   "data": {
+    "a": 39,
+    "b": 26
+   }
+  },
+  {
+   "id": "P3",
+   "phase": "practice",
+   "eis": "iconic",
+   "type": "MENTAL_MCQ",
+   "prompt_hi": "संख्याएँ जोड़िए।",
+   "audio": {
+    "prompt": "vo_p3_prompt",
+    "correct": "vo_p3_correct",
+    "h_tables": "vo_p3_h_tables",
+    "h_merge": "vo_g1_try_again",
+    "nudge": "vo_hint_tap"
+   },
+   "data": {
+    "a": 37,
+    "b": 9,
+    "options": [
+     316,
+     46,
+     36
+    ],
+    "hints": [
+     "tables",
+     "merge",
+     "reveal"
+    ]
+   }
+  },
+  {
+   "id": "P4",
+   "phase": "practice",
+   "eis": "iconic",
+   "type": "MENTAL_MCQ",
+   "prompt_hi": "संख्याएँ जोड़िए।",
+   "audio": {
+    "prompt": "vo_p3_prompt",
+    "correct": "vo_p4_correct",
+    "h_tables": "vo_p3_h_tables",
+    "h_merge": "vo_g1_try_again",
+    "nudge": "vo_hint_tap"
+   },
+   "data": {
+    "a": 18,
+    "b": 14,
+    "options": [
+     212,
+     32,
+     22
+    ],
+    "hints": [
+     "tables",
+     "merge",
+     "reveal"
+    ]
+   }
+  },
+  {
+   "id": "CEL",
+   "phase": "practice",
+   "eis": "enactive",
+   "type": "CELEBRATION",
+   "prompt_hi": "",
+   "audio": {
+    "prompt": "vo_cel"
+   },
+   "data": {}
+  }
+ ]
+}
+</script>
+
+<!-- ============ ENGINE ============ -->
+<script src="swiftpal-bridge.js"></script>   <!-- [QA 01] host bridge: Android / iOS / web - must load before app.js -->
+<script src="app.js"></script>
+</body>
+</html>
