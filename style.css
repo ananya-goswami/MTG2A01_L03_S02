@@ -1999,15 +1999,3 @@ body.is-start .sg-sky{
 @keyframes sgpShdIn{0%{opacity:0;scale:.6 1;}100%{opacity:1;scale:1 1;}}
 .sgp.still .sgp-shd,.sgp.still .sgp-bshd{opacity:1;animation:none;}
 @media (prefers-reduced-motion:reduce){ .sgp .sgp-shd,.sgp .sgp-bshd{opacity:1;animation:none !important;} }
-
-/* the loader's tap step (app.js boot loader, only where the browser blocks sound until a tap): the standard nudge hand
-   tapping the middle of the white loader, two rings spreading from its fingertip; the whole screen is the target */
-.boot-loader.gate{cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.bl-tap{position:relative;width:170px;height:170px;}
-.bl-tap img{position:absolute;left:58px;top:52px;width:86px;height:auto;transform-origin:20% 10%;
-  animation:blTap 1.3s ease-in-out infinite;filter:drop-shadow(0 6px 8px rgba(0,47,118,.2));}
-.bl-ring{position:absolute;left:84px;top:62px;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;
-  border:4px solid #50AAF2;opacity:0;animation:blRing 1.3s ease-out infinite;}
-.bl-ring.bl-r2{animation-delay:.22s;}
-@keyframes blTap{0%,100%{translate:10px 14px;scale:1;}38%{translate:0 0;scale:.94;}55%{translate:0 0;scale:.94;}}
-@keyframes blRing{0%,30%{opacity:0;scale:.4;}40%{opacity:.9;}100%{opacity:0;scale:2.1;}}

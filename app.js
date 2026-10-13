@@ -1884,9 +1884,7 @@ const PVLanding = {
       root.classList.add("go");
       setTimeout(()=>{ done(); play(); }, (t + 0.6) * 1000); };
     document.addEventListener("sg-greeting-start", go);
-    /* (no greeting at all: the picture still comes in - but never behind the loader's tap step, unseen) */
-    const fallback = ()=>{ if(document.querySelector("#bootLoader:not(.done)")){ setTimeout(fallback, 500); return; } go(); };
-    setTimeout(fallback, 6000);
+    setTimeout(go, 6000);                                   // (no greeting at all: the picture still comes in)
   }
 };
 
@@ -2834,29 +2832,8 @@ function boot(){
   (function(){
     const bl = $("bootLoader");
     if(!bl){ document.body.classList.add("loaded"); playLanding(); Assets.start(); return; }
-    /* [title VO from the start] (user 2026-10-13, QA checklist "Swiftee's VO plays as soon as the title screen loads"):
-       a browser that blocks sound until the first tap (Chrome on any site the child hasn't tapped yet - the web links)
-       used to show the title screen silent, its picture already playing, and start the greeting on the first stray tap.
-       Now the loader asks first, with a silent probe clip (the policy is per page, so the probe answers for the greeting):
-       allowed (the app's WebView) - the title screen comes straight in, greeting and all, as before; blocked - the loader
-       ends on a tap step (the standard hand, tapping), and that tap brings in the title screen WITH the greeting from
-       "नमस्ते दोस्त!" and its picture in step. Unknown after 900ms counts as allowed (the first-tap fallback still stands). */
-    const canSpeak = ()=> new Promise(res =>{
-      let settled = false; const end = v =>{ if(!settled){ settled = true; res(v); } };
-      try{ const p = new Audio("data:audio/wav;base64,UklGRhQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YfAAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA="); p.volume = 0;
-        const pr = p.play(); if(pr && pr.then) pr.then(()=> end(true), e => end(!(e && e.name === "NotAllowedError"))); else end(true);
-      }catch(e){ end(true); }
-      setTimeout(()=> end(true), 900); });
-    let asked = false;
     const ready = ()=>{
-      if(asked || bl.classList.contains("done")) return; asked = true;   // the files + the watchdog both land here → dedup
-      canSpeak().then(ok =>{ if(ok){ reveal(); return; }
-        bl.classList.add("gate"); bl.setAttribute("role", "button"); bl.setAttribute("aria-label", "टैप करें");
-        bl.innerHTML = '<div class="bl-tap"><i class="bl-ring"></i><i class="bl-ring bl-r2"></i><img src="assets/nudge_hand_new.svg" alt=""></div>';
-        bl.addEventListener("pointerdown", ev =>{ ev.preventDefault(); reveal(); }, { once:true }); });
-    };
-    const reveal = ()=>{
-      if(bl.classList.contains("done")) return;
+      if(bl.classList.contains("done")) return;   // the files + the watchdog both land here → dedup
       bl.classList.add("done");
       document.body.classList.add("loaded");       // starts the .sg-acell pop chain
       /* [QA 03] the landing wave plays ONCE (the .webp's loop count is 1). It decodes under the loader, so without a
