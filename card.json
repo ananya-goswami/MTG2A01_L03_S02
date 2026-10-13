@@ -16,8 +16,8 @@
   "a": 26,
   "b": 18,
   "people": [
-   "pari",
-   "aaru"
+   "aaru",
+   "pari"
   ]
  },
  "skill_description_hi": "दो अंकों वाली दो संख्याओं को हासिल (नई दहाई बनाकर) के साथ क्षैतिज रूप में जोड़ता है।",
@@ -196,12 +196,10 @@
     "b": 15,
     "people": [
      {
-      "who": "pari",
-      "name": "परी"
+      "who": "pari"
      },
      {
-      "who": "aaru",
-      "name": "आरु"
+      "who": "aaru"
      }
     ]
    }
@@ -258,20 +256,17 @@
     "b": 15,
     "people": [
      {
-      "who": "pari",
-      "name": "परी"
+      "who": "pari"
      },
      {
-      "who": "aaru",
-      "name": "आरु"
+      "who": "aaru"
      }
     ],
     "total": {
      "who": [
       "pari",
       "aaru"
-     ],
-     "name": "कुल"
+     ]
     }
    }
   },
@@ -293,12 +288,10 @@
     "b": 25,
     "people": [
      {
-      "who": "pari",
-      "name": "परी"
+      "who": "pari"
      },
      {
-      "who": "amma",
-      "name": "अम्मा"
+      "who": "amma"
      }
     ]
    }
@@ -354,17 +347,14 @@
     "b": 25,
     "people": [
      {
-      "who": "pari",
-      "name": "परी"
+      "who": "pari"
      },
      {
-      "who": "amma",
-      "name": "अम्मा"
+      "who": "amma"
      }
     ],
     "total": {
-     "who": "pari",
-     "name": "परी"
+     "who": "pari"
     }
    }
   },

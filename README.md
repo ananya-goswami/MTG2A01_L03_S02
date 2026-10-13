@@ -38,15 +38,17 @@ Pages 14, 15, 16, 17: deleted (deck).
 - Page 12: its picture shows "37 + 5" with 316 / 42 / 19, its text "37 + 9 = ?", CR 46 - the text wins (46 must be an answer). The answers are the sheet's misconceptions for 37 + 9: **316** (wrote 16 in the ones), **46**, **36** (forgot the new ten).
 - Page 5a's boxes say "Pari's 27 / Amma's 15", its VO 36 / 25 - the VO wins. Heading "देखते है" → "देखते हैं".
 - Page 5b gives no heading; it shows "आइए, 36 और 25 को जोड़ते हैं।" (text only).
-- "अम्मा" is drawn as Pari's mother (the deck's parallel of S01's "माँ").
+- "अम्मा" is Pari's mother (the deck's parallel of S01's "माँ") - the Village world's Amma.
 
 ## Assets
 - **Blocks:** `pv_rod.webp`, `pv_cube.webp` (the deck's art).
-- **People:** Pari and Aaru are the supplied character art ("Village World Chronicles.pdf", 2026-10-08), made into the game's
-  files by `../pv-addition-kit/make_characters.py` from the cut-outs kept in `../pv-addition-kit/art_src/`:
-  `char_pari.webp` / `char_aaru.webp` - round head-and-shoulders portraits for the story pages (Pari waving, Aaru standing),
+- **People:** Pari, Aaru and Amma are the Village world's character art ("Village World Chronicles.pdf" and the Drive's
+  "Village Design_Final/Characters", 2026-10-12), made into the game's files by `../pv-addition-kit/make_characters.py`
+  from the cut-outs kept in `../pv-addition-kit/art_src/`:
+  `char_pari.webp` / `char_aaru.webp` / `char_amma.webp` - round head-and-shoulders portraits for the story pages,
   `char_pari_full.webp` / `char_aaru_full.webp` - the whole waving figures, standing on the first screen beside their blocks.
-  Amma has no art yet: `char_amma.svg` is drawn by `tools/make_avatars.py` in the same round frame. Supplied art always wins
+  Every supplied Aaru carries a bundle of sticks; his waving pose has them retouched away (`art_src/remove_sticks.py`), so
+  his free hand is an empty fist. Supplied art always wins over the drawn avatars of `tools/make_avatars.py`
   (app.js `pvChar`: `char_<who>.webp` if it ships, else the drawn `.svg`).
 - **Shell (from MTG2A04_L02_S01):** as S01, + the counting clips `vo_num_1`…`vo_num_9` and `vo_hint_dd_1` (the Drag & Drop retry line). `vo_num_10` ("दस") is new, same voice.
 - **VO:** 80 new clips, see `VO_MANIFEST.md`. Every file in `assets/` is used.

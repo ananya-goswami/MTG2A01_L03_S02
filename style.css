@@ -1324,7 +1324,7 @@ body.is-end{background:#FDE9A8;}
        but under the title, blocks, CTA, mascot and VO chip. --- */
 .sg-card{isolation:isolate;}
 .sg-card::before{content:"";position:absolute;inset:9px;border-radius:37px;z-index:-1;pointer-events:none;
-  background:url("assets/background_1st_screen.webp") center/100% 100% no-repeat;}   /* 100% 100%, not cover: the 16:9 art in a 2.5:1 box - cover cropped the posters/lamp; this shows the whole scene edge to edge */
+  background:url("assets/bg_landing_soft2.webp") center/100% 100% no-repeat;}   /* 100% 100%, not cover: the 16:9 art in a 2.5:1 box - cover cropped the posters/lamp; this shows the whole scene edge to edge */
 
 /* --- [landing fx] ambient life for the room art inside the card.
        .sg-fx sits exactly over the room image (inset 9 / radius 37, same as
@@ -1785,6 +1785,13 @@ body.is-start .sg-sky{
    rim / 0 4px 0 #D9D9D9 ledge, the gold button (#FCB717, white rim, the bevel), Baloo 2 800. The deck's colours for
    place value: tens green (the rods), ones orange (the cubes) - the table's two heads carry them. */
 .tut-card.tc-pv .tut-content{position:relative;}
+/* a bigger working area on the pv tutorial card: it grows into the stage's spare top / bottom margin (the slide-stage
+   pads 96 / 92) so the sum table clears the card's bottom border - the tables keep their size */
+.tut-card.tc-pv{margin:-20px 0 -40px;}
+/* the first screen's scene is each game's own village art (assets/bg_landing_soft2.webp - a new name, so no browser keeps the old room): shown whole-width and
+   cropped top / bottom (not stretched into the 2.5:1 card), and the old room art's lamp glow + lens flare are off */
+.sg-card::before{background-image:url("assets/bg_landing_soft2.webp") !important;background-size:cover !important;background-position:center 40% !important;}
+.sg-fx .sg-lamp,.sg-fx .sg-sun{display:none;}
 .pv-stage{position:absolute;width:1333px;height:750px;pointer-events:none;z-index:2;}
 .pv-stage > *{position:absolute;pointer-events:auto;}
 .pv-hide{opacity:0 !important;pointer-events:none !important;}
@@ -1869,6 +1876,7 @@ body.is-start .sg-sky{
   color:#0B3D8C;font-family:var(--font-hi);font-weight:800;font-size:28px;line-height:1;white-space:nowrap;cursor:pointer;z-index:8;
   box-shadow:0 6px 6px rgba(0,0,0,.25),inset 4.54px 9.09px 12.12px rgba(255,255,255,.25),inset -4.54px -4.54px 13.63px rgba(116,60,0,.19);
   -webkit-tap-highlight-color:transparent;transition:background .25s,color .25s,opacity .3s;}
+.pv-make.pv-make-l{transform:none;}
 .pv-make.off{background:#EDEDED;color:#B9B9B9;box-shadow:0 4px 0 #D6D6D6;}
 .pv-make.pulse{animation:pvBtnPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite;}
 .pv-ring{box-sizing:border-box;border:4px dashed #FF8A00;border-radius:14px;background:rgba(255,170,40,.10);pointer-events:none !important;z-index:4;}
@@ -1937,8 +1945,27 @@ body.is-start .sg-sky{
 .sgp-q{border:3px dashed #8DB8E8;background:#F4F9FF;color:#5A7CAD;box-shadow:none;}
 .sgp-op{font-family:var(--font-hi);font-weight:800;font-size:46px;line-height:1;color:#012F76;}
 .sgp .sgp-av,.sgp .sgp-rod,.sgp .sgp-cube,.sgp .sgp-n,.sgp .sgp-op{opacity:0;}
-.sgp.go .sgp-av,.sgp.go .sgp-rod,.sgp.go .sgp-cube,.sgp.go .sgp-n,.sgp.go .sgp-op{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) var(--d,0s) both;}
+.sgp .sgp-av,.sgp .sgp-rod,.sgp .sgp-cube{transform-origin:50% 100%;}
+/* "playing with blocks" (pv_landing.js): each child walks in - a glide that eases to a stop, with a waddle (a rock from
+   foot to foot round the feet, dying away as they slow) instead of hops - then breathes gently while the screen waits.
+   Travel = translate, waddle = rotate, breathing = scale: three properties, so the layers never fight. */
+.sgp.go .sgp-l .sgp-av{animation:sgpInL 1.5s cubic-bezier(.25,.7,.3,1) var(--d,0s) both,sgpWaddle 1.5s linear var(--d,0s) both,
+  sgpBreathe 3.4s ease-in-out calc(var(--d,0s) + 1.6s) infinite;}
+.sgp.go .sgp-r .sgp-av{animation:sgpInR 1.5s cubic-bezier(.25,.7,.3,1) var(--d,0s) both,sgpWaddle 1.5s linear var(--d,0s) both reverse,
+  sgpBreathe 3.9s ease-in-out calc(var(--d,0s) + 1.9s) infinite;}
+.sgp .sgp-av{will-change:translate,rotate,scale,opacity;}
+/* each block is set down onto its tower: it comes down, lands with a small squash, settles */
+.sgp.go .sgp-rod,.sgp.go .sgp-cube{animation:sgpDrop .45s var(--d,0s) both;}
+.sgp.go .sgp-n,.sgp.go .sgp-op{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) var(--d,0s) both;}
 .sgp.go .sgp-q{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) var(--d,0s) both,pvQ 1.3s ease-in-out calc(var(--d,0s) + .5s) 2;}
+@keyframes sgpInL{0%{opacity:0;translate:-120px 0;}18%{opacity:1;}100%{opacity:1;translate:0 0;}}
+@keyframes sgpInR{0%{opacity:0;translate:120px 0;}18%{opacity:1;}100%{opacity:1;translate:0 0;}}
+@keyframes sgpWaddle{0%{rotate:0deg;}10%{rotate:-2.6deg;}26%{rotate:2.4deg;}42%{rotate:-2deg;}58%{rotate:1.4deg;}74%{rotate:-.7deg;}88%{rotate:.25deg;}100%{rotate:0deg;}}
+@keyframes sgpBreathe{0%,100%{scale:1 1;}50%{scale:1.006 1.016;}}
+@keyframes sgpDrop{0%{opacity:0;translate:0 -46px;animation-timing-function:cubic-bezier(.5,0,.9,.5);}30%{opacity:1;}
+  60%{translate:0 0;scale:1 1;animation-timing-function:ease-out;}74%{scale:1.06 .92;}88%{translate:0 -2px;scale:.99 1.02;}
+  100%{opacity:1;translate:0 0;scale:1 1;}}
+.sgp.still .sgp-av,.sgp.still .sgp-rod,.sgp.still .sgp-cube,.sgp.still .sgp-n,.sgp.still .sgp-op{opacity:1;animation:none;}
 @media (prefers-reduced-motion:reduce){ .sgp .sgp-av,.sgp .sgp-rod,.sgp .sgp-cube,.sgp .sgp-n,.sgp .sgp-op{opacity:1;animation:none !important;} }
 /* a supplied whole figure (Pari, Aaru - make_characters.py) stands beside its blocks in place of the round portrait,
    taller than the row: it overhangs it above and below, so the title and the play button keep their places */
@@ -1946,3 +1973,29 @@ body.is-start .sg-sky{
 /* each child on the inner side of their blocks - next to the equation, clear of Swiftie's corner and the title */
 .sgp-l.sgp-has-full{flex-direction:row-reverse;}
 .sgp-r.sgp-has-full{flex-direction:row;}
+/* their blocks stand on the floor at their feet (the figure overhangs the row by 106px below; its soles end ~1px
+   above its box) - not in the air at chest height. top, not translate: the drop animation owns translate */
+.sgp-has-full .sgp-blocks{position:relative;top:101px;}
+/* ground shadows (user: "there should be shadow of the main elements"): a soft contact ellipse under each child's feet
+   (it walks in with them) and under each block stack (it comes with the first block), light from the upper left */
+.sgp-fw{position:relative;display:flex;align-items:flex-end;}
+.sgp-shd{position:absolute;left:0;right:-12%;bottom:-118px;height:26px;border-radius:50%;pointer-events:none;z-index:-1;
+  background:radial-gradient(closest-side,rgba(50,24,4,.62),rgba(50,24,4,.3) 55%,transparent);}
+.sgp-bshd{position:absolute;left:-10px;right:-20px;bottom:-7px;height:20px;border-radius:50%;pointer-events:none;z-index:-1;
+  background:radial-gradient(closest-side,rgba(50,24,4,.58),rgba(50,24,4,.26) 55%,transparent);}
+.sgp .sgp-shd,.sgp .sgp-bshd{opacity:0;}
+/* the title painted on the wall (card landing_hero.title_look "wall"): terracotta wall paint with brush streaks,
+   multiplied into the wall so its texture shows through, no sticker outline; a painted dot border under it */
+.sg-title.sg-wall{color:transparent !important;text-shadow:none !important;mix-blend-mode:multiply;letter-spacing:1px;}
+/* the words: brush-streaked paint, riding pv_landing.js's #sgHand wave (hand-painted, so their top bar is never ruler-straight) */
+.sg-title.sg-wall .sgw{display:inline-block;text-shadow:0 0 1.5px rgba(120,34,10,.35);filter:url(#sgHand);
+  background:repeating-linear-gradient(97deg,#A93816 0 7px,#932C10 7px 10px,#B4421C 10px 17px,#9E3214 17px 21px);
+  -webkit-background-clip:text;background-clip:text;}
+.sg-title.sg-wall::after{content:"";position:absolute;left:8%;right:8%;bottom:-10px;height:10px;pointer-events:none;
+  background:radial-gradient(circle,#A3361A 2.4px,transparent 3px) 0 50%/16px 10px repeat-x;opacity:.85;}
+.sgp.go .sgp-l .sgp-shd{animation:sgpInL 1.5s cubic-bezier(.25,.7,.3,1) var(--d,0s) both;}
+.sgp.go .sgp-r .sgp-shd{animation:sgpInR 1.5s cubic-bezier(.25,.7,.3,1) var(--d,0s) both;}
+.sgp.go .sgp-bshd{animation:sgpShdIn .5s ease-out var(--d,0s) both;}
+@keyframes sgpShdIn{0%{opacity:0;scale:.6 1;}100%{opacity:1;scale:1 1;}}
+.sgp.still .sgp-shd,.sgp.still .sgp-bshd{opacity:1;animation:none;}
+@media (prefers-reduced-motion:reduce){ .sgp .sgp-shd,.sgp .sgp-bshd{opacity:1;animation:none !important;} }
