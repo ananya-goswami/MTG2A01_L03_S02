@@ -9,7 +9,7 @@
      request, so without this the very first paint is unstyled. This inline rule
      lands the loader's own colour on the first frame. -->
 <style>html,body{background:#FFFFFF;margin:0;}</style>
-<link rel="stylesheet" href="style.css?v=20261015-115211">
+<link rel="stylesheet" href="style.css?v=20261015-145009">
 <!-- [loading] the landing's own files start downloading with the page, alongside style.css - not only once app.js has
      arrived and asked for them (the boot loader waits for exactly these: app.js Assets, CRIT). http(s) only: on
      file:// a preload of a fetch() fails, and local files need no head start. -->
@@ -165,7 +165,8 @@
    "aaru",
    "pari"
   ],
-  "build": "house"
+  "build": "house",
+  "start_at": 4.0
  },
  "skill_description_hi": "दो अंकों वाली दो संख्याओं को हासिल (नई दहाई बनाकर) के साथ क्षैतिज रूप में जोड़ता है।",
  "phase_distribution": {
@@ -349,7 +350,17 @@
      {
       "who": "aaru"
      }
-    ]
+    ],
+    "signs": {
+     "plus": [
+      "ask",
+      0.51
+     ],
+     "eq": [
+      "ask",
+      0.66
+     ]
+    }
    }
   },
   {
@@ -416,6 +427,16 @@
       "pari",
       "aaru"
      ]
+    },
+    "signs": {
+     "plus": [
+      "eq",
+      0.302
+     ],
+     "eq": [
+      "eq",
+      0.524
+     ]
     }
    }
   },
@@ -442,7 +463,17 @@
      {
       "who": "amma"
      }
-    ]
+    ],
+    "signs": {
+     "plus": [
+      "ask",
+      0.654
+     ],
+     "eq": [
+      "ask",
+      0.7
+     ]
+    }
    }
   },
   {
@@ -504,6 +535,16 @@
     ],
     "total": {
      "who": "pari"
+    },
+    "signs": {
+     "plus": [
+      "eq",
+      0.304
+     ],
+     "eq": [
+      "eq",
+      0.556
+     ]
     }
    }
   },
@@ -692,6 +733,6 @@
 
 <!-- ============ ENGINE ============ -->
 <script src="swiftpal-bridge.js"></script>   <!-- [QA 01] host bridge: Android / iOS / web - must load before app.js -->
-<script src="app.js?v=20261015-115211"></script>
+<script src="app.js?v=20261015-145009"></script>
 </body>
 </html>

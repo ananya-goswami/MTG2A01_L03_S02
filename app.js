@@ -844,6 +844,36 @@ function pvChar(w, full){
   if(full){ const f = base + (full === true ? "_full" : "_" + full) + ".webp"; return has(f) ? f : null; }
   return has(base + ".webp") ? base + ".webp" : base + ".svg";
 }
+/* blinks (user 2026-10-15: "make the characters' eyes blink throughout the game"): every character picture on screen
+   (the story pages' portraits, the first screen's figures) that has an eyes-shut copy (char_<...>_blink.webp,
+   make_blinks.py - only the eyes differ) shows it for a moment every 2.5-6s, each on its own clock, now and then twice.
+   The copy is decoded before its first use, so the swap is instant; the shadows' copies (.sgp-cast) do not blink. */
+const PVBlink = (function(){
+  const ready = {}, SEL = ".pv-av, .sgp-fw .sgp-pose";
+  const shut = src =>{ const f = src.replace(/(\.webp)(\?.*)?$/, "_blink$1"); return Object.prototype.hasOwnProperty.call(ASSET_SIZES, f) ? f : null; };
+  /* the boot loader shows its pictures from blob: URLs (Assets) and keeps the file in data-asset - and it swaps any
+     file path an <img> is given for its blob. So the shut copy is shown by the very URL that was decoded for it (its
+     blob when fetched), and the open one comes back by the blob it had, with data-asset put back */
+  const load = f =>{ if(!ready[f]){ const u = (Assets.blob(f) && Assets.url(f)) || f, im = new Image(); ready[f] = "loading"; im.src = u;
+    (im.decode ? im.decode() : Promise.resolve()).then(()=>{ ready[f] = { u, im }; }, ()=>{ delete ready[f]; }); } return ready[f] && ready[f] !== "loading"; };
+  const shown = im => im.isConnected && im.getClientRects().length && getComputedStyle(im).opacity !== "0";
+  const blink = (im, f, open, file)=>{ const u = ready[f].u; im.dataset.blinking = 1; im.src = u;
+    setTimeout(()=>{ const s = im.getAttribute("src");
+      if(s === u || im.dataset.asset === f){ im.src = open; im.setAttribute("data-asset", file); } delete im.dataset.blinking; }, 130); };
+  setInterval(()=>{
+    if(document.hidden || (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    const now = Date.now();
+    document.querySelectorAll(SEL).forEach(im =>{
+      if(im.dataset.blinking) return;
+      const open = im.getAttribute("src"), file = (im.dataset.asset || open || "").replace("_blink.webp", ".webp"), f = open && shut(file); if(!f) return;
+      if(!im.dataset.next){ im.dataset.next = now + 1200 + Math.random() * 3500; load(f); return; }
+      if(now < +im.dataset.next || !shown(im) || !load(f)) return;
+      im.dataset.next = now + 2500 + Math.random() * 3500;
+      blink(im, f, open, file); if(Math.random() < .18) setTimeout(()=>{ if(!im.dataset.blinking) blink(im, f, im.getAttribute("src"), file); }, 300);   // now and then twice
+    });
+  }, 100);
+  return { shut };
+})();
 const PVK = (function(){
   const reduce = ()=> !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
   const px = v => (Math.round(v * 10) / 10) + "px";
@@ -1044,8 +1074,9 @@ Object.assign(PVK, (function(){
     const lane = (o.onesMax || 9) >= 10 ? rW + 2 * g : 0;
     const onesNeed = 5 * G + 4 * g + lane + 2 * pad, colW = Math.max(onesNeed, tSlots * rW + (tSlots - 1) * rg + 2 * pad);
     const onesW = colW, tensW = colW, onesIn = (colW - onesNeed) / 2;
-    /* rows after the first two (the ten-frame) stand TF lower, so they clear its dashed ring (review 2026-10-14) */
-    const TF = 12, rowsH = r => r ? r * cH + (r - 1) * g + (r > 2 ? TF : 0) : 0;
+    /* every row the same gap apart (user 2026-10-15 "spacing between each cube should be the same"; before: rows after
+       the ten-frame stood 12px lower to clear its ring - the ring now runs in the gap itself, see ring()) */
+    const TF = 0, rowsH = r => r ? r * cH + (r - 1) * g + (r > 2 ? TF : 0) : 0;
     const inH = Math.max(rH, rowsH(rows)), H = head + inH + 2 * pad, W = tensW + onesW;
     const x = o.cx - W / 2, y = o.y, fs = Math.round(head * .52);
     const el = add(sc, "div", "pv-table", "width:" + px(W) + ";height:" + px(H) + ";--head:" + px(head));
@@ -1120,10 +1151,11 @@ Object.assign(PVK, (function(){
     e.classList.remove("hl"); void e.offsetWidth; e.classList.add("hl"); setTimeout(()=> e.classList.remove("hl"), 1900); }, i * (step == null ? 110 : step))); }
   /* the dashed ring round the first ten cubes of a table (the ten-frame's two rows) */
   function ring(T, on){
-    if(!T._ring){ const w = 5 * T.G + 4 * T.g + 14, h = 2 * T.cH + T.g + 14;
+    const rp = Math.min(7, T.g / 2);                                       // (it hugs the ten: half the gap, so the next row stays clear)
+    if(!T._ring){ const w = 5 * T.G + 4 * T.g + 2 * rp, h = 2 * T.cH + T.g + 2 * rp;
       T._ring = add(T.sc, "div", "pv-ring pv-hide", "width:" + px(w) + ";height:" + px(h)); K.dashBox(T._ring, w, h, 4, 14, 11, 8);
       T.extra.push(T._ring); }
-    if(on !== false){ const p = T.onesXY(0); setXY(T._ring, p.x - 7, p.y - 7); }      // round the first ten where they stand now
+    if(on !== false){ const p = T.onesXY(0); setXY(T._ring, p.x - rp, p.y - rp); }      // round the first ten where they stand now
     T._ring.classList.toggle("pv-hide", on === false); if(on !== false) pop(T._ring);
     return T._ring;
   }
@@ -1418,13 +1450,18 @@ Object.assign(PVK, (function(){
       cfg.onReady && cfg.onReady(M);
     });
   }
+  /* the flying answer is the size of the "?" box it lands in (the equation's own box size, as shown - the mental
+     screens show their equation enlarged), so nothing changes size as it arrives (user 2026-10-15) */
+  function flyBox(C, E, text){
+    const k = K.kNow(), h = E.q.getBoundingClientRect().height / k || 62, w = E.q.getBoundingClientRect().width / k || h * 1.55;
+    const f = add(C.sc, "div", "pv-num pv-fly", "height:" + px(h) + ";font-size:" + px(h * .7) + ";min-width:" + px(w) + ";border-radius:" + px(h * .28));
+    f.textContent = text; f._h = h; return f; }
   /* the right card's number flies into the equation's "?" box */
   async function flyToQ(C, from, E){
-    const a = K.centre(from, C.sc), b = K.centre(E.q, C.sc);
-    const f = add(C.sc, "div", "pv-num pv-fly", "height:64px;font-size:44px;min-width:96px;border-radius:18px");
-    f.textContent = from.textContent; setXY(f, a.x, a.y - 32);
+    const a = K.centre(from, C.sc), b = K.centre(E.q, C.sc), f = flyBox(C, E, from.textContent);
+    setXY(f, a.x, a.y - f._h / 2);
     from.style.visibility = "hidden";   // the card itself goes up: no second box left behind (review 2026-10-14)
-    await glide(f, { x: b.x, y: b.y - 32 }, 620, true);
+    await glide(f, { x: b.x, y: b.y - f._h / 2 }, 620, true);
     f.remove(); E.fill(+from.textContent);
   }
 
@@ -1508,11 +1545,10 @@ Object.assign(PVK, (function(){
   }
   /* the answer box's digits fly into the "?" */
   async function flyAnsToQ(C, ans, E, n){
-    const a = K.centre(ans, C.sc), b = K.centre(E.q, C.sc);
-    const f = add(C.sc, "div", "pv-num pv-fly", "height:64px;font-size:44px;min-width:96px;border-radius:18px");
-    f.textContent = String(n); setXY(f, a.x, a.y - 32);
+    const a = K.centre(ans, C.sc), b = K.centre(E.q, C.sc), f = flyBox(C, E, String(n));
+    setXY(f, a.x, a.y - f._h / 2);
     ans.style.visibility = "hidden";    // the answer box goes up itself (review 2026-10-14)
-    await glide(f, { x: b.x, y: b.y - 32 }, 620, true); f.remove(); E.fill(n);
+    await glide(f, { x: b.x, y: b.y - f._h / 2 }, 620, true); f.remove(); E.fill(n);
   }
   return { mcq, flyToQ, numpad, flyAnsToQ };
 })());
@@ -1557,6 +1593,7 @@ const PVModules = {
       const hideAll = list => list.forEach(e => e.classList.add("pv-hide"));
       const showGroup = (p, g)=>{ K.show(p); g.all().forEach((b, i)=> setTimeout(()=> K.show(b), 120 + i * 55)); };
       if(asking) hideAll([pA, pB, ...gA.all(), ...gB.all(), cA, plus, cB, eqs, cQ]);
+      else if(d.signs) hideAll([plus, eqs, cQ]);   // (the sum page: its + and = come on "जोड़" / "बराबर" - user 2026-10-15)
       /* every block into the third column; ten ones (if there are) gathered into one new rod there */
       async function together(){
         const tA = pvSplit(d.a), tB = pvSplit(d.b), t = tA.t + tB.t, u = tA.o + tB.o, G = K.group(sc, sum, COL[2], BOT, BH), L = G.layout(t, u);
@@ -1585,12 +1622,21 @@ const PVModules = {
         if(asking){
           if(C.has("intro")) await C.cue("intro", [[0.05, ()=> showGroup(pA, gA)], [0.4, ()=> showGroup(pB, gB)]]);
           await C.cue("a", [[0, ()=>{ if(pA.classList.contains("pv-hide")) showGroup(pA, gA); }], [0.5, ()=> K.show(cA)]]);
-          await C.cue("b", [[0, ()=>{ K.show(plus); if(pB.classList.contains("pv-hide")) showGroup(pB, gB); }], [0.55, ()=> K.show(cB)]]);
-          await C.cue("ask", [[0.25, ()=> K.show(eqs)], [0.55, ()=>{ K.show(cQ); cQ.classList.add("pulse"); }]]);
+          /* the + and the = come on their words (user 2026-10-15): data.signs = { plus: [clip, at], eq: [clip, at] } - the
+             + on "मिलाकर" (or "और दिए"), the = and the "?" on "कुल"; at = the word's start, a fraction of its clip */
+          const sg = d.signs || { plus: ["b", 0], eq: ["ask", .25] }, on = (role, list)=>{
+            if(sg.plus[0] === role) list.push([sg.plus[1], ()=> K.show(plus)]);
+            if(sg.eq[0] === role) list.push([sg.eq[1], ()=> K.show(eqs)], [sg.eq[1] + .05, ()=>{ K.show(cQ); cQ.classList.add("pulse"); }]);
+            return list; };
+          await C.cue("b", on("b", [[0, ()=>{ if(pB.classList.contains("pv-hide")) showGroup(pB, gB); }], [0.55, ()=> K.show(cB)]]));
+          await C.cue("ask", on("ask", []));
         } else {
           let moving = null;
-          await C.cue("eq", [[0, ()=> K.pop(cA)], [0.28, ()=> K.pop(cB)], [0.4, ()=>{ moving = together(); }],
-                             [0.88, ()=>{ cQ.innerHTML = K.numHTML(sum); cQ.classList.add("filled"); K.pop(cQ); }]]);
+          /* each number's blocks glow as it is said, with its box's pop (user 2026-10-15) */
+          const sg = d.signs, cues = [[0, ()=>{ K.pop(cA); K.sweep(gA.all(), 0); }], [0.28, ()=>{ K.pop(cB); K.sweep(gB.all(), 0); }], [0.4, ()=>{ moving = together(); }],
+                             [0.88, ()=>{ K.show(cQ); cQ.innerHTML = K.numHTML(sum); cQ.classList.add("filled"); K.pop(cQ); }]];
+          if(sg) cues.push([sg.plus[1], ()=> K.show(plus)], [sg.eq[1], ()=>{ K.show(eqs); K.show(cQ); }]);
+          await C.cue("eq", cues);
           if(moving) await moving; C.guard();
           await C.cue("total", [[0.1, ()=> K.sweep(together.blocks || [], 70)], [0.65, ()=> K.pop(cQ)]]);
         }
@@ -1619,7 +1665,9 @@ const PVModules = {
       const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
       const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
       const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:54px"); plus.textContent = "+"; K.setXY(plus, L.cx, L.tableY + TA.H / 2 - 34);
-      if(!d.auto) [TA, TB, TS].forEach(T => T.el.classList.add("pv-hide"));
+      /* the sum table comes only once both numbers are built (user 2026-10-15), so the + buttons always stand at the
+         screen's centre under the tables; auto: the two number tables stand from the start */
+      (d.auto ? [TS] : [TA, TB, TS]).forEach(T => T.el.classList.add("pv-hide"));
       plus.classList.add("pv-hide");   // the + comes with the second number (auto: with the sum table - user 2026-10-15)
       const showT = T =>{ if(T.el.classList.contains("pv-hide")) K.showTable(T); };
       async function build(T, card, n, who, key){
@@ -1628,10 +1676,7 @@ const PVModules = {
         await C.cue(key + "_digits", [[0.04, ()=>{ K.lightDigit(card, "t"); T.lightHead("t"); }],
                                       [0.5, ()=>{ K.lightDigit(card, "t", false); T.lightHead("t", false); K.lightDigit(card, "o"); T.lightHead("o"); }]]);
         await C.wait(250); K.lightDigit(card, "o", false); T.lightHead("o", false);
-        const src = K.sources(sc, T, T.y + T.H + 12, L.cx);              // at the screen's centre (review 2026-10-14)
-        if(d.auto){                                                       // the sum table holds the centre: the two +
-          const x = key === "a" ? T.x - 80 : T.x + T.W + 80, my = T.y + T.H / 2;   // buttons stand on the table's outer side
-          K.setXY(src.t, x, my - 72); K.setXY(src.o, x, my + 8); }
+        const src = K.sources(sc, T, T.y + T.H + 12, L.cx);              // at the screen's centre (review 2026-10-14), where the sum table comes later
         src.show();
         if(who === "swifty"){
           src.t.classList.add("demo"); src.o.classList.add("demo");
@@ -1687,12 +1732,23 @@ const PVModules = {
         const eqS = K.add(sc, "div", "pv-op pv-sym pv-hide", "font-size:50px"); eqS.textContent = "=";
         const midY = TS.y + TS.head + TS.inH / 2 + TS.pad;
         K.setXY(eqS, TS.x + TS.W + 34, midY - 32);
-        const tot = K.numCard(sc, sum, TS.x + TS.W + 110, midY - 30, 60); tot.classList.add("pv-hide", "pv-total");
+        // the total's box is the SAME size as the two numbers' boxes (user 2026-10-15: "why is the 35 box bigger")
+        const tot = K.numCard(sc, sum, TS.x + TS.W + 110, midY - L.numH / 2, L.numH); tot.classList.add("pv-hide", "pv-total", "pv-sumcard");
         TS.extra.push(eqS, tot);
         await C.cue("total", [[0.02, ()=> K.sweep(TS.rods, 90)], [0.3, ()=> K.sweep(TS.cubes, 70)],   // (no column digits under the table)
                               [0.78, ()=>{ K.show(eqS); K.show(tot); }]]);
-        [TA, TB].forEach(T => T.fade()); [cA, cB, plus].forEach(e => e.classList.add("pv-gone"));
-        await TS.move(0, L.tableY - TS.y, 700); C.guard();
+        /* the whole sum stays on screen - "23 + 12 ... 35" is what the VO says - in ONE row: [23] + [12] = [35], each table
+           under its number, so the bottom centre is free for the next button (user 2026-10-15; before: the two number
+           tables faded and the sum table rose into their place) */
+        { const sumW = TA.W + TB.W + TS.W, GAP = Math.max(30, Math.min(62, (1060 - sumW) / 2)), tw = sumW + 2 * GAP;   // (fits inside the card, ~1130 wide)
+          const x0 = L.cx - tw / 2, ms = 700;
+          const dA = x0 - TA.x, dB = x0 + TA.W + GAP - TB.x, dSx = x0 + TA.W + TB.W + 2 * GAP - TS.x, dSy = L.tableY - TS.y;
+          const opY = L.tableY + TA.H / 2 - 34, mv = (e, x, y)=> K.shift(e, x - e._x, y - e._y, ms);
+          const sx = TS.x + dSx + TS.W / 2; TS.extra = TS.extra.filter(e => e !== eqS && e !== tot);   // (= and the total move on their own)
+          await Promise.all([TA.move(dA, 0, ms), ...TA.ghosts.map(e => K.shift(e, dA, 0, ms)), K.shift(cA, dA, 0, ms),
+            TB.move(dB, 0, ms), ...TB.ghosts.map(e => K.shift(e, dB, 0, ms)), K.shift(cB, dB, 0, ms),
+            TS.move(dSx, dSy, ms).then(()=>{}), mv(plus, x0 + TA.W + GAP / 2, opY), mv(eqS, x0 + TA.W + TB.W + GAP * 1.5, opY),
+            mv(tot, sx, L.numY)]); C.guard(); }
         sfxCorrect(); try{ confettiCannon(); }catch(e){} setSwMood("happy");
         await C.say("done");
         setNavActive(true);
@@ -1930,7 +1986,7 @@ const SlideModules = PVModules;
    User, 2026-10-14 ("like Chhota Bheem's title"): in the middle stands a half-built castle (S01) / house (S02), its
    missing blocks shown as pale outlines; the children zip in from both sides with a swoosh, a block in each hand
    (motion blur, speed lines, a skid and a puff of dust as they stop), put their blocks into the gaps in turns - each
-   leans, each block hops from the hand into its place - the flag goes up (castle) / the roof lands and the chimney smokes (house), a
+   leans, each block hops from the hand into its place - both children put their one cube in together (the castle's tower tops / the house's roof ends), a
    burst of sparkles, and they cheer (their cheering pose, a jump). Then the play button arrives ("sg-intro-done").
    While the screen waits they keep playing: they breathe, one at a time leans in to admire the build, a sparkle
    twinkles on it; the flag waves, the chimney smokes.
@@ -1946,20 +2002,18 @@ const PVLanding = {
      boxes in the drawing's px; the build's middle at x WX, its foot at FOOT (on BASE + DY); S stage px per drawing px. order: the
      pieces bottom up, [name, who brings it, the order]. */
   ART: {
-    /* standing: the bottom left cube and the door; Pari (right) brings the bottom right cube, then the top right; Aaru the
-       top left, then the top middle (cut around the door's arch); then the roof lands, chimney and all, and it smokes */
-    house: { S: .165, WX: 668, FOOT: 1046, SMOKE: [81.4, 1.2],
-      order: [["bl"], ["door"], ["br", 1, 1], ["tr", 1, 2], ["tl", 0, 3], ["tm", 0, 4], ["roof", "pop"]],
-      tl: [210, 522, 529, 789], tm: [523, 522, 815, 789], tr: [809, 522, 1126, 789], bl: [210, 783, 529, 1052], br: [809, 783, 1126, 1051],
-      door: [509, 692, 832, 1061], roof: [150, 138, 1200, 559] },
-    /* standing: both towers but their top blocks, the wall's purple + green rows, the gate, the crown block; Kabir (left)
-       brings the left tower's top block, then the wall's orange one; Tara the right tower's top, then the yellow one; then
-       the battlements and both roofs go up, flags and all */
-    castle: { S: .16, WX: 765, FOOT: 975, DY: 12,
-      order: [["ltower"], ["rtower"], ["wall"], ["gate"], ["mc"], ["lt", 0, 1], ["rt", 1, 2], ["mo", 0, 3], ["my", 1, 4], ["bat", "pop"], ["roofl", "pop"], ["roofr", "pop"]],
-      roofl: [170, 28, 544, 408], roofr: [1058, 15, 1423, 408], bat: [462, 346, 1072, 563], lt: [187, 408, 464, 566], rt: [1070, 408, 1334, 566],
-      ltower: [211, 560, 465, 978], rtower: [1069, 560, 1330, 978], mo: [459, 561, 668, 693], mc: [662, 563, 873, 693], my: [867, 561, 1075, 693],
-      wall: [459, 687, 1075, 978], gate: [620, 652, 919, 979] }
+    /* a house of cubes only (user, 12:44 2026-10-15): two rows of three under a red roof of three, two, one; all of it
+       stands but the roof row of three's two end cubes - each child brings ONE (Aaru the left, Pari the right) and they
+       put them in together */
+    house: { S: .16, WX: 768, FOOT: 986,
+      order: [["blocks"], ["block_l", 0, 1], ["block_r", 1, 1]],
+      blocks: [353, 32, 1184, 986], block_l: [334, 366, 632, 592], block_r: [902, 366, 1202, 592] },
+    /* a castle of cubes only (user, 2026-10-15): all of it stands but the red cube on top of each tower - each child
+       brings ONE (Kabir the left, Tara the right) and they put them on together. DY: it stands a little lower than BASE,
+       so the towers clear S01's painted title dots */
+    castle: { S: .15, WX: 768, FOOT: 992, DY: 12, KIDX: [176, 596],     // (the castle is wide: the children stop clear of it - user 2026-10-15)
+      order: [["cubes"], ["cube_l", 0, 1], ["cube_r", 1, 1]],
+      cubes: [95, 190, 1441, 992], cube_l: [220, 41, 439, 220], cube_r: [1096, 41, 1315, 220] }
   },
   /* the build, bottom up: [type, x of centre, y of bottom, w, h, picture, who brings it (0 left child, 1 right; none:
      already standing; "pop": goes up at the end), the order it is put in] */
@@ -1968,13 +2022,10 @@ const PVLanding = {
       return ["img", M + ((x0 + x1) / 2 - A.WX) * A.S, B + (y1 - A.FOOT) * A.S, (x1 - x0) * A.S, (y1 - y0) * A.S, kind + "_" + k, by, seq || 0]; }); },
   /* the build's pictures, for the boot loader (the landing waits for them) */
   files(h){ const A = h && this.ART[h.build]; return A ? A.order.map(([k])=> h.build + "_" + k + ".webp") : []; },
-  piece(type, c){
-    const sm = this.ART.house.SMOKE;
-    return '<img alt="" src="assets/' + c + '.webp" class="sgp-im">' + (c === "house_roof" ? '<i class="sgp-smoke" style="left:calc(' +
-      sm[0] + '% - 6px);top:' + sm[1] + '%;bottom:auto"><b></b><b></b><b></b></i>' : "");
-  },
+  piece(type, c){ return '<img alt="" src="assets/' + c + '.webp" class="sgp-im">'; },
   html(h){
     const L = this, kind = L.ART[h.build] ? h.build : "house", plan = L.build(kind, L.MID, L.BASE);
+    L.KID_X = L.ART[kind].KIDX || [208, 564];                                  // where the children stop (by the build's width)
     const box = (cls, p, i, extra)=> '<div class="' + cls + '" data-i="' + i + '" style="left:' + (p[1] - p[3] / 2) + 'px;top:' + (p[2] - p[4]) + 'px;width:' +
       p[3] + 'px;height:' + p[4] + 'px;z-index:' + (20 + i) + ';' + (extra || "") + '">';
     const brought = p => p[6] === 0 || p[6] === 1;
@@ -2009,7 +2060,7 @@ const PVLanding = {
       /* hand-painted, not typeset (user's handwritten sample): the words ride a slow, smooth wave, so their top bar
          (शिरोरेखा) rises and dips a little along the line. The wave is a displacement map that varies with x only - a
          gradient of two mixed sines, about +-3.5px - so every letter moves straight up or down and stays crisp. Only the
-         words (.sgw) get it; the painted dots under them stay straight. */
+         words (.sgw) get it. */
       const txt = ttl.textContent.trim(); ttl.innerHTML = '<span class="sgw"></span>'; ttl.firstChild.textContent = txt;
       if(!document.getElementById("sgHand")){
         let stops = "";
@@ -2040,7 +2091,7 @@ const PVLanding = {
       [...k.querySelectorAll(".sgp-held")].forEach((b, j)=>{ const [fx, fy] = hands[j % 2], w = parseFloat(b.style.width), h = parseFloat(b.style.height);
         b.style.scale = Math.min(1, 34 / w).toFixed(3);
         b.style.left = ((fx - .5) * W - w / 2).toFixed(1) + "px"; b.style.top = (-H + fy * H - h / 2).toFixed(1) + "px"; });
-      const sh = q(k, ".sgp-shd"), iw = +idle.dataset.w * .5;                  // the contact shadow: under the feet only
+      const sh = q(k, ".sgp-shd"), iw = +idle.dataset.w * .74;                 // the contact shadow: the feet and a little round them
       sh.style.width = iw.toFixed(0) + "px"; sh.style.left = (-iw / 2).toFixed(0) + "px"; };
     /* a pose change is a cut, not a cross-fade (two half-seen poses read as a double child), hidden by a quick squash */
     const pose = (k, n, pop)=>{ k.querySelectorAll(".sgp-pose").forEach(im => im.classList.toggle("on", im.dataset.for.split(" ").includes(n)));
@@ -2121,7 +2172,9 @@ const PVLanding = {
       await wait(380);
       zoom(0); await wait(240); zoom(1); await wait(860);
       const order = plan.map((p, i)=> i).filter(i => plan[i][6] === 0 || plan[i][6] === 1).sort((a, b)=> plan[a][7] - plan[b][7]);
-      for(const i of order){ put(i); await wait(560); }
+      const steps = [...new Set(order.map(k => plan[k][7]))];                    // (pieces of the same order go in together)
+      order.forEach(i => setTimeout(()=> put(i), 560 * steps.indexOf(plan[i][7])));
+      await wait(560 * steps.length);
       await wait(380);
       plan.forEach((p, i)=>{ if(p[6] !== "pop") return; pcs[i].classList.add("on");               // the flag goes up
         const sh = q(root, '.sgp-pcs[data-i="' + i + '"]'); if(sh) setTimeout(()=> sh.classList.add("on"), 300);
@@ -2137,8 +2190,19 @@ const PVLanding = {
       kids.forEach(kd => pose(kd, "idle", true));
       await wait(250);
       done(); play(); };
-    document.addEventListener("sg-greeting-start", go);
-    setTimeout(go, 6000);                                   // (no greeting at all: the picture still comes in)
+    /* the picture comes in on the greeting's "आज हम ... सीखेंगे" (user 2026-10-15), not on its "नमस्ते": card
+       landing_hero.start_at = that word's time in vo_landing (s); it waits for the clip itself to reach it, so a slow
+       start never puts it early. Never stranded: 2.5s past that time it comes in anyway. */
+    const AT = +((CARD.landing_hero || {}).start_at) || 0;
+    let greeted = false;
+    document.addEventListener("sg-greeting-start", ()=>{ greeted = true;
+      if(!AT){ go(); return; }
+      const t0 = Date.now(), tick = ()=>{ if(started) return;
+        const a = typeof currentAudio !== "undefined" ? currentAudio : null;
+        if((a && !a.paused && a.currentTime >= AT) || Date.now() - t0 > AT * 1000 + 2500){ go(); return; }
+        setTimeout(tick, 40); };
+      tick(); });
+    setTimeout(()=>{ if(!greeted) go(); }, 6000);          // (no greeting at all: the picture still comes in)
   }
 };
 
@@ -2556,13 +2620,19 @@ const ASSET_SIZES = {
   "assets/btn-play-round-waiting.svg": 2655,
   "assets/btn-play-round.svg": 2645,
   "assets/char_aaru.webp": 14372,
+  "assets/char_aaru_blink.webp": 14242,
   "assets/char_aaru_cheer.webp": 54110,
+  "assets/char_aaru_cheer_blink.webp": 53942,
   "assets/char_aaru_full.webp": 46560,
+  "assets/char_aaru_full_blink.webp": 45986,
   "assets/char_amma.webp": 14724,
   "assets/char_pari.webp": 17236,
+  "assets/char_pari_blink.webp": 17230,
   "assets/char_pari_carry.webp": 66606,
+  "assets/char_pari_carry_blink.webp": 67238,
   "assets/char_pari_cheer.webp": 60344,
   "assets/char_pari_full.webp": 50702,
+  "assets/char_pari_full_blink.webp": 51278,
   "assets/end_screen.webp": 33634,
   "assets/fonts/baloo2-600.woff2": 87020,
   "assets/fonts/baloo2-700.woff2": 86108,
@@ -2573,13 +2643,9 @@ const ASSET_SIZES = {
   "assets/gif/sw_head_celebrate_anim.webp": 293618,
   "assets/gif/sw_head_hint_anim.webp": 316076,
   "assets/gif/sw_head_tryagain_anim.webp": 313414,
-  "assets/house_bl.webp": 9910,
-  "assets/house_br.webp": 9120,
-  "assets/house_door.webp": 20064,
-  "assets/house_roof.webp": 46924,
-  "assets/house_tl.webp": 15234,
-  "assets/house_tm.webp": 6940,
-  "assets/house_tr.webp": 15230,
+  "assets/house_block_l.webp": 5178,
+  "assets/house_block_r.webp": 5018,
+  "assets/house_blocks.webp": 38916,
   "assets/last_swifty_end.webp": 1779506,
   "assets/last_swifty_still.webp": 26456,
   "assets/mascot.webp": 8006,
@@ -3001,7 +3067,10 @@ function boot(){
   let _releasePending = false;
   const releaseStart = (force)=>{ if(!force && !window.__sgIntroDone){ _releasePending = true; return; }
     clearTimeout(_startWatchT); _releasePending = false; if(onLandingNow()) setStartBtnReady(true); };
-  document.addEventListener("sg-intro-done", ()=>{ if(_releasePending) releaseStart(); });
+  /* user 2026-10-15 ("play button is coming really late after the animation is complete"): the greeting (6.8s / 10s)
+     outlasts the first screen's build (~4s), so the button no longer waits for its end - it pops as the build is done,
+     once the greeting is audibly playing (a blocked greeting: still released by its end / the first tap / the watchdog) */
+  document.addEventListener("sg-intro-done", ()=>{ if(_releasePending || (!voEl.paused && voEl.currentTime > 0)) releaseStart(); });
   const playLanding = ()=>{
     if(!onLandingNow()) return;
     document.dispatchEvent(new Event("sg-greeting-start"));                  // (the cube row's watchdog counts from here)
