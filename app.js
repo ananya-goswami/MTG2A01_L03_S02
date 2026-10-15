@@ -809,25 +809,54 @@ function centerAllGlyphs(root){
 /* ---------- 12. SLIDE MODULES ---------- */
 /* ---------- [pv kit] PVK - the place-value addition kit, shared by every slide of MTG2A01_L03_S01 (without
    regrouping) and MTG2A01_L03_S02 (with regrouping). The SME decks draw one model on every page: a दहाई | इकाई
-   place-value table per number, a green rod for each ten (assets/pv_rod.webp, the deck's own art) and an orange
-   cube for each one (assets/pv_cube.webp), and a third table below for the sum. Everything here is placed in STAGE
+   place-value table per number, a green rod for each ten (assets/pv_rod11.webp, ten of the cubes) and an orange
+   cube for each one (assets/pv_cube10.webp), and a third table below for the sum. Everything here is placed in STAGE
    px (1333 x 750): the scene's 0,0 is put on the stage's 0,0 whatever host it is mounted in (the tutorial card or
    the slide host). Moves animate the `translate` property, never `transform` (as MDK in MTG2A04 - a CSS `scale`
    on a pulsing block would multiply anything in `transform`). CSS [pv kit]. ---------- */
+/* the idle hand TOUCHES what it points at (user 2026-10-15: "the hand nudges are not correct"): the engine's
+   placeNudge stood the fingertip 8px below the target, pointing up at it - under a + button, a block or the answer
+   box it read as pointing at nothing, and its tap ripple broke out beside the target. Same hand, same clamping into
+   the stage; the fingertip now lands on the target's lower part, where a finger would press it. */
+placeNudge = (function(base){
+  return function(el){
+    const nh = $("nudgeHand"), host = document.querySelector(".slide-stage");
+    if(!el || !nh || !host || !el.getBoundingClientRect) return base(el);
+    const r = el.getBoundingClientRect(), sw = host.getBoundingClientRect();
+    const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale")) || 1;
+    const w = r.width / scale, h = r.height / scale, cx = (r.left - sw.left) / scale + w / 2;
+    const tipY = (r.top - sw.top) / scale + h - Math.min(h * 0.35, 26);
+    const stageW = sw.width / scale, stageH = sw.height / scale;
+    nh.style.left = Math.max(0, Math.min(stageW - NH.W, cx - NH.TIP_X)) + "px";
+    nh.style.top = Math.max(0, Math.min(stageH - NH.H, tipY - NH.TIP_Y)) + "px";
+    nh.style.clipPath = "";
+    if(!nh.classList.contains("show")) sfxNudge();
+    nh.classList.add("show");
+    return true;
+  };
+})(placeNudge);
 /* a character's picture: the supplied art (assets/char_<who>.webp - pv-addition-kit/make_characters.py, from the
    character sheets, e.g. Pari and Aaru 2026-10-08) when the lesson ships it, else the drawn portrait (char_<who>.svg,
-   tools/make_avatars.py). full: the whole figure (the first screen), null when there is none. */
+   tools/make_avatars.py). full: the whole figure (the first screen), null when there is none; full "cheer": the whole
+   figure cheering (char_<who>_cheer.webp), "carry": carrying blocks (char_<who>_carry.webp) - null when there is none. */
 function pvChar(w, full){
   const has = f => Object.prototype.hasOwnProperty.call(ASSET_SIZES, f), base = "assets/char_" + w;
-  if(full) return has(base + "_full.webp") ? base + "_full.webp" : null;
+  if(full){ const f = base + (full === true ? "_full" : "_" + full) + ".webp"; return has(f) ? f : null; }
   return has(base + ".webp") ? base + ".webp" : base + ".svg";
 }
 const PVK = (function(){
   const reduce = ()=> !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
   const px = v => (Math.round(v * 10) / 10) + "px";
   const wait = ms => new Promise(r => setTimeout(r, reduce() ? Math.min(ms, 60) : ms));
-  const ROD = { src: "assets/pv_rod.webp", ar: 320 / 42 };      // h / w of the art
-  const CUBE = { src: "assets/pv_cube.webp", ar: 126 / 128 };
+  /* the blocks are the user's front-on cubes (make_blocks.py, review 2026-10-14): the green rod and the orange cube are
+     drawn at one proportion, so a rod is as wide as a cube and ten cubes stacked at its step ARE the rod. pitch = how far
+     up the next cube in a stack sits, as a share of the cube's width. */
+  const ROD = { src: "assets/pv_rod11.webp", ar: 987 / 147 };       // h / w of the art
+  const CUBE = { src: "assets/pv_cube10.webp", ar: 289 / 300, pitch: 93.2 / 147 };
+  /* front-on cubes are taller per cube than the old isometric ones (a rod 6.7 widths tall, was 5.2): the layouts keep
+     every rod at its old height and the blocks get narrower to match (user's choice 2026-10-14: "smaller blocks, same
+     layout"). A table's `cube` stays its layout size; its blocks are FIT of it. */
+  const FIT = (1559 / 300) / ROD.ar;
   const kNow = ()=> parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale")) || 1;
   function add(parent, tag, cls, css){ const e = document.createElement(tag); if(cls) e.className = cls; if(css) e.style.cssText = css; parent.appendChild(e); return e; }
   const setXY = (e, x, y)=>{ e._x = x; e._y = y; e.style.left = px(x); e.style.top = px(y); };
@@ -836,10 +865,13 @@ const PVK = (function(){
   /* the pop-in plays once and its class goes: left on, any later animation on the element (a pulse, a highlight)
      would replace it and, when that one ends, bring the pop back - replayed from nothing */
   const pop = e =>{ if(!e) return; e.classList.remove("pv-pop"); void e.offsetWidth; e.classList.add("pv-pop");
-    const end = ev =>{ if(ev.animationName !== "pvPop") return; e.removeEventListener("animationend", end); e.classList.remove("pv-pop"); };
+    const end = ev =>{ if(!/^pv(Btn|Rod)?Pop$/.test(ev.animationName)) return; e.removeEventListener("animationend", end); e.classList.remove("pv-pop"); };
     e.addEventListener("animationend", end); };
   const show = (e, on)=>{ if(!e) return; e.classList.toggle("pv-hide", on === false); if(on !== false) pop(e); };
   /* the lateral buzz of the FLN kit (recipes 11/20): +-9px decaying, .4s, on `translate` */
+  /* the decks' idle cue ("if idle, pulsate again"): the pulse restarts from its start, with the nudge chime - no hand
+     (user 2026-10-15: match the decks; their hand nudges are only the answer counter's and the ghost drags) */
+  function repulse(el){ if(!el) return; el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse"); try{ sfxNudge(); }catch(e){} }
   function shake(el, amp){ if(!el || reduce()) return; const a = amp || 9;
     el.animate([{ translate: "0 0" }, { translate: -a + "px 0" }, { translate: a + "px 0" }, { translate: -a * .67 + "px 0" },
                 { translate: a * .67 + "px 0" }, { translate: "0 0" }], { duration: 400, easing: "ease-in-out" }); }
@@ -951,6 +983,24 @@ const PVK = (function(){
   const lightDigit = (card, which, on)=>{ if(!card) return; const d = card.querySelector(which === "t" ? ".pv-dt" : ".pv-do");
     if(d) d.classList.toggle(which === "t" ? "hl-t" : "hl-o", on !== false); };
   /* the equation row "a + b = ?" (one flex row, centred on cx) */
+  /* ---- a dotted outline (the ten's ring, the drop target) with ONE dot missing: the gap travels round the shape a dot at a
+     time while the dots stay put (review 2026-10-14). An SVG rect over the box: w x h its size, sw the line, r the corner,
+     dash / gap the dot and space in px; one more than "dash" is left out so the pattern goes exactly round. ---- */
+  function dashBox(el, w, h, sw, r, dash, gap){
+    const NS = "http://www.w3.org/2000/svg", i = sw / 2, iw = w - sw, ih = h - sw, rr = Math.max(0, Math.min(r - i, iw / 2, ih / 2));
+    const per = 2 * (iw + ih) - 8 * rr + 2 * Math.PI * rr, n = Math.max(6, Math.round(per / (dash + gap)));
+    const d = 10 * dash / (dash + gap), g = 10 - d, pat = [];
+    for(let k = 0; k < n - 2; k++) pat.push(d, g);
+    pat.push(d, g + d + g);                                         // the missing dot
+    const svg = document.createElementNS(NS, "svg"), rc = document.createElementNS(NS, "rect");
+    svg.setAttribute("class", "pv-dash"); svg.setAttribute("width", w); svg.setAttribute("height", h);
+    [["x", i], ["y", i], ["width", iw], ["height", ih], ["rx", rr], ["pathLength", n * 10], ["stroke-dasharray", pat.map(v => +v.toFixed(3)).join(" ")]]
+      .forEach(([k, v])=> rc.setAttribute(k, v));
+    svg.appendChild(rc); el.appendChild(svg);
+    if(!reduce()) rc.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: -n * 10 }],
+                             { duration: n * 85, iterations: Infinity, easing: "steps(" + n + ")" });
+    return svg;
+  }
   function equation(sc, a, b, cx, y, h){
     const row = add(sc, "div", "pv-eq", "height:" + px(h) + ";--h:" + px(h));
     const box = (n, cls)=>{ const e = add(row, "div", "pv-num " + cls, "height:" + px(h) + ";font-size:" + px(h * .7) + ";min-width:" + px(h * 1.55) + ";border-radius:" + px(h * .28) + ";position:relative");
@@ -970,20 +1020,23 @@ const PVK = (function(){
     setXY(e, cx, y); return e;
   }
 
-  return { reduce, px, wait, ROD, CUBE, kNow, add, setXY, xy, knock, pop, show, shake, softGlow, scene, ctx, run, block, glide, shift,
+  return { reduce, px, wait, ROD, CUBE, FIT, dashBox, kNow, add, setXY, xy, knock, pop, show, shake, repulse, softGlow, scene, ctx, run, block, glide, shift,
            hand, centre, numHTML, numCard, lightDigit, equation, person };
 })();
 
 /* ---- [pv kit] the place-value table, block groups, moving blocks between tables, making a ten ---- */
 Object.assign(PVK, (function(){
   const K = PVK, { px, add, setXY, glide, wait, pop, ROD, CUBE } = K;
-  /* a दहाई | इकाई table. o: { cx, y, cube (a cube's side), rodH, tensMax (rod places the column is wide for),
+  /* a दहाई | इकाई table. o: { cx, y, cube (a cube's side - a rod is ten of them, as wide as one), tensMax (rod places the column is wide for),
      tensFinal (the rods it will hold - they stand centred in their column), onesMax (cube places: rows of 5, the
      first two rows a ten-frame) }. Blocks are NOT children of the table: they are scene elements standing on its
      places, so they can fly from one table to another. T.rods / T.cubes = what stands on it now, in place order. */
   function table(sc, o){
-    const G = o.cube, g = Math.max(4, Math.round(G * .2)), rH = o.rodH, rW = rH / ROD.ar, rg = Math.max(6, Math.round(rW * .5));
-    const pad = Math.round(G * .45) + 4, head = Math.round(G * .55 + 22), cH = G * CUBE.ar;
+    /* Q: the table's layout size; G: its blocks - o.blk (each screen's layout sets it as big as its room allows, review
+       2026-10-14 "make the cubes look bigger"), else core FIT of Q. o.pad: the inner margin (tight screens trim it) */
+    const Q = o.cube, G = o.blk || Q * K.FIT;
+    const g = Math.max(4, Math.round(Q * .2)), rW = G, rH = G * ROD.ar, rg = Math.max(6, Math.round(rW * .5));
+    const pad = o.pad != null ? o.pad : Math.round(Q * .45) + 4, head = Math.round(Q * .55 + 22), cH = G * CUBE.ar;
     const rows = Math.max(2, Math.ceil((o.onesMax || 9) / 5)), tSlots = Math.max(o.tensMax || 5, 3);
     /* the two columns are always the same width: the wider one's need sets both (blocks centre in their column) */
     /* a table that can reach ten ones keeps a rod lane at the right of its इकाई column: the new ten forms there,
@@ -991,7 +1044,9 @@ Object.assign(PVK, (function(){
     const lane = (o.onesMax || 9) >= 10 ? rW + 2 * g : 0;
     const onesNeed = 5 * G + 4 * g + lane + 2 * pad, colW = Math.max(onesNeed, tSlots * rW + (tSlots - 1) * rg + 2 * pad);
     const onesW = colW, tensW = colW, onesIn = (colW - onesNeed) / 2;
-    const inH = Math.max(rH, rows * cH + (rows - 1) * g), H = head + inH + 2 * pad, W = tensW + onesW;
+    /* rows after the first two (the ten-frame) stand TF lower, so they clear its dashed ring (review 2026-10-14) */
+    const TF = 12, rowsH = r => r ? r * cH + (r - 1) * g + (r > 2 ? TF : 0) : 0;
+    const inH = Math.max(rH, rowsH(rows)), H = head + inH + 2 * pad, W = tensW + onesW;
     const x = o.cx - W / 2, y = o.y, fs = Math.round(head * .52);
     const el = add(sc, "div", "pv-table", "width:" + px(W) + ";height:" + px(H) + ";--head:" + px(head));
     el.innerHTML = '<div class="pv-th pv-th-t" style="width:' + px(tensW) + ';height:' + px(head) + ';font-size:' + px(fs) + '">दहाई</div>' +
@@ -1000,15 +1055,30 @@ Object.assign(PVK, (function(){
     setXY(el, x, y);
     const T = { sc, el, x, y, W, H, G, g, rH, rW, rg, pad, head, inH, tensW, onesW, cH, rods: [], cubes: [], ghosts: [], extra: [],
                 th: el.querySelector(".pv-th-t"), oh: el.querySelector(".pv-th-o") };
-    T.tensXY = j =>{ const n = Math.max(o.tensFinal || 0, j + 1, 1), grp = n * rW + (n - 1) * rg;
+    /* every group stands in the CENTRE of its column (review 2026-10-14), for the blocks there NOW (n, default the list's
+       length): the rods side by side; the cubes in rows of five (the first two a ten-frame); a new ten waiting in the
+       इकाई column (T.laneRod) stands left of its cubes, the two centred together. T.relayout() re-centres after a change. */
+    T.tensXY = (j, n)=>{ n = Math.max(n == null ? T.rods.length : n, j + 1, 1); const grp = n * rW + (n - 1) * rg;
       return { x: T.x + (tensW - grp) / 2 + j * (rW + rg), y: T.y + head + pad + (inH - rH) / 2 }; };
-    T.onesXY = i =>({ x: T.x + tensW + onesIn + pad + (i % 5) * (G + g), y: T.y + head + pad + Math.floor(i / 5) * (cH + g) });
-    T.laneDX = tensW + onesIn + onesNeed - pad - rW;   // the lane's x from the table's left (T.x moves with T.move)
-    T.slot = (kind, i)=> kind === "t" ? T.tensXY(i) : T.onesXY(i);
+    T.onesBox = (n, rod)=>{ const cols = Math.min(n, 5), rows = Math.ceil(n / 5), bw = cols ? cols * G + (cols - 1) * g : 0,
+      bh = rowsH(rows), gap = rod && n ? Math.max(10, 2 * g) : 0, tw = (rod ? rW : 0) + gap + bw,
+      x0 = T.x + tensW + (onesW - tw) / 2, top = T.y + head + pad;
+      return { rx: x0, ry: top + (inH - rH) / 2, cx: x0 + (rod ? rW + gap : 0), cy: top + (inH - bh) / 2 }; };
+    T.onesXY = (i, n)=>{ const b = T.onesBox(Math.max(n == null ? T.cubes.length : n, i + 1), !!T.laneRod);
+      const r = Math.floor(i / 5); return { x: b.cx + (i % 5) * (G + g), y: b.cy + r * (cH + g) + (r >= 2 ? TF : 0) }; };
+    T.laneRod = null;
+    T.slot = (kind, i, n)=> kind === "t" ? T.tensXY(i, n) : T.onesXY(i, n);
+    /* glide every block not in flight to its centred place (one in flight re-settles when it lands) */
+    T.relayout = (ms, skip, settling)=>{ ms = ms == null ? 320 : ms; const go = (b, p)=>{ if(b !== skip && !b._gl) glide(b, p, ms, false); };
+      T.rods.forEach((b, j)=> go(b, T.tensXY(j))); T.cubes.forEach((b, i)=> go(b, T.onesXY(i)));
+      if(T.laneRod){ const q = T.onesBox(T.cubes.length, true); go(T.laneRod, { x: q.rx, y: q.ry }); }
+      /* blocks added quickly one after another were in flight just now: once things are still, settle them all */
+      if(!settling){ clearTimeout(T._settle); T._settle = setTimeout(function again(){ if(!T.el.isConnected) return;
+        if([...T.rods, ...T.cubes].some(b => b._gl)){ T._settle = setTimeout(again, 120); return; } T.relayout(220, null, true); }, ms + 80); } };
     T.list = kind => kind === "t" ? T.rods : T.cubes;
     /* a new block on the next place of its column, popping in */
-    T.addBlock = kind =>{ const list = T.list(kind), p = T.slot(kind, list.length);
-      const b = K.block(sc, kind, p.x, p.y, kind === "t" ? rH : G); list.push(b); pop(b); return b; };
+    T.addBlock = kind =>{ const list = T.list(kind), p = T.slot(kind, list.length, list.length + 1);
+      const b = K.block(sc, kind, p.x, p.y, kind === "t" ? rH : G); list.push(b); pop(b); T.relayout(260, b); return b; };
     /* the number built "one by one" (deck: "Show the PV tables with the numbers built using blocks one by one") */
     T.fill = async (n, step)=>{ const t = Math.floor(n / 10), u = n % 10;
       for(let j = 0; j < t; j++){ T.addBlock("t"); await wait(step == null ? 110 : step); }
@@ -1035,40 +1105,47 @@ Object.assign(PVK, (function(){
     b.classList.remove("pv-tap", "pulse", "hl");
     const gh = b.cloneNode(false); gh.className = "pv-blk pv-ghost pv-" + (b._kind === "t" ? "rod" : "cube");
     setXY(gh, b._x, b._y); A.sc.insertBefore(gh, b); A.ghosts.push(gh);
-    const dest = S.list(b._kind), p = S.slot(b._kind, dest.length); dest.push(b);
-    b.style.zIndex = 30;
-    return glide(b, p, ms == null ? 620 : ms, true).then(()=>{ b.style.zIndex = ""; K.knock(); });
+    const dest = S.list(b._kind), p = S.slot(b._kind, dest.length, dest.length + 1); dest.push(b);
+    b.style.zIndex = 30; S.relayout(ms == null ? 620 : ms, b);
+    return glide(b, p, ms == null ? 620 : ms, true).then(()=>{ b.style.zIndex = ""; K.knock(); S.relayout(220); });
   }
   /* highlight a set one after another (the VO naming them) */
+  /* a new ten blinks twice as it forms; .pv-new then goes, or the blink would play again whenever a later highlight
+     (.hl, a sweep) ends and hands the animation back to it (user 2026-10-14: "the last green stick was blinking") */
+  function newTen(rod){ rod.classList.add("pv-new");
+    const off = ()=> rod.classList.remove("pv-new");
+    rod.addEventListener("animationend", e =>{ if(e.animationName === "pvInnerBlink") off(); });
+    setTimeout(off, 2500); }
   function sweep(list, step){ (list || []).forEach((e, i)=> setTimeout(()=>{ if(!e.isConnected) return;
     e.classList.remove("hl"); void e.offsetWidth; e.classList.add("hl"); setTimeout(()=> e.classList.remove("hl"), 1900); }, i * (step == null ? 110 : step))); }
   /* the dashed ring round the first ten cubes of a table (the ten-frame's two rows) */
   function ring(T, on){
-    if(!T._ring){ const p = T.onesXY(0); T._ring = add(T.sc, "div", "pv-ring pv-hide",
-        "width:" + px(5 * T.G + 4 * T.g + 14) + ";height:" + px(2 * T.cH + T.g + 14));
-      setXY(T._ring, p.x - 7, p.y - 7); T.extra.push(T._ring); }
+    if(!T._ring){ const w = 5 * T.G + 4 * T.g + 14, h = 2 * T.cH + T.g + 14;
+      T._ring = add(T.sc, "div", "pv-ring pv-hide", "width:" + px(w) + ";height:" + px(h)); K.dashBox(T._ring, w, h, 4, 14, 11, 8);
+      T.extra.push(T._ring); }
+    if(on !== false){ const p = T.onesXY(0); setXY(T._ring, p.x - 7, p.y - 7); }      // round the first ten where they stand now
     T._ring.classList.toggle("pv-hide", on === false); if(on !== false) pop(T._ring);
     return T._ring;
   }
-  /* MAKE A TEN: the first ten cubes of table S gather into one column in the rod lane of its इकाई column, shrinking to the rod's
-     width, and become ONE rod (a "new ten", glowing); the cubes left over move up to the first places.
+  /* MAKE A TEN: the first ten cubes of table S stack into one column in their इकाई column - left of the cubes left over, the
+     two centred together - (each one on its place in the rod - a rod is ten cubes), and become ONE rod (a "new ten", glowing); the cubes left over move up to the first places.
      Resolves with that rod - not yet in S.rods: it waits in the lane until it is put in the tens column. */
   async function makeTen(S){
     const ten = S.cubes.slice(0, 10), rest = S.cubes.slice(10);
-    const rx = S.x + S.laneDX, ry = S.y + S.head + S.pad + (S.inH - S.rH) / 2, sc = S.sc;
-    const k = S.rW / S.G, unit = S.rH / 10;
+    S.cubes = rest; S.laneRod = ten[9];                               // (a stand-in until the rod is made: the layout leaves its place)
+    const q = S.onesBox(rest.length, true), rx = q.rx, ry = q.ry, sc = S.sc;
+    rest.forEach((c, i)=> glide(c, S.onesXY(i), 560, false));
+    const unit = S.G * CUBE.pitch;                                 // one cube's step = one tenth of the rod
     ring(S, false);
     await Promise.all(ten.map((c, j)=> wait(j * 45).then(()=>{
-      c.style.transformOrigin = "0 0"; c.style.zIndex = 30;
-      c.animate([{ scale: "1" }, { scale: String(k) }], { duration: 560, easing: "cubic-bezier(.45,.05,.35,1)", fill: "forwards" });
+      c.style.zIndex = 30;
       return glide(c, { x: rx, y: ry + (9 - j) * unit }, 560, true);
     })));
     await wait(140);
-    const rod = K.block(sc, "t", rx, ry, S.rH); rod.classList.add("pv-new"); pop(rod);
+    const rod = K.block(sc, "t", rx, ry, S.rH); newTen(rod); pop(rod);
     ten.forEach(c =>{ c.classList.add("pv-gone"); setTimeout(()=> c.remove(), 400); });
     try{ playSfxFile("sfx_correct", 0.5); }catch(e){}
-    S.cubes = rest;
-    rest.forEach((c, i)=> glide(c, S.onesXY(i), 450, false));
+    S.laneRod = rod;
     await wait(420);
     return rod;
   }
@@ -1076,10 +1153,11 @@ Object.assign(PVK, (function(){
      g.add(blocks) re-lays a set of blocks (another group's, flying in) into this group's places */
   function group(sc, n, cx, bottom, H){
     const G = { sc, n, cx, bottom, H, rods: [], cubes: [] };
-    const rW = H / ROD.ar, cs = (H - 8) / 5 / CUBE.ar, cH = cs * CUBE.ar;
+    const rW = H / ROD.ar, cs = rW, cH = cs * CUBE.ar, fH = cs * CUBE.pitch;   // a cube = one of the rod's ten
+    /* the cubes stack like the rod's (each one's top face under the next one), so five of them are half a rod */
     G.layout = (t, u)=>{ const cols = Math.ceil(u / 5), rw = t ? t * rW + (t - 1) * 5 : 0, cw = cols ? cols * cs + (cols - 1) * 3 : 0;
       const W = rw + (t && cols ? 10 : 0) + cw, x0 = cx - W / 2, cx0 = x0 + rw + (t && cols ? 10 : 0);
-      return { rod: j =>({ x: x0 + j * (rW + 5), y: bottom - H }), cube: i =>({ x: cx0 + Math.floor(i / 5) * (cs + 3), y: bottom - (i % 5 + 1) * cH - (i % 5) * 2 }) }; };
+      return { rod: j =>({ x: x0 + j * (rW + 5), y: bottom - H }), cube: i =>({ x: cx0 + Math.floor(i / 5) * (cs + 3), y: bottom - cH - (i % 5) * fH }) }; };
     G.make = ()=>{ const t = Math.floor(n / 10), u = n % 10, L = G.layout(t, u);
       for(let j = 0; j < t; j++){ const p = L.rod(j); G.rods.push(K.block(sc, "t", p.x, p.y, H)); }
       for(let i = 0; i < u; i++){ const p = L.cube(i); G.cubes.push(K.block(sc, "o", p.x, p.y, cs)); } return G; };
@@ -1087,7 +1165,7 @@ Object.assign(PVK, (function(){
     G.cs = cs; G.rW = rW;
     return G;
   }
-  return { table, showTable, transfer, sweep, ring, makeTen, group };
+  return { table, showTable, transfer, newTen, sweep, ring, makeTen, group };
 })());
 
 /* ---- [pv kit] what the child does: add blocks with the + buttons, tap blocks across into the sum table, make a
@@ -1096,24 +1174,25 @@ Object.assign(PVK, (function(){
   const K = PVK, { px, add, setXY, glide, wait, pop, shake } = K;
   const idleMs = ()=> IDLE_MS;
 
-  /* the two source buttons under a table being built: [rod +] (दहाई) and [cube +] (इकाई) */
-  function sources(sc, T, y){
+  /* the two source buttons under a table being built: [rod +] (दहाई) and [cube +] (इकाई); centred on mid (stage x)
+     when given - the screen's centre, review 2026-10-14 - else under the table */
+  function sources(sc, T, y, mid){
     const mk = (kind, cx)=>{ const b = add(sc, "button", "pv-src pv-hide"); b.type = "button";
       b.innerHTML = '<img alt="" src="' + (kind === "t" ? K.ROD.src : K.CUBE.src) + '"><span class="pv-plus">+</span>';
       b.setAttribute("aria-label", kind === "t" ? "दहाई" : "इकाई"); setXY(b, cx, y); b._kind = kind; return b; };
-    const cx = T.x + T.W / 2, S = { t: mk("t", cx - 74), o: mk("o", cx + 74) };
+    const cx = mid != null ? mid : T.x + T.W / 2, S = { t: mk("t", cx - 74), o: mk("o", cx + 74) };
     S.show = on =>{ K.show(S.t, on); K.show(S.o, on); };
     S.remove = ()=>{ S.t.remove(); S.o.remove(); };
     return S;
   }
   /* the child adds n blocks of one kind with its + button: it pulses, each tap adds one, it switches off at n.
-     Idle 7s: the hand points at it. */
+     Idle 7s: it pulses again (the decks: "if idle after 1 tap, pulsate again"). */
   function childAdd(C, btn, T, n, kind){
     return new Promise(res =>{
       if(!n) return res();
       let got = 0, idleT = 0;
       btn.classList.remove("off"); btn.classList.add("pulse");
-      const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || got >= n) return; placeNudge(btn); arm(); }, idleMs()); };
+      const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || got >= n) return; K.repulse(btn); arm(); }, idleMs()); };
       btn.onclick = ()=>{
         if(!C.alive() || got >= n) return;
         stopNudge(); got++; T.addBlock(kind); K.knock();
@@ -1140,7 +1219,7 @@ Object.assign(PVK, (function(){
       let flying = 0, idleT = 0, fin = false;
       const done = ()=>{ if(fin || pool().length || flying) return; fin = true; clearTimeout(idleT); res(); };
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || fin) return;
-        const p = pool(); p.forEach(b => b.classList.add("pulse")); if(p[0]) placeNudge(p[0]); arm(); }, idleMs()); };
+        pool().forEach(b => K.repulse(b)); arm(); }, idleMs()); };   // the decks: "pulsate the blocks until all are tapped"
       from.forEach(T => [...T.rods, ...T.cubes].forEach(b =>{
         if(kind && b._kind !== kind) return;
         b.classList.add("pv-tap");
@@ -1158,6 +1237,15 @@ Object.assign(PVK, (function(){
       arm();
     });
   }
+  /* Swifty's hand taps every block of one kind across, one after another (PV_DEMO auto) */
+  async function demoAcross(C, H, from, S, kind){
+    for(const T of from) for(const b of T.list(kind).slice()){
+      await H.tap(K.centre(b, C.sc)); C.guard();
+      K.transfer(b, T, S); GameBus.emit("pv_block_moved", { slide_id: C.slide.id, kind });
+      await C.wait(380); C.guard();
+    }
+    await C.wait(400);
+  }
   /* the game moves every block across by itself (a hint, or the S02 story): ones first, the ten made if the ones
      reach ten, then the tens */
   async function autoMerge(C, from, S, opt){
@@ -1173,36 +1261,38 @@ Object.assign(PVK, (function(){
     await C.wait(640);
   }
   /* the new ten goes into the tens column's next place */
-  function putRod(S, rod){ const p = S.tensXY(S.rods.length); S.rods.push(rod); rod.classList.remove("pv-grab", "pulse");
-    rod.style.zIndex = 30; return glide(rod, p, 620, true).then(()=>{ rod.style.zIndex = ""; K.knock(); }); }
+  function putRod(S, rod){ const p = S.tensXY(S.rods.length, S.rods.length + 1); S.rods.push(rod); S.laneRod = null; rod.classList.remove("pv-grab", "pulse", "pv-new");
+    rod.style.zIndex = 30; S.relayout(620, rod); return glide(rod, p, 620, true).then(()=>{ rod.style.zIndex = ""; K.knock(); }); }
 
   /* the "दहाई बनाओ" button (gold, the game's button style); .off = not yet (fewer than ten ones) */
   /* x = the button's centre, or its LEFT edge when left (beside a table: it then never reaches back over it) */
   function makeBtn(sc, x, y, left){ const b = add(sc, "button", "pv-make pv-hide" + (left ? " pv-make-l" : "")); b.type = "button"; b.textContent = "दहाई बनाओ"; setXY(b, x, y); return b; }
 
-  /* the child puts the new ten into the tens column: it pulses beside the table, a target place pulses in the tens
-     column; drag it there (or tap it). cfg: { demo: the ghost drag once at the start, idle: ms before the ghost drag
+  /* the child puts the new ten into the tens column: it pulses beside the table; drag it ANYWHERE onto the table's
+     दहाई side (no target box - review 2026-10-14) and it settles on its place there (or tap it). cfg: { demo: the ghost drag once at the start, idle: ms before the ghost drag
      plays by itself (0 = never), wrongs: the Drag & Drop ladder - 1st miss "फिर से सोचिए...", then the ghost } */
   function placeRod(C, rod, S, cfg){
     cfg = cfg || {};
     return new Promise(res =>{
-      const sc = C.sc, j = S.rods.length, p = S.tensXY(j);
-      const tile = add(sc, "div", "pv-target", "width:" + px(S.rW + 12) + ";height:" + px(S.rH + 12)); setXY(tile, p.x - 6, p.y - 6); pop(tile);
+      const sc = C.sc, j = S.rods.length, p = S.tensXY(j, j + 1);
+      S.rods.forEach((b, k)=> glide(b, S.tensXY(k, j + 1), 420, false));   // the rods there make room: the new place keeps the group centred
       const home = { x: rod._x, y: rod._y }, H = K.hand(sc);
       rod.classList.add("pv-grab", "pulse");
       let misses = 0, idleT = 0, fin = false, ghosting = 0, drag = null;
-      const near = (x, y)=> Math.hypot(x - p.x, y - p.y) < Math.max(70, S.rW * 4);
+      /* on the दहाई side: the rod's centre over the tens column (a little slack round it) */
+      const near = (x, y)=>{ const cx = x + S.rW / 2, cy = y + S.rH / 2, m = 24;
+        return cx > S.x - m && cx < S.x + S.tensW + m && cy > S.y - m && cy < S.y + S.H + m; };
       async function ghost(){
         const t = ++ghosting, g = rod.cloneNode(false); g.className = "pv-blk pv-rod pv-ghostdrag"; setXY(g, home.x, home.y); sc.appendChild(g);
-        H.on({ x: home.x + S.rW / 2, y: home.y + S.rH * .55 }); await wait(320);
+        if(!cfg.noHand) H.on({ x: home.x + S.rW / 2, y: home.y + S.rH * .55 }); await wait(320);   // noHand: the ghost rod glides alone
         if(t === ghosting && !fin){ H.el.classList.add("press");
           await Promise.all([glide(g, p, 1100, true), H.to({ x: p.x + S.rW / 2, y: p.y + S.rH * .55 }, 1100)]); await wait(250); }
         g.remove(); H.off();
       }
       const arm = ()=>{ clearTimeout(idleT); if(!cfg.idle) return;
         idleT = setTimeout(()=>{ if(!C.alive() || fin || drag) return; ghost().then(arm); }, cfg.idle); };
-      const finish = ()=>{ if(fin) return; fin = true; clearTimeout(idleT); ghosting++; H.off(); H.el.remove(); tile.remove();
-        S.rods.push(rod); rod.classList.remove("pv-grab", "pulse"); rod.onpointerdown = null;
+      const finish = ()=>{ if(fin) return; fin = true; clearTimeout(idleT); ghosting++; H.off(); H.el.remove();
+        S.rods.push(rod); S.laneRod = null; S.relayout(420, rod); rod.classList.remove("pv-grab", "pulse", "pv-new"); rod.onpointerdown = null;
         rod.style.zIndex = 30; glide(rod, p, 260, false).then(()=>{ rod.style.zIndex = ""; K.knock(); try{ sfxCorrect(); }catch(e){} setTimeout(res, 200); }); };
       const miss = async ()=>{ misses++; shake(rod, 7); try{ sfxWrongSoft(); }catch(e){}
         await glide(rod, home, 380, false);
@@ -1228,7 +1318,8 @@ Object.assign(PVK, (function(){
      (shown from the start) comes alive once the sum has ten ones; the new ten then goes to the tens column.
      Done when every block is across, the ones are fewer than ten and no ten is waiting. Idle 7s - the visual hint
      that fits: the waiting ten's ghost drag, else the live button, else the blocks pulse (+ the hand). */
-  function mergeChild(C, from, S, btn){
+  function mergeChild(C, from, S, btn, opt){
+    opt = opt || {}; const point = el => K.repulse(el);   // the decks (pages 6-9): "if inactive for 7 seconds, pulsate" - no hand
     return new Promise(res =>{
       const pool = ()=> from.flatMap(T => [...T.rods, ...T.cubes]);
       let flying = 0, pending = null, idleT = 0, fin = false, making = false;
@@ -1237,8 +1328,8 @@ Object.assign(PVK, (function(){
       const done = ()=>{ sync(); if(fin || pool().length || flying || pending || making || S.cubes.length >= 10) return; fin = true; clearTimeout(idleT); res(); };
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || fin) return;
         if(pending){ arm(); return; }                                   // (placeRod runs its own idle ghost)
-        if(ready()){ placeNudge(btn); arm(); return; }
-        const p = pool(); p.forEach(b => b.classList.add("pulse")); if(p[0]) placeNudge(p[0]); arm(); }, idleMs()); };
+        if(ready()){ point(btn); arm(); return; }
+        pool().forEach(b => point(b)); arm(); }, idleMs()); };
       pool().forEach(b =>{
         b.classList.add("pv-tap");
         b.onclick = ()=>{
@@ -1258,13 +1349,13 @@ Object.assign(PVK, (function(){
         K.ring(S, true); await wait(500);
         const rod = await K.makeTen(S); making = false; pending = rod; sync();
         GameBus.emit("pv_ten_made", { slide_id: C.slide.id });
-        await placeRod(C, rod, S, { idle: idleMs() });
+        await placeRod(C, rod, S, { idle: idleMs(), noHand: true });   // the guided ghost drag: the ghost rod alone (user 2026-10-15)
         pending = null; done(); arm();
       };
       sync(); arm();
     });
   }
-  return { sources, childAdd, demoAdd, tapAcross, autoMerge, putRod, makeBtn, placeRod, mergeChild };
+  return { sources, childAdd, demoAdd, tapAcross, demoAcross, autoMerge, putRod, makeBtn, placeRod, mergeChild };
 })());
 
 /* ---- [pv kit] answering: the three answer cards and the number pad. One behaviour on every answer screen, as in
@@ -1288,10 +1379,9 @@ Object.assign(PVK, (function(){
         moveTo(y){ box.style.top = px(y); },
         ready(){ busy = false; arm(); },
         lock(){ layer3 = true; els.forEach(x =>{ if(x !== right){ x.classList.add("faded", "locked"); x.disabled = true; } });
-          right.classList.add("hint-on"); K.softGlow(right); setTimeout(()=>{ if(C.alive() && !over) placeNudge(right); }, 300); } };
+          right.classList.add("hint-on"); K.softGlow(right); } };   // highlighted + the others faded (the decks' WA3) - no hand
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{
         if(!C.alive() || busy || over) return;
-        if(layer3) placeNudge(right);
         busy = true; C.say(cfg.reask || "ask").then(()=>{ busy = false; arm(); }, ()=>{}); }, IDLE_MS); };
       async function onWrong(o){
         wrong++; busy = true; clearTimeout(idleT);
@@ -1307,7 +1397,7 @@ Object.assign(PVK, (function(){
       async function onRight(o){
         over = true; state.locked = true; busy = true; stopNudge(); clearTimeout(idleT);
         o.classList.remove("hint-on"); o.classList.add("correct");
-        els.forEach(x =>{ if(x !== o) x.classList.add("faded"); });
+        els.forEach(x =>{ if(x !== o) x.classList.add("pv-gone"); });   // the other two go completely as the right one goes up (review 2026-10-14)
         try{ XAPI.send("question_answered", { slide_id: slide.id, type: slide.type, phase: slide.phase }, { is_correct: true, attempt: wrong + 1, score: wrong === 0 ? 1 : 0 }); }catch(e){}
         recordResult(slide, wrong === 0);
         GameBus.emit("mcq_correct", { slide_id: slide.id, phase: slide.phase, value: wrong === 0, first_try: wrong === 0, attempts: wrong + 1, latency_ms: Date.now() - state.slideStart });
@@ -1333,46 +1423,63 @@ Object.assign(PVK, (function(){
     const a = K.centre(from, C.sc), b = K.centre(E.q, C.sc);
     const f = add(C.sc, "div", "pv-num pv-fly", "height:64px;font-size:44px;min-width:96px;border-radius:18px");
     f.textContent = from.textContent; setXY(f, a.x, a.y - 32);
+    from.style.visibility = "hidden";   // the card itself goes up: no second box left behind (review 2026-10-14)
     await glide(f, { x: b.x, y: b.y - 32 }, 620, true);
     f.remove(); E.fill(+from.textContent);
   }
 
   /* the number pad (deck pages 9-10: "an answer counter below with a hand nudge. On tap, open the number pad"):
-     the answer box (one place per digit) and a 1-9 / 0 pad with a back key. When every place holds a digit the answer
-     is checked. cfg: { answer, x (the group's centre), y, ladder: async n =>, onRight: async => } */
+     the answer box - ONE box with a blinking typing cursor "|" (review 2026-10-14), centred on x - and beside it a 1-9 / 0
+     pad with a back key and a tick: the answer is checked when the tick is tapped (review 2026-10-14).
+     cfg: { answer, x (the answer box's centre), y, ladder: async n =>, onRight: async => } */
   function numpad(C, cfg){
     return new Promise(res =>{
       const slide = C.slide, sc = C.sc, digits = String(cfg.answer).split(""), N = digits.length;
-      const KEY = 58, GAP = 10, padW = 3 * KEY + 2 * GAP + 24, ansW = N * 66 + (N - 1) * 10 + 20, sep = 56;
-      const x0 = cfg.x - (ansW + sep + padW) / 2;
+      const slotW = Math.max(120, N * 30 + 60), ansW = slotW + 26;
+      const x0 = cfg.x - ansW / 2;                                   // the answer box stands at the centre
       const ans = add(sc, "div", "pv-ans"); setXY(ans, x0, cfg.y + 40);
-      const slots = digits.map(()=> add(ans, "div", "pv-slot"));
-      const pad = add(sc, "div", "pv-pad pv-hide"); setXY(pad, x0 + ansW + sep, cfg.y);
+      const slot = add(ans, "div", "pv-slot pv-slot-one", "width:" + px(slotW));
+      /* the pad: two rows (1-5 + back, 6-0) beside the box, level with it - it stays on the stage under the tables
+         (review 2026-10-14 "place the calculator correctly"; the 4-row pad ran past the stage's bottom) */
+      const pad = add(sc, "div", "pv-pad pv-pad-2 pv-hide"); setXY(pad, x0 + ansW + 40, cfg.y + 40 + 51 - 78);
       const keys = {};
-      ["1","2","3","4","5","6","7","8","9","⌫","0"].forEach(k =>{ const b = add(pad, "button", "pv-key" + (k === "⌫" ? " pv-back" : "")); b.type = "button";
-        b.textContent = k; b._k = k; keys[k] = b; });
+      /* review 2026-10-14: a backspace ARROW (the ⌫ glyph read as a cross) and a green tick that sends the answer */
+      const ICON = { "⌫": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5.5M11 5.5 4.5 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+                     "✓": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' };
+      ["1","2","3","4","5","⌫","6","7","8","9","0","✓"].forEach(k =>{
+        const b = add(pad, "button", "pv-key" + (k === "⌫" ? " pv-back" : k === "✓" ? " pv-ok off" : "")); b.type = "button";
+        if(ICON[k]){ b.innerHTML = ICON[k]; b.setAttribute("aria-label", k === "⌫" ? "मिटाएँ" : "जाँचें"); } else b.textContent = k;
+        b._k = k; keys[k] = b; });
+      const ok = keys["✓"];
       let typed = [], wrong = 0, busy = false, open = false, over = false, idleT = 0, guide = null;
       const P = { ans, pad,
         hide(on){ ans.classList.toggle("pv-hide", on !== false); pad.classList.toggle("pv-hide", on !== false || !open); },
         guideKeys(){ guide = 0; Object.values(keys).forEach(b => b.classList.add("locked")); lightKey(); } };
+      /* the third layer: the right digit keys light one after the other, then the tick */
       const lightKey = ()=>{ Object.values(keys).forEach(b => b.classList.remove("hint-on"));
-        if(guide == null || guide >= N) return; const b = keys[digits[guide]]; b.classList.remove("locked"); b.classList.add("hint-on");
-        K.softGlow(b); setTimeout(()=>{ if(C.alive() && !over) placeNudge(b); }, 250); };
-      const render = ()=> slots.forEach((s, i)=>{ s.textContent = typed[i] || ""; s.classList.toggle("on", i === typed.length && open); });
+        if(guide == null || guide > N) return; const b = guide < N ? keys[digits[guide]] : ok; b.classList.remove("locked"); b.classList.add("hint-on");
+        K.softGlow(b); };   // the key lights (the decks' WA3 "highlight the correct digit buttons in sequence") - no hand
+      /* the tick: dim until a digit is in, pulsing once the box holds the whole answer */
+      const okState = ()=>{ ok.classList.toggle("off", !typed.length); ok.classList.toggle("pulse", typed.length >= N && !over && !busy); };
+      const render = ()=>{ const full = typed.length >= N || over;
+        slot.innerHTML = typed.map(d => '<span class="pv-ch">' + d + '</span>').join("") + (full ? "" : '<span class="pv-caret">|</span>');
+        slot.classList.toggle("on", open && !full); if(ok) okState(); };
+      render();                                                    // the cursor shows from the start
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || busy || over) return;
-        if(!open) placeNudge(ans); else if(guide != null) lightKey();
+        if(!open) placeNudge(ans); else if(guide != null) lightKey(); else if(typed.length >= N) K.repulse(ok);   // the answer counter's hand (the decks)
         busy = true; C.say(cfg.reask || "prompt").then(()=>{ busy = false; arm(); }, ()=>{}); }, IDLE_MS); };
       const openPad = ()=>{ if(open || over) return; open = true; stopNudge(); pad.classList.remove("pv-hide"); pop(pad); ans.classList.add("open"); render(); arm(); };
       ans.onclick = ()=>{ if(!C.alive() || busy) return; openPad(); };
       async function check(){
-        busy = true; clearTimeout(idleT); stopNudge();
+        busy = true; clearTimeout(idleT); stopNudge(); okState();
         const v = typed.join("");
         if(v === String(cfg.answer)){
-          over = true; state.locked = true; ans.classList.add("ok"); Object.values(keys).forEach(b => b.classList.add("locked"));
+          over = true; state.locked = true; ans.classList.add("ok"); Object.values(keys).forEach(b => b.classList.add("locked")); okState();
           try{ XAPI.send("question_answered", { slide_id: slide.id, type: slide.type, phase: slide.phase }, { is_correct: true, attempt: wrong + 1, score: wrong === 0 ? 1 : 0, response: v }); }catch(e){}
           recordResult(slide, wrong === 0);
           GameBus.emit("numpad_correct", { slide_id: slide.id, phase: slide.phase, value: wrong === 0, first_try: wrong === 0, attempts: wrong + 1, latency_ms: Date.now() - state.slideStart });
           sfxCorrect(); try{ confettiCannon(); }catch(e){} setSwMood("happy");
+          pad.classList.add("pv-gone");   // the keypad goes as the answer goes up (review 2026-10-14)
           if(cfg.onRight) await cfg.onRight(ans);
           await C.say("correct"); await C.wait(500);
           completeSlide(wrong === 0); res(); return;
@@ -1390,12 +1497,12 @@ Object.assign(PVK, (function(){
         if(!C.alive() || busy || over || !open || b.classList.contains("locked")) return;
         stopNudge(); arm();
         if(b._k === "⌫"){ typed.pop(); render(); return; }
+        if(b._k === "✓"){ if(!typed.length) return; K.knock(); check().catch(()=>{}); return; }   // the answer goes in on the tick only
         if(typed.length >= N) return;
-        typed.push(b._k); K.knock(); pop(slots[typed.length - 1]); render();
+        typed.push(b._k); K.knock(); render(); pop(slot.querySelectorAll(".pv-ch")[typed.length - 1]);
         if(guide != null){ guide++; lightKey(); }
-        if(typed.length === N) setTimeout(()=> check().catch(()=>{}), 260);
       }));
-      P.ready = ()=>{ placeNudge(ans); arm(); };
+      P.ready = ()=>{ arm(); };   // the box pulses its cursor; the hand only after 7s idle (user 2026-10-15: "comes too early")
       cfg.onReady && cfg.onReady(P);
     });
   }
@@ -1404,6 +1511,7 @@ Object.assign(PVK, (function(){
     const a = K.centre(ans, C.sc), b = K.centre(E.q, C.sc);
     const f = add(C.sc, "div", "pv-num pv-fly", "height:64px;font-size:44px;min-width:96px;border-radius:18px");
     f.textContent = String(n); setXY(f, a.x, a.y - 32);
+    ans.style.visibility = "hidden";    // the answer box goes up itself (review 2026-10-14)
     await glide(f, { x: b.x, y: b.y - 32 }, 620, true); f.remove(); E.fill(n);
   }
   return { mcq, flyToQ, numpad, flyAnsToQ };
@@ -1412,14 +1520,16 @@ Object.assign(PVK, (function(){
 /* The two games' screens, one module per KIND of deck page (pattern: S01 and S02 are the same lesson - S02 adds the
    "दहाई बनाओ" regrouping step wherever the ones reach ten - so every page is one of six kinds, driven by its card data). */
 const PV_LAY = {
-  tut:  { numY: 228, numH: 46, tableY: 282, sumY: 470, cube: 26, rodH: 108, cxL: 451, cxR: 881, cx: 666 },   // inside the tutorial card
-  main: { eqY: 168, eqH: 62, tableY: 246, sumY: 472, cube: 30, rodH: 134, cxL: 410, cxR: 922, cx: 666 }    // under the header band
+  /* blk / pad: the blocks' width and the tables' inner margin - as big as each screen's two rows of tables allow
+     (review 2026-10-14 "make the cubes look bigger"; a rod is 6.7 blocks tall) */
+  tut:  { numY: 206, numH: 46, tableY: 260, sumY: 476, cube: 23, blk: 23, pad: 10, cxL: 451, cxR: 881, cx: 666 },   // inside the tutorial card
+  main: { eqY: 160, eqH: 62, tableY: 232, sumY: 466, cube: 29, blk: 25, pad: 10, cxL: 410, cxR: 922, cx: 666 }    // under the header band
 };
 const pvSplit = n =>({ t: Math.floor(n / 10), o: n % 10 });
 function pvReplay(C){ state.replayAudio = ()=>{ if(!isPlaying && C.cur && C.alive()) C.say(C.cur).catch(()=>{}); }; }
 function pvTapOnce(C, btn){
   return new Promise(res =>{ let idleT = 0;
-    const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(C.alive() && btn.onclick){ placeNudge(btn); arm(); } }, IDLE_MS); };
+    const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(C.alive() && btn.onclick){ PVK.repulse(btn); arm(); } }, IDLE_MS); };   // the decks: the button pulsates
     btn.classList.remove("off"); btn.classList.add("pulse");
     btn.onclick = ()=>{ if(!C.alive()) return; btn.onclick = null; clearTimeout(idleT); stopNudge(); btn.classList.remove("pulse"); res(); };
     arm(); });
@@ -1436,9 +1546,9 @@ const PVModules = {
     mount(host, slide){
       const d = slide.data, K = PVK, sc = K.scene(host), C = K.ctx(slide, sc);
       state.ownsAudio = true; setNavActive(false); pvReplay(C);
-      const COL = [406, 666, 926], AV = 104, BOT = 470, BH = 84, EY = 484, EH = 56;
+      const COL = [406, 666, 926], AV = 90, AVY = 214, BOT = 488, BH = 176, EY = 502, EH = 56;   // rods 176 tall: bigger blocks; the portraits a little smaller, clear of the title (review 2026-10-14); the Next button sits ~30px under the number row
       const [P0, P1] = d.people, sum = d.a + d.b;
-      const pA = K.person(sc, P0.who, P0.name, COL[0], 232, AV), pB = K.person(sc, P1.who, P1.name, COL[1], 232, AV);
+      const pA = K.person(sc, P0.who, P0.name, COL[0], AVY, AV), pB = K.person(sc, P1.who, P1.name, COL[1], AVY, AV);
       const gA = K.group(sc, d.a, COL[0], BOT, BH).make(), gB = K.group(sc, d.b, COL[1], BOT, BH).make();
       const op = (t, x)=>{ const e = K.add(sc, "div", "pv-op pv-sym", "font-size:44px"); e.textContent = t; K.setXY(e, x, EY + 2); return e; };
       const cA = K.numCard(sc, d.a, COL[0], EY, EH), plus = op("+", 536), cB = K.numCard(sc, d.b, COL[1], EY, EH), eqs = op("=", 796),
@@ -1457,12 +1567,10 @@ const PVModules = {
         cubes.forEach((b, i)=>{ leave(b); flights.push(K.wait(200 + i * 60).then(()=> K.glide(b, L.cube(i), 700, true))); });
         await Promise.all(flights); K.knock();
         if(u >= 10){
-          const L2 = G.layout(t + 1, u - 10), dst = L2.rod(t), ten = cubes.slice(0, 10), k = G.rW / G.cs;
+          const L2 = G.layout(t + 1, u - 10), dst = L2.rod(t), ten = cubes.slice(0, 10), unit = G.cs * K.CUBE.pitch;
           await K.wait(250);
-          await Promise.all(ten.map((c, j)=>{ c.style.transformOrigin = "0 0";
-            c.animate([{ scale: "1" }, { scale: String(k) }], { duration: 520, fill: "forwards", easing: "cubic-bezier(.45,.05,.35,1)" });
-            return K.glide(c, { x: dst.x, y: dst.y + (9 - j) * BH / 10 }, 520, false); }));
-          const r = K.block(sc, "t", dst.x, dst.y, BH); r.classList.add("pv-new"); K.pop(r);
+          await Promise.all(ten.map((c, j)=> K.glide(c, { x: dst.x, y: dst.y + (9 - j) * unit }, 520, false)));
+          const r = K.block(sc, "t", dst.x, dst.y, BH); K.newTen(r); K.pop(r);
           ten.forEach(c =>{ c.classList.add("pv-gone"); setTimeout(()=> c.remove(), 400); });
           rods.forEach((b, j)=> K.glide(b, L2.rod(j), 420, false));
           cubes.slice(10).forEach((b, i)=> K.glide(b, L2.cube(i), 420, false));
@@ -1496,7 +1604,9 @@ const PVModules = {
        then the sum table: the ones tapped across first (each leaves a grey copy), then - with regrouping - ten of them
        ringed, "दहाई बनाओ" tapped, the new ten put in the tens column (ghost drag at once, or only when idle), then the
        tens tapped across; the total lit part by part (rods, cubes, the number) and the sum table
-       rises to the middle. data: { a, b, build:[who, who] ("swifty"|"child"), ghost_auto, ghost_idle }.
+       rises to the middle. data: { a, b, build:[who, who] ("swifty"|"child"), ghost_auto, ghost_idle, auto }.
+       auto (S01 T2, user 2026-10-14 "T2 should be automatic with hand nudge" / "show all tables"): all three tables
+       stand from the start, Swifty's hand builds both numbers and taps every block across - the child watches.
        audio: head, intro, a_digits, a_tens, a_ones | a_build, b_digits, b_build, merge, ones, ones_sum, [know, make,
        place, dd_try], tens, tens_sum, total, done. */
     mount(host, slide){
@@ -1505,18 +1615,24 @@ const PVModules = {
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), carry = A.o + B.o >= 10;
       const tMax = Math.max(A.t, B.t, 3);
       const cA = K.numCard(sc, d.a, L.cxL, L.numY, L.numH), cB = K.numCard(sc, d.b, L.cxR, L.numY, L.numH);
-      const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, rodH: L.rodH, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
-      const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, rodH: L.rodH, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
-      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, rodH: L.rodH, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+      const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
+      const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
+      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
       const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:54px"); plus.textContent = "+"; K.setXY(plus, L.cx, L.tableY + TA.H / 2 - 34);
-      [TA, TB, TS].forEach(T => T.el.classList.add("pv-hide")); plus.classList.add("pv-hide");   // the + comes with the second number
+      if(!d.auto) [TA, TB, TS].forEach(T => T.el.classList.add("pv-hide"));
+      plus.classList.add("pv-hide");   // the + comes with the second number (auto: with the sum table - user 2026-10-15)
+      const showT = T =>{ if(T.el.classList.contains("pv-hide")) K.showTable(T); };
       async function build(T, card, n, who, key){
         const p = pvSplit(n);
-        K.showTable(T);
+        showT(T);
         await C.cue(key + "_digits", [[0.04, ()=>{ K.lightDigit(card, "t"); T.lightHead("t"); }],
                                       [0.5, ()=>{ K.lightDigit(card, "t", false); T.lightHead("t", false); K.lightDigit(card, "o"); T.lightHead("o"); }]]);
         await C.wait(250); K.lightDigit(card, "o", false); T.lightHead("o", false);
-        const src = K.sources(sc, T, T.y + T.H + 12); src.show();
+        const src = K.sources(sc, T, T.y + T.H + 12, L.cx);              // at the screen's centre (review 2026-10-14)
+        if(d.auto){                                                       // the sum table holds the centre: the two +
+          const x = key === "a" ? T.x - 80 : T.x + T.W + 80, my = T.y + T.H / 2;   // buttons stand on the table's outer side
+          K.setXY(src.t, x, my - 72); K.setXY(src.o, x, my + 8); }
+        src.show();
         if(who === "swifty"){
           src.t.classList.add("demo"); src.o.classList.add("demo");
           const H = K.hand(sc);
@@ -1536,24 +1652,36 @@ const PVModules = {
         if(C.has("head")) await C.say("head");
         if(C.has("intro")) await C.say("intro");
         await build(TA, cA, d.a, d.build[0], "a");
-        K.show(plus); await C.wait(300);
+        if(!d.auto){ K.show(plus); await C.wait(300); }
         await build(TB, cB, d.b, d.build[1], "b");
         GameBus.emit("pv_build_done", { slide_id: slide.id });
-        await C.cue("merge", [[0.5, ()=> K.showTable(TS)]]);
+        await C.cue("merge", [[0.5, ()=>{ showT(TS); if(d.auto) K.show(plus); }]]);
+        const across = async kind =>{
+          if(!d.auto) return K.tapAcross(C, [TA, TB], TS, kind);
+          const H = K.hand(sc); await K.demoAcross(C, H, [TA, TB], TS, kind); H.off(); await C.wait(250); H.el.remove(); };
         await C.say("ones");
-        await K.tapAcross(C, [TA, TB], TS, "o"); C.guard();
+        await across("o"); C.guard();
         await C.cue("ones_sum", [[0.02, ()=> K.sweep(TS.cubes)]]);
         if(carry){
           await C.cue("know", [[0.3, ()=> K.ring(TS, true)]]);
           const btn = K.makeBtn(sc, TS.x + TS.W + 36, TS.y + TS.head + TS.inH / 2 - 10, true); K.show(btn);
-          await Promise.all([C.say("make"), pvTapOnce(C, btn)]); C.guard();
+          if(d.auto){ const H = K.hand(sc); await Promise.all([C.say("make"), C.wait(700).then(()=> H.tap(K.centre(btn, sc)))]);
+            H.off(); await C.wait(200); H.el.remove(); }
+          else await Promise.all([C.say("make"), pvTapOnce(C, btn)]);
+          C.guard();
           btn.classList.add("pv-gone");
           const rod = await K.makeTen(TS); C.guard();
           GameBus.emit("pv_ten_made", { slide_id: slide.id });
-          await K.placeRod(C, rod, TS, { say: "place", demo: !!d.ghost_auto, idle: d.ghost_idle || IDLE_MS }); C.guard();
+          if(d.auto){                                                     // Swifty's hand carries the new ten across
+            const H = K.hand(sc), p = TS.tensXY(TS.rods.length, TS.rods.length + 1);
+            await C.say("place"); H.on({ x: rod._x + TS.rW / 2, y: rod._y + TS.rH * .55 }); await C.wait(320); H.el.classList.add("press");
+            await Promise.all([K.putRod(TS, rod), H.to({ x: p.x + TS.rW / 2, y: p.y + TS.rH * .55 }, 620)]);
+            H.off(); await C.wait(200); H.el.remove(); try{ sfxCorrect(); }catch(e){}
+          } else await K.placeRod(C, rod, TS, { say: "place", demo: !!d.ghost_auto, idle: d.ghost_idle || IDLE_MS });
+          C.guard();
         }
         await C.say("tens");
-        await K.tapAcross(C, [TA, TB], TS, "t"); C.guard();
+        await across("t"); C.guard();
         await C.cue("tens_sum", [[0.02, ()=> K.sweep(TS.rods, 160)]]);
         GameBus.emit("pv_merge_done", { slide_id: slide.id });
         const eqS = K.add(sc, "div", "pv-op pv-sym pv-hide", "font-size:50px"); eqS.textContent = "=";
@@ -1579,7 +1707,7 @@ const PVModules = {
     mount(host, slide){
       const d = slide.data, K = PVK, sc = K.scene(host), C = K.ctx(slide, sc), N = d.n || 13, P = pvSplit(N);
       state.ownsAudio = true; setNavActive(false); setSwMood("teach"); pvReplay(C);
-      const T = K.table(sc, { cx: 640, y: 236, cube: 38, rodH: 150, tensMax: 3, tensFinal: P.t, onesMax: N });
+      const T = K.table(sc, { cx: 640, y: 236, cube: 38, blk: 38, tensMax: 3, tensFinal: P.t, onesMax: N });
       const btn = K.makeBtn(sc, 640, T.y + T.H + 18);
       K.run(C, async ()=>{
         for(let i = 0; i < N; i++){ T.addBlock("o"); await C.wait(70); }    // N loose cubes (not "1 ten + 3": the ten is what the child makes)
@@ -1620,9 +1748,9 @@ const PVModules = {
       state.ownsAudio = true; state.locked = false; setNavActive(false); $("navBtn").style.display = "none"; setSwMood("point"); pvReplay(C);
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), carry = A.o + B.o >= 10, tMax = Math.max(A.t, B.t, 3);
       const E = K.equation(sc, d.a, d.b, L.cx, L.eqY, L.eqH);
-      const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, rodH: L.rodH, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
-      const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, rodH: L.rodH, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
-      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, rodH: L.rodH, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+      const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
+      const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
+      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
       TS.el.classList.add("pv-hide");
       const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:56px"); plus.textContent = "+"; K.setXY(plus, L.cx, L.tableY + TA.H / 2 - 36);
       const btn = carry ? K.makeBtn(sc, TS.x + TS.W + 44, TS.y + TS.head + TS.inH / 2 - 10, true) : null;
@@ -1641,7 +1769,7 @@ const PVModules = {
           ladder: async (n, M)=>{
             if(n === 1) await C.say("try_again");
             else if(n === 2){ await C.cue("hint_a", [[0.35, ()=> K.sweep(TS.rods, 120)]]); await C.cue("hint_b", [[0.1, ()=> K.sweep(TS.cubes, 90)]]); }
-            else { M.lock(); await C.say("nudge"); }
+            else M.lock();   // the decks' WA3: highlight the right one, fade the others (no hand, no line)
           } });
       });
     }
@@ -1658,9 +1786,9 @@ const PVModules = {
       state.ownsAudio = true; state.locked = false; setNavActive(false); $("navBtn").style.display = "none"; setSwMood("point"); pvReplay(C);
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), tMax = Math.max(A.t, B.t, 3);
       const E = K.equation(sc, d.a, d.b, L.cx, L.eqY, L.eqH);
-      const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, rodH: L.rodH, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
-      const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, rodH: L.rodH, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
-      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, rodH: L.rodH, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+      const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
+      const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
+      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
       TS.el.classList.add("pv-hide");
       const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:56px"); plus.textContent = "+"; K.setXY(plus, L.cx, L.tableY + TA.H / 2 - 36);
       let merged = false;
@@ -1679,7 +1807,7 @@ const PVModules = {
               await C.cue("hint_a", [[0.35, ()=> K.sweep(TS.rods, 120)]]); await C.cue("hint_b", [[0.1, ()=> K.sweep(TS.cubes, 90)]]);
               return;
             }
-            P.guideKeys(); await C.say("keys");
+            P.guideKeys();   // the decks' WA3: the right digit keys light in sequence (no hand, no line)
           } });
       });
     }
@@ -1705,8 +1833,8 @@ const PVModules = {
         if(TA) return;
         E.el.classList.remove("big"); M.moveTo(optTop.tables);
         await K.glide(E.el, { x: L.cx, y: L.eqY }, 500, false);
-        TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, rodH: L.rodH, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
-        TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, rodH: L.rodH, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
+        TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
+        TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
         plus = K.add(sc, "div", "pv-op pv-sym", "font-size:56px"); plus.textContent = "+"; K.setXY(plus, L.cx, L.tableY + TA.H / 2 - 36);
         K.showTable(TA); K.showTable(TB); K.pop(plus);
         await C.wait(250); await Promise.all([TA.fill(d.a, 150), TB.fill(d.b, 150)]); C.guard();
@@ -1714,7 +1842,7 @@ const PVModules = {
       async function merge(M){
         if(merged) return; merged = true;
         M.hide(true); await tables(M);
-        TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, rodH: L.rodH, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+        TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
         K.showTable(TS); await C.wait(500);
         await K.autoMerge(C, [TA, TB], TS);
         [TA, TB].forEach(T => T.fade()); plus.classList.add("pv-gone");
@@ -1737,8 +1865,8 @@ const PVModules = {
               if(C.has("h_end")) await C.say("h_end");
             } else if(step === "tables"){ await tables(M); await C.say("h_tables"); }
             else if(step === "merge"){ await merge(M); await C.say("h_merge"); }
-            else if(step === "merge_reveal"){ await merge(M); M.lock(); await C.say("nudge"); }
-            else { M.lock(); await C.say("nudge"); }
+            else if(step === "merge_reveal"){ await merge(M); M.lock(); }   // the decks' WA3: the right one highlighted
+            else M.lock();
           } });
       });
     }
@@ -1797,30 +1925,82 @@ const PVModules = {
 const SlideModules = PVModules;
 
 
-/* ---------- [landing pv] the first screen's picture (both decks, page 1: "Visual: Tara and Kabir playing with
-   blocks. Equation: 23 + 12 = ?"): the two children, each with their blocks, the equation between them. It takes the
-   place MTG2A04's pencil + cube row had in the landing card - same card, title, Swiftee, speaker, play button.
-   "Playing with blocks" is animated (user, 2026-10-12; smoothed 2026-10-13 - "they walk like puppets"): once the greeting
-   starts the children glide in with a dying waddle (no hops), then build in turns - each leaning toward their stack as the
-   blocks are set down (rods, then the ones from the bottom up) - and each number pops into the equation as its tower is done. The play button waits for all of
-   it ("sg-intro-done"), so it is still the last thing to arrive. Then, while the screen waits, they keep playing: they
-   breathe gently, and every few seconds one of them leans in, lifts their top block and sets it back (the counts never change).
-   card: landing_hero { kind:"pv_story", a, b, people:[w, w] }. */
+/* ---------- [landing pv] the first screen's picture (both decks, page 1: "Visual: <the two children> playing with
+   blocks"): the two children finish a build together. No equation (user, 2026-10-13).
+   User, 2026-10-14 ("like Chhota Bheem's title"): in the middle stands a half-built castle (S01) / house (S02), its
+   missing blocks shown as pale outlines; the children zip in from both sides with a swoosh, a block in each hand
+   (motion blur, speed lines, a skid and a puff of dust as they stop), put their blocks into the gaps in turns - each
+   leans, each block hops from the hand into its place - the flag goes up (castle) / the roof lands and the chimney smokes (house), a
+   burst of sparkles, and they cheer (their cheering pose, a jump). Then the play button arrives ("sg-intro-done").
+   While the screen waits they keep playing: they breathe, one at a time leans in to admire the build, a sparkle
+   twinkles on it; the flag waves, the chimney smokes.
+   Poses (make_characters.py, one scale - shown height = 224px x file height / 640): carry (char_<who>_carry, else the
+   cheering pose) -> idle (char_<who>_full) -> cheer (char_<who>_cheer, else idle) -> idle. HANDS: where the carry
+   pose's two hands are (fractions of its picture), each holding one block.
+   card: landing_hero { kind:"pv_story", people:[left, right], build:"castle"|"house" }. */
 const PVLanding = {
+  /* the stage: .sgp's own px (772 x 96; the children's soles on FEET, the build stands on BASE, further back) */
+  FEET: 202, BASE: 130, MID: 386, KID_X: [208, 564], FIG_H: 224, FILE_H: 640,
+  HANDS: { kabir: [[.099, .19], [.896, .185]], tara: [[.118, .18], [.905, .13]], aaru: [[.125, .127], [.917, .49]], pari: [[.07, .40], [.84, .54]] },
+  /* the user's drawings (make_house.py / make_castle.py, 2026-10-15), cut into pieces, each where it is in the drawing:
+     boxes in the drawing's px; the build's middle at x WX, its foot at FOOT (on BASE + DY); S stage px per drawing px. order: the
+     pieces bottom up, [name, who brings it, the order]. */
+  ART: {
+    /* standing: the bottom left cube and the door; Pari (right) brings the bottom right cube, then the top right; Aaru the
+       top left, then the top middle (cut around the door's arch); then the roof lands, chimney and all, and it smokes */
+    house: { S: .165, WX: 668, FOOT: 1046, SMOKE: [81.4, 1.2],
+      order: [["bl"], ["door"], ["br", 1, 1], ["tr", 1, 2], ["tl", 0, 3], ["tm", 0, 4], ["roof", "pop"]],
+      tl: [210, 522, 529, 789], tm: [523, 522, 815, 789], tr: [809, 522, 1126, 789], bl: [210, 783, 529, 1052], br: [809, 783, 1126, 1051],
+      door: [509, 692, 832, 1061], roof: [150, 138, 1200, 559] },
+    /* standing: both towers but their top blocks, the wall's purple + green rows, the gate, the crown block; Kabir (left)
+       brings the left tower's top block, then the wall's orange one; Tara the right tower's top, then the yellow one; then
+       the battlements and both roofs go up, flags and all */
+    castle: { S: .16, WX: 765, FOOT: 975, DY: 12,
+      order: [["ltower"], ["rtower"], ["wall"], ["gate"], ["mc"], ["lt", 0, 1], ["rt", 1, 2], ["mo", 0, 3], ["my", 1, 4], ["bat", "pop"], ["roofl", "pop"], ["roofr", "pop"]],
+      roofl: [170, 28, 544, 408], roofr: [1058, 15, 1423, 408], bat: [462, 346, 1072, 563], lt: [187, 408, 464, 566], rt: [1070, 408, 1334, 566],
+      ltower: [211, 560, 465, 978], rtower: [1069, 560, 1330, 978], mo: [459, 561, 668, 693], mc: [662, 563, 873, 693], my: [867, 561, 1075, 693],
+      wall: [459, 687, 1075, 978], gate: [620, 652, 919, 979] }
+  },
+  /* the build, bottom up: [type, x of centre, y of bottom, w, h, picture, who brings it (0 left child, 1 right; none:
+     already standing; "pop": goes up at the end), the order it is put in] */
+  build(kind, M, B){ const A = this.ART[kind]; B += A.DY || 0;
+    return A.order.map(([k, by, seq])=>{ const [x0, y0, x1, y1] = A[k];
+      return ["img", M + ((x0 + x1) / 2 - A.WX) * A.S, B + (y1 - A.FOOT) * A.S, (x1 - x0) * A.S, (y1 - y0) * A.S, kind + "_" + k, by, seq || 0]; }); },
+  /* the build's pictures, for the boot loader (the landing waits for them) */
+  files(h){ const A = h && this.ART[h.build]; return A ? A.order.map(([k])=> h.build + "_" + k + ".webp") : []; },
+  piece(type, c){
+    const sm = this.ART.house.SMOKE;
+    return '<img alt="" src="assets/' + c + '.webp" class="sgp-im">' + (c === "house_roof" ? '<i class="sgp-smoke" style="left:calc(' +
+      sm[0] + '% - 6px);top:' + sm[1] + '%;bottom:auto"><b></b><b></b><b></b></i>' : "");
+  },
   html(h){
-    const blocks = n =>{ const t = Math.floor(n / 10), u = n % 10;
-      return '<div class="sgp-blocks"><i class="sgp-bshd"></i>' + '<img class="sgp-rod" alt="" src="assets/pv_rod.webp">'.repeat(t) +
-        '<div class="sgp-cubes">' + '<img class="sgp-cube" alt="" src="assets/pv_cube.webp">'.repeat(u) + '</div></div>'; };
-    const kid = (w, n, side)=>{ const f = pvChar(w, true);                       // the supplied figure, else the round portrait
-      return '<div class="sgp-kid sgp-' + side + (f ? ' sgp-has-full' : '') + '">' +
-        (f ? '<span class="sgp-fw"><img class="sgp-full sgp-av" alt="" src="' + f + '"><i class="sgp-shd"></i></span>' : '<img class="sgp-av" alt="" src="' + pvChar(w) + '">') + blocks(n) + '</div>'; };
-    const num = (n, cls)=> '<span class="sgp-n ' + (cls || "") + '">' + n + '</span>';
-    return '<div class="sgp" id="sgp">' + kid(h.people[0], h.a, "l") +
-      '<div class="sgp-eq">' + num(h.a) + '<span class="sgp-op">+</span>' + num(h.b) + '<span class="sgp-op">=</span>' + num("?", "sgp-q") + '</div>' +
-      kid(h.people[1], h.b, "r") + '</div>';
+    const L = this, kind = L.ART[h.build] ? h.build : "house", plan = L.build(kind, L.MID, L.BASE);
+    const box = (cls, p, i, extra)=> '<div class="' + cls + '" data-i="' + i + '" style="left:' + (p[1] - p[3] / 2) + 'px;top:' + (p[2] - p[4]) + 'px;width:' +
+      p[3] + 'px;height:' + p[4] + 'px;z-index:' + (20 + i) + ';' + (extra || "") + '">';
+    const brought = p => p[6] === 0 || p[6] === 1;
+    const pieces = plan.map((p, i)=> box("sgp-pc sgp-" + p[0] + (p[6] === undefined ? " sgp-stand" : ""), p, i, "--d:" + (i * .03).toFixed(2) + "s") +
+      L.piece(p[0], p[5]) + '</div>' + (brought(p) ? box("sgp-ghost", p, i) + L.piece(p[0], p[5]) + '</div>' : "")).join("");
+    const kid = (w, s)=>{
+      const idle = pvChar(w, true) || pvChar(w), cheer = pvChar(w, "cheer") || idle, carry = pvChar(w, "carry") || cheer;
+      const poses = {}; [["idle", idle], ["carry", carry], ["cheer", cheer]].forEach(([n, f])=>{ (poses[f] = poses[f] || []).push(n); });
+      const imgs = Object.keys(poses).map(f => '<img class="sgp-pose' + (pvChar(w, true) ? "" : " sgp-round") + '" alt="" data-for="' + poses[f].join(" ") + '" src="' + f + '">').join("");
+      const held = plan.map((p, i)=> p[6] === s ? '<div class="sgp-held" data-i="' + i + '" style="width:' + p[3] + 'px;height:' + p[4] + 'px">' + L.piece(p[0], p[5]) + '</div>' : "").join("");
+      return '<div class="sgp-kid sgp-' + (s ? "r" : "l") + '" data-who="' + w + '" style="left:' + L.KID_X[s] + 'px;top:' + L.FEET + 'px"><div class="sgp-move">' +
+        '<div class="sgp-cast">' + imgs + '</div><i class="sgp-shd"></i><i class="sgp-lines"><b></b><b></b><b></b></i><div class="sgp-fw"><div class="sgp-tilt">' + imgs + held + '</div></div></div></div>'; };
+    /* shadows by the scene's light (user 2026-10-15 "as per physics"): the sun is outside, beyond the veranda at the back and a
+       little to the right (the bright patches on the floor run from back right to front left), so every shadow starts dark
+       where the thing meets the floor and falls TOWARD the viewer and to the LEFT, long and soft - the thing's own
+       silhouette laid flat (.sgp-cast / .sgp-bcast: flipped about the floor line, foreshortened, sheared left) */
+    const casts = plan.map((p, i)=> box("sgp-pcs" + (p[6] === undefined ? " sgp-stand" : ""), p, i) + L.piece(p[0], p[5]) + '</div>').join("");
+    const xs = plan.map(p => [p[1] - p[3] / 2, p[1] + p[3] / 2]), bx0 = Math.min(...xs.map(x => x[0])), bx1 = Math.max(...xs.map(x => x[1]));
+    const foot = L.BASE + (L.ART[kind].DY || 0);                                // (the build's foot line: a castle stands DY lower)
+    return '<div class="sgp sgp-' + kind + '" id="sgp">' +
+      '<div class="sgp-bcast" style="transform-origin:' + L.MID + 'px ' + foot + 'px">' + casts + '</div>' +
+      '<i class="sgp-bshd" style="left:' + (bx0 - 6) + 'px;width:' + (bx1 - bx0 + 12) + 'px;top:' + (foot - 6) + 'px"></i>' +
+      pieces + kid(h.people[0], 0) + kid(h.people[1], 1) + '</div>';
   },
   intro(){
-    const root = document.getElementById("sgp");
+    const L = this, root = document.getElementById("sgp");
     const done = ()=>{ if(!window.__sgIntroDone){ window.__sgIntroDone = true; document.dispatchEvent(new Event("sg-intro-done")); } };
     if(!root){ done(); return; }
     /* title_look "wall": the title is painted on the courtyard wall behind it (S01; user 2026-10-13) */
@@ -1843,46 +2023,120 @@ const PVLanding = {
           '<feImage href="' + map + '" preserveAspectRatio="none" result="m"/>' +
           '<feDisplacementMap in="SourceGraphic" in2="m" scale="18" xChannelSelector="R" yChannelSelector="G"/></filter></svg>'); } }
     const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const kids = [...root.querySelectorAll(".sgp-kid")], eq = [...root.querySelectorAll(".sgp-eq > *")];
-    const fig = k => k.querySelector(".sgp-av");
-    const tower = k => [...k.querySelectorAll(".sgp-rod, .sgp-cube")];         // rods, then the ones from the bottom up
-    const at = (e, s)=> e.style.setProperty("--d", s.toFixed(2) + "s");
-    /* a child leans toward their blocks (dir -1 = blocks on the left) - held while they build, or a quick nod */
-    const lean = (f, dir, deg, ms, delay, hold)=> f.animate([{ rotate: "0deg" }, { rotate: dir * deg + "deg", offset: hold ? .12 : .45 },
-        { rotate: dir * deg + "deg", offset: hold ? .88 : .55 }, { rotate: "0deg" }], { duration: ms, delay: delay || 0, easing: "ease-in-out" });
-    const side = k => k.classList.contains("sgp-l") ? -1 : 1;                   // the left child's blocks stand on their left
-    /* the deck's page 1 in order: both children walk in; the first builds their number (rods, then the ones from the
-       bottom up) and it appears in the equation, then "+"; the second builds theirs, then "= ?" - each number arrives
-       from the blocks that make it */
-    const WALK = [0.25, 0.45], WALK_S = 1.5, ROD = 0.28, CUBE = 0.17, DROP = 0.45;
-    /* while the screen waits: one child at a time lifts the top block of their tower and sets it back */
+    const kids = [...root.querySelectorAll(".sgp-kid")], pcs = [...root.querySelectorAll(".sgp-pc")];
+    const plan = L.build(root.classList.contains("sgp-castle") ? "castle" : "house", L.MID, L.BASE);
+    const q = (e, s)=> e.querySelector(s), wait = ms => new Promise(r => setTimeout(r, ms));
+    const dir = s => s ? -1 : 1;                                                // toward the middle: the left child faces right
+    const sound = f =>{ try{ f(); }catch(e){} };
+    /* each pose picture at the one scale, standing on the child's foot point; the blocks in the carry pose's hands */
+    const layout = k =>{
+      const ims = [...k.querySelectorAll(".sgp-pose")];
+      ims.forEach(im =>{ const H = im.classList.contains("sgp-round") ? 118 : L.FIG_H * (im.naturalHeight || L.FILE_H) / L.FILE_H;
+        im.style.height = H.toFixed(1) + "px"; im.dataset.w = ((im.naturalWidth || 120) * H / (im.naturalHeight || 224)).toFixed(1); im.dataset.h = H.toFixed(1); });
+      const carry = ims.find(im => im.dataset.for.split(" ").includes("carry")), idle = ims.find(im => im.dataset.for.split(" ").includes("idle"));
+      const W = +carry.dataset.w, H = +carry.dataset.h, s = k.classList.contains("sgp-r") ? 1 : 0;
+      const hands = (L.HANDS[k.dataset.who] || [[.2, .55], [.8, .55]]).slice();
+      if(!s) hands.reverse();                                                   // the hand nearer the build gives first
+      [...k.querySelectorAll(".sgp-held")].forEach((b, j)=>{ const [fx, fy] = hands[j % 2], w = parseFloat(b.style.width), h = parseFloat(b.style.height);
+        b.style.scale = Math.min(1, 34 / w).toFixed(3);
+        b.style.left = ((fx - .5) * W - w / 2).toFixed(1) + "px"; b.style.top = (-H + fy * H - h / 2).toFixed(1) + "px"; });
+      const sh = q(k, ".sgp-shd"), iw = +idle.dataset.w * .5;                  // the contact shadow: under the feet only
+      sh.style.width = iw.toFixed(0) + "px"; sh.style.left = (-iw / 2).toFixed(0) + "px"; };
+    /* a pose change is a cut, not a cross-fade (two half-seen poses read as a double child), hidden by a quick squash */
+    const pose = (k, n, pop)=>{ k.querySelectorAll(".sgp-pose").forEach(im => im.classList.toggle("on", im.dataset.for.split(" ").includes(n)));
+      if(pop) q(k, ".sgp-fw").animate([{ scale: "1.07 .93" }, { scale: ".98 1.03", offset: .55 }, { scale: "1 1" }], { duration: 220, easing: "ease-out" }); };
+    const ready = Promise.all([...root.querySelectorAll(".sgp-pose")].map(im => (im.decode ? im.decode() : Promise.resolve()).catch(()=>{})))
+      .then(()=>{ kids.forEach(k =>{ layout(k); pose(k, reduce ? "idle" : "carry"); }); });
+    /* the moves */
+    const tilt = k => q(k, ".sgp-tilt"), fw = k => q(k, ".sgp-fw"), move = k => q(k, ".sgp-move");
+    /* the shadow moves with the child (user 2026-10-15 "when they are dancing their shadow is not changing"): a lean swings
+       it the same way (it lies flipped on the floor, so its rotation is the mirror one); in a hop it stays on the floor
+       and shrinks and fades while the child is up, darkest again as they land */
+    const cast = k => q(k, ".sgp-cast"), contact = k => q(k, ".sgp-shd");
+    const lean = (s, deg, ms)=>{ const d = dir(s) * deg, o = { duration: ms, easing: "ease-in-out" };
+      cast(kids[s]).animate([{ rotate: "0deg" }, { rotate: -d * 1.6 + "deg", offset: .4 }, { rotate: -d * 1.6 + "deg", offset: .6 }, { rotate: "0deg" }], o);
+      return tilt(kids[s]).animate([{ rotate: "0deg" }, { rotate: d + "deg", offset: .4 }, { rotate: d + "deg", offset: .6 }, { rotate: "0deg" }], o); };
+    const hop = (s, n, hgt)=>{ const k = kids[s], h = hgt || 18, o = { duration: 560, iterations: n, easing: "ease-out" };
+      const up = (el, sc, f)=>{ const b = parseFloat(getComputedStyle(el).opacity) || 1;   // from its own resting darkness
+        el.animate([{ scale: "1", opacity: b }, { scale: sc, opacity: b * f, offset: .4, easing: "ease-in" }, { scale: "1", opacity: b, offset: .62 }, { scale: "1", opacity: b }], o); };
+      up(cast(k), (1 - h / 90).toFixed(2), .55); up(contact(k), (1 - h / 45).toFixed(2), .35);
+      return fw(k).animate([{ translate: "0 0" }, { translate: "0 " + -h + "px", offset: .4, easing: "ease-in" }, { translate: "0 0", offset: .62 },
+        { translate: "0 2px", offset: .74 }, { translate: "0 0" }], o); };
+    const fx = (cls, x, y, frames, ms)=>{ const e = document.createElement("i"); e.className = cls; e.style.left = x + "px"; e.style.top = y + "px"; root.appendChild(e);
+      e.animate(frames, { duration: ms, easing: "cubic-bezier(.2,.8,.4,1)" }).onfinish = ()=> e.remove(); };
+    const sparkle = (x, y, big)=> fx("sgp-spk" + (big ? " big" : ""), x, y,
+      [{ scale: "0", rotate: "0deg", opacity: 1 }, { scale: "1", rotate: "45deg", opacity: 1, offset: .45 }, { scale: "0", rotate: "90deg", opacity: 0 }], big ? 900 : 760);
+    const burst = (x, y)=>{ for(let i = 0; i < 14; i++){ const a = i / 14 * Math.PI * 2 + Math.random() * .3, r = 70 + Math.random() * 50;
+      fx("sgp-spk conf c" + (i % 4), x, y, [{ translate: "0 0", scale: ".3", opacity: 1 }, { translate: Math.cos(a) * r + "px " + (Math.sin(a) * r * .7 - 20) + "px", scale: "1", opacity: 1, offset: .55 },
+        { translate: Math.cos(a) * r * 1.15 + "px " + (Math.sin(a) * r * .7 + 14) + "px", scale: ".6", opacity: 0 }], 1100); } };
+    /* the dust a skidding child kicks up behind their feet */
+    const dust = s =>{ const x0 = L.KID_X[s] - dir(s) * 26;
+      for(let i = 0; i < 7; i++){ const dx = -dir(s) * (14 + Math.random() * 44), dy = -(6 + Math.random() * 22);
+        fx("sgp-dust", x0 + (Math.random() - .5) * 24, L.FEET - 6, [{ translate: "0 0", scale: ".4", opacity: .85 }, { translate: dx + "px " + dy + "px", scale: (1.2 + Math.random() * .8).toFixed(2), opacity: 0 }],
+           520 + Math.random() * 260); } };
+    /* the swoosh in: from beyond the card's edge, fast, leaning into the run and blurred, a skid past the spot, back */
+    const zoom = s =>{ const k = kids[s], d = dir(s), far = (s ? 772 - L.KID_X[1] : L.KID_X[0]) + 260;
+      sound(()=> playSfxFile("sfx_whoosh", .75));
+      move(k).animate([{ translate: -d * far + "px 0", opacity: 1 }, { translate: d * 16 + "px 0", opacity: 1, offset: .6, easing: "cubic-bezier(.3,0,.4,1)" },
+        { translate: -d * 4 + "px 0", opacity: 1, offset: .82, easing: "ease-in-out" }, { translate: "0 0", opacity: 1 }],
+        { duration: 680, easing: "cubic-bezier(.12,.62,.3,1)", fill: "both" });
+      tilt(k).animate([{ rotate: d * 11 + "deg", filter: "blur(5px)" }, { rotate: d * 9 + "deg", filter: "blur(2px)", offset: .45 },
+        { rotate: -d * 7 + "deg", filter: "blur(0px)", offset: .64 }, { rotate: d * 2 + "deg", filter: "blur(0px)", offset: .84 }, { rotate: "0deg", filter: "blur(0px)" }],
+        { duration: 680, easing: "ease-out" });
+      q(k, ".sgp-lines").animate([{ opacity: 0, scale: ".3 1" }, { opacity: .95, scale: "1 1", offset: .3 }, { opacity: 0, scale: "1.3 1", offset: .7 }, { opacity: 0 }],
+        { duration: 680, easing: "ease-out" });
+      setTimeout(()=> dust(s), 400); };
+    const k = ()=> root.getBoundingClientRect().width / 772 || 1;
+    const ctr = (e, o)=>{ const r = e.getBoundingClientRect(), z = k(); return { x: (r.left + r.width / 2 - o.left) / z, y: (r.bottom - o.top) / z }; };
+    /* a block from the hand into its place: the child leans in, the block hops across in a small arc, lands, settles */
+    const put = async i =>{
+      const p = plan[i], s = p[6], kd = kids[s], held = q(kd, '.sgp-held[data-i="' + i + '"]'), pc = pcs[i], gh = q(root, '.sgp-ghost[data-i="' + i + '"]');
+      lean(s, 7, 620); await wait(150);
+      const o = root.getBoundingClientRect(), a = ctr(held, o), sc = parseFloat(held.style.scale) || 1;
+      const dx = a.x - p[1], dy = a.y - p[2], apex = Math.min(a.y, p[2] - p[4]) - 34 - p[2], F = [];
+      held.style.visibility = "hidden"; pc.classList.add("on");
+      const pcs_ = q(root, '.sgp-pcs[data-i="' + i + '"]'); if(pcs_) setTimeout(()=> pcs_.classList.add("on"), 470);   // its shadow, as it lands
+      for(let j = 0; j <= 10; j++){ const t = j / 10, y = (1 - t) * (1 - t) * dy + 2 * (1 - t) * t * (2 * apex - dy / 2);
+        F.push({ translate: (dx * (1 - t)).toFixed(1) + "px " + y.toFixed(1) + "px", rotate: (dir(s) * -24 * (1 - t)).toFixed(1) + "deg",
+                 scale: (sc + (1 - sc) * t).toFixed(3), offset: t * .76 }); }
+      F.push({ translate: "0 0", rotate: "0deg", scale: "1.14 .84", offset: .87 }, { translate: "0 0", rotate: "0deg", scale: "1 1" });
+      pc.animate(F, { duration: 640, easing: "linear" });
+      setTimeout(()=>{ if(gh) gh.classList.add("gone"); sparkle(p[1] + (Math.random() - .5) * 10, p[2] - p[4] * .7);
+        sound(()=> _tone([700, 470], "triangle", .1, .07)); }, 500);
+      if(![...kd.querySelectorAll(".sgp-held")].some(e => e.style.visibility !== "hidden")) setTimeout(()=> pose(kd, "idle", true), 420); };
+    const twinkle = ()=>{ const p = pcs[Math.floor(Math.random() * pcs.length)], b = plan[+p.dataset.i];
+      sparkle(b[1] + (Math.random() - .5) * b[3] * .6, b[2] - b[4] * (.4 + Math.random() * .5)); };
+    /* while the screen waits: one child at a time leans in to admire it, now and then a hop; a twinkle on the build */
     const play = ()=>{ let n = 0;
       const iv = setInterval(()=>{
         if(!root.isConnected){ clearInterval(iv); return; }
         if(!root.getClientRects().length) return;                                 // (the landing is not showing)
-        const k = kids[n++ % kids.length], t = tower(k), top = t[t.length - 1]; if(!top) return;
-        top.animate([{ translate: "0 0", rotate: "0deg" }, { translate: "0 -16px", rotate: "-8deg", offset: .4 },
-                     { translate: "0 0", rotate: "0deg", scale: "1 1", offset: .72 }, { scale: "1.06 .92", offset: .84 }, { scale: "1 1" }],
-                    { duration: 760, easing: "ease-in-out" });
-        lean(fig(k), side(k), 3, 760); }, 2600); };
+        const s = n++ % 2; lean(s, 3, 900); if(n % 3 === 0) hop(s, 1); twinkle(); }, 2400); };
+    const top = Math.min(...plan.map(p => p[2] - p[4]));
     let started = false;
-    const go = ()=>{ if(started) return; started = true;
-      if(reduce){ root.classList.add("go", "still"); done(); return; }
-      kids.forEach((k, i)=>{ at(fig(k), WALK[i]); const s = k.querySelector(".sgp-shd"); if(s) at(s, WALK[i]); });   // the shadow walks in with them
-      let t = Math.max(...WALK) + WALK_S - 0.1, end = t, ei = 0;
-      kids.forEach(k =>{
-        const start = t; let last = t;
-        const bs = k.querySelector(".sgp-bshd"); if(bs) at(bs, t + 0.15);          // the stack's shadow with its first block
-        tower(k).forEach(b =>{ at(b, t); last = t; t += b.classList.contains("sgp-rod") ? ROD : CUBE; });
-        end = last + DROP;                                                         // the last block has landed
-        lean(fig(k), side(k), 2.5, (end - start + 0.2) * 1000, start * 1000, true);
-        if(eq[ei]) at(eq[ei++], end + 0.05);                                       // the number these blocks make
-        if(eq[ei]) at(eq[ei++], end + 0.3);                                        // "+" after the first, "=" after the second
-        t = end + 0.45; });
-      while(ei < eq.length) at(eq[ei++], end + 0.55);                              // "?"
-      t = end + 0.55;
-      root.classList.add("go");
-      setTimeout(()=>{ done(); play(); }, (t + 0.6) * 1000); };
+    const go = async ()=>{ if(started) return; started = true;
+      await ready;
+      if(reduce){ root.classList.add("go", "still", "built"); pcs.forEach(p => p.classList.add("on")); root.querySelectorAll(".sgp-pcs").forEach(p => p.classList.add("on")); done(); return; }
+      root.classList.add("go");                                                   // the half-built castle / house and its gaps
+      await wait(380);
+      zoom(0); await wait(240); zoom(1); await wait(860);
+      const order = plan.map((p, i)=> i).filter(i => plan[i][6] === 0 || plan[i][6] === 1).sort((a, b)=> plan[a][7] - plan[b][7]);
+      for(const i of order){ put(i); await wait(560); }
+      await wait(380);
+      plan.forEach((p, i)=>{ if(p[6] !== "pop") return; pcs[i].classList.add("on");               // the flag goes up
+        const sh = q(root, '.sgp-pcs[data-i="' + i + '"]'); if(sh) setTimeout(()=> sh.classList.add("on"), 300);
+        pcs[i].animate([{ translate: "0 -24px", scale: ".4", opacity: 0 }, { translate: "0 2px", scale: "1.1", opacity: 1, offset: .6 }, { translate: "0 0", scale: "1" }],
+                       { duration: 480, easing: "cubic-bezier(.3,1.4,.5,1)" });
+        sparkle(p[1] + 10, p[2] - 26, true); });
+      root.classList.add("built");
+      await wait(260);
+      burst(L.MID, top + 34); sparkle(L.MID - 44, top + 14, true); sparkle(L.MID + 50, top + 40, true);
+      sound(()=> _tone([660, 880, 1180], "sine", .5, .1));
+      kids.forEach(kd => pose(kd, "cheer", true)); hop(0, 2, 20); setTimeout(()=> hop(1, 2, 24), 110);
+      await wait(1300);
+      kids.forEach(kd => pose(kd, "idle", true));
+      await wait(250);
+      done(); play(); };
     document.addEventListener("sg-greeting-start", go);
     setTimeout(go, 6000);                                   // (no greeting at all: the picture still comes in)
   }
@@ -2302,9 +2556,12 @@ const ASSET_SIZES = {
   "assets/btn-play-round-waiting.svg": 2655,
   "assets/btn-play-round.svg": 2645,
   "assets/char_aaru.webp": 14372,
+  "assets/char_aaru_cheer.webp": 54110,
   "assets/char_aaru_full.webp": 46560,
   "assets/char_amma.webp": 14724,
   "assets/char_pari.webp": 17236,
+  "assets/char_pari_carry.webp": 66606,
+  "assets/char_pari_cheer.webp": 60344,
   "assets/char_pari_full.webp": 50702,
   "assets/end_screen.webp": 33634,
   "assets/fonts/baloo2-600.woff2": 87020,
@@ -2316,6 +2573,13 @@ const ASSET_SIZES = {
   "assets/gif/sw_head_celebrate_anim.webp": 293618,
   "assets/gif/sw_head_hint_anim.webp": 316076,
   "assets/gif/sw_head_tryagain_anim.webp": 313414,
+  "assets/house_bl.webp": 9910,
+  "assets/house_br.webp": 9120,
+  "assets/house_door.webp": 20064,
+  "assets/house_roof.webp": 46924,
+  "assets/house_tl.webp": 15234,
+  "assets/house_tm.webp": 6940,
+  "assets/house_tr.webp": 15230,
   "assets/last_swifty_end.webp": 1779506,
   "assets/last_swifty_still.webp": 26456,
   "assets/mascot.webp": 8006,
@@ -2323,14 +2587,16 @@ const ASSET_SIZES = {
   "assets/nudge_fx_ring_outer.svg": 769,
   "assets/nudge_fx_sparks.svg": 2476,
   "assets/nudge_hand_new.svg": 6860,
-  "assets/pv_cube.webp": 4356,
-  "assets/pv_rod.webp": 5374,
+  "assets/pv_cube10.webp": 15724,
+  "assets/pv_cube4.webp": 9352,
+  "assets/pv_rod11.webp": 33128,
   "assets/sfx/bgm.ogg": 1443997,
   "assets/sfx/sfx_confetti.ogg": 11582,
   "assets/sfx/sfx_correct.ogg": 10099,
   "assets/sfx/sfx_next.ogg": 1538,
   "assets/sfx/sfx_nudge.ogg": 3537,
   "assets/sfx/sfx_play.ogg": 3094,
+  "assets/sfx/sfx_whoosh.ogg": 3670,
   "assets/sfx/sfx_wrong.ogg": 6095,
   "assets/start_card.webp": 1024,
   "assets/start_mascot.webp": 18020,
@@ -2357,7 +2623,6 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_g3_hint_b.ogg": 6737,
   "assets/voiceover/vo_g3_prompt.ogg": 10285,
   "assets/voiceover/vo_hint_dd_1.ogg": 17585,
-  "assets/voiceover/vo_hint_tap.ogg": 17997,
   "assets/voiceover/vo_landing.ogg": 37434,
   "assets/voiceover/vo_num_1.ogg": 2617,
   "assets/voiceover/vo_num_10.ogg": 3205,
@@ -2372,7 +2637,6 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_p1_correct.ogg": 16055,
   "assets/voiceover/vo_p1_hint_a.ogg": 17336,
   "assets/voiceover/vo_p1_hint_b.ogg": 6894,
-  "assets/voiceover/vo_p1_keys.ogg": 13917,
   "assets/voiceover/vo_p1_prompt.ogg": 16595,
   "assets/voiceover/vo_p1_try_again.ogg": 13326,
   "assets/voiceover/vo_p2_correct.ogg": 16589,
@@ -2400,16 +2664,18 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_t3_a_digits.ogg": 12518,
   "assets/voiceover/vo_t3_a_ones.ogg": 12945,
   "assets/voiceover/vo_t3_a_tens.ogg": 13257,
-  "assets/voiceover/vo_t3_b_build.ogg": 13738,
   "assets/voiceover/vo_t3_b_digits.ogg": 15913,
+  "assets/voiceover/vo_t3_b_ones.ogg": 12953,
+  "assets/voiceover/vo_t3_b_tens.ogg": 14526,
   "assets/voiceover/vo_t3_done.ogg": 21013,
   "assets/voiceover/vo_t3_head.ogg": 14041,
   "assets/voiceover/vo_t3_intro.ogg": 17896,
   "assets/voiceover/vo_t3_know.ogg": 19015,
+  "assets/voiceover/vo_t3_make.ogg": 11973,
   "assets/voiceover/vo_t3_merge.ogg": 17634,
   "assets/voiceover/vo_t3_ones.ogg": 8602,
   "assets/voiceover/vo_t3_ones_sum.ogg": 16969,
-  "assets/voiceover/vo_t3_place.ogg": 11345,
+  "assets/voiceover/vo_t3_place.ogg": 13959,
   "assets/voiceover/vo_t3_tens.ogg": 8587,
   "assets/voiceover/vo_t3_tens_sum.ogg": 22175,
   "assets/voiceover/vo_t3_total.ogg": 21198,
@@ -2429,6 +2695,7 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_t6_make.ogg": 10861,
   "assets/voiceover/vo_t6_ones.ogg": 8193,
   "assets/voiceover/vo_t6_ones_sum.ogg": 16245,
+  "assets/voiceover/vo_t6_place.ogg": 11345,
   "assets/voiceover/vo_t6_tens.ogg": 8554,
   "assets/voiceover/vo_t6_tens_sum.ogg": 19562,
   "assets/voiceover/vo_t6_total.ogg": 18468,
@@ -2525,7 +2792,7 @@ const Assets = (function(){
   /* the engine art a slide's KIND draws, which its card data does not name: the blocks, the people, the end screen */
   function slideArt(s){
     const d = s.data || {}, out = [], img = f => out.push("assets/" + f + "." + IMG_EXT);
-    if(s.type !== "CELEBRATION"){ img("pv_rod"); img("pv_cube"); out.push("assets/nudge_hand_new.svg"); }
+    if(s.type !== "CELEBRATION"){ img("pv_rod11"); img("pv_cube10"); out.push("assets/nudge_hand_new.svg"); }
     [].concat(...(d.people || []).map(p => p.who), ...(d.total ? [d.total.who] : [])).forEach(w => out.push(pvChar(w)));
     (d.count_clips || []).forEach(id => out.push(vo(id)));
     if(s.type === "CELEBRATION"){ img("end_screen"); img("last_swifty_still"); img("last_swifty_end"); out.push(vo("sfx_celebrate")); }
@@ -2538,9 +2805,10 @@ const Assets = (function(){
   function init(){
     if(items.size) return;
     /* CRIT: the landing - what the boot loader waits for */
-    ["startnew_bg_plain.webp", "start_card.webp", "bg_landing_soft2.webp", "pv_rod.webp", "pv_cube.webp",
+    ["startnew_bg_plain.webp", "start_card.webp", "bg_landing_soft2.webp", "pv_rod11.webp", "pv_cube4.webp", "pv_cube10.webp",
      "btn-play-round-waiting.svg", "btn-play-round.svg", "bgdeco_star.svg", "bgdeco_star_o.svg", "bgdeco_spark.svg",
-     ...((CARD.landing_hero && CARD.landing_hero.people) || []).map(w => (pvChar(w, true) || pvChar(w)).slice(7))].forEach(f => add("assets/" + f, CRIT));
+     ...((CARD.landing_hero && CARD.landing_hero.people) || []).map(w => (pvChar(w, true) || pvChar(w)).slice(7)),
+     ...PVLanding.files(CARD.landing_hero)].forEach(f => add("assets/" + f, CRIT));
     add(art("new_landing_swiftee_anim.webp"), CRIT);                                // Swiftee's wave (sgMascotPlayer reads its Blob)
     add(FONTS[0], CRIT);                                                            // the title's weight; the others next
     add(vo("vo_landing"), CRIT);

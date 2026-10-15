@@ -1,6 +1,6 @@
 # VO_MANIFEST — MTG2A01_L03_S02
 
-**95 clips on disk, every one played.** Voice: edge-tts `hi-IN-SwaraNeural` +0% / +0Hz - the voice of MTG2A04_L02_S01 - pauses inside a line pulled in to ~0.4s, x1.028 (atempo), 0.28s lead / 0.36s tail, -18.5 LUFS (two-pass loudnorm), Ogg/Opus 48 kHz mono 32 kbps (`tools/build_vo.py`). Lines: the SME deck verbatim (see README for the corrected copy-paste slips); one clip per distinct line, shared wherever the deck repeats it.
+**96 clips on disk, every one played.** Voice: edge-tts `hi-IN-SwaraNeural` +0% / +0Hz - the voice of MTG2A04_L02_S01 - pauses inside a line pulled in to ~0.4s, x1.028 (atempo), 0.28s lead / 0.36s tail, -18.5 LUFS (two-pass loudnorm), Ogg/Opus 48 kHz mono 32 kbps (`tools/build_vo.py`). Lines: the SME deck verbatim (see README for the corrected copy-paste slips); one clip per distinct line, shared wherever the deck repeats it.
 
 | clip | length | line | plays at | from |
 |---|--:|---|---|---|
@@ -22,7 +22,6 @@
 | `vo_g3_hint_b` | 1.9s | और 4 इकाइयाँ हैं। | G3 hint_b | new - tools/build_vo.py |
 | `vo_g3_prompt` | 2.8s | 58 और 36 को जोड़िए। | G3 prompt | new - tools/build_vo.py |
 | `vo_hint_dd_1` | 4.6s | फिर से सोचिए। ध्यान से देखिए और सही जगह चुनिए। | T3 dd_try; T6 dd_try; G1 dd_try; G2 dd_try; G3 dd_try | MTG2A04_L02_S01 (same voice) |
-| `vo_hint_tap` | 5.0s | देखिए, सही उत्तर यह है। इस पर टैप कीजिए। | G1 nudge; G2 nudge; G3 nudge; P3 nudge; P4 nudge | MTG2A04_L02_S01 (same voice) |
 | `vo_landing` | 10.0s | नमस्ते दोस्त! मैं हूँ स्विफ्टी! आज हम ऐसी संख्याओं को जोड़ना सीखेंगे, जिनमें इकाइयों से नई दहाई बनती है। | landing greeting | new - tools/build_vo.py |
 | `vo_num_1` | 1.0s | एक | T1 counting | MTG2A04_L02_S01 (same voice) |
 | `vo_num_10` | 1.2s | दस | T1 counting | new - tools/build_vo.py |
@@ -37,7 +36,6 @@
 | `vo_p1_correct` | 4.4s | शाबाश! 24 जोड़ 46 बराबर 70 | P1 correct | new - tools/build_vo.py |
 | `vo_p1_hint_a` | 4.5s | ध्यान से देखिए, नई दहाई को मिलाकर कुल 7 दहाइयाँ | P1 hint_a | new - tools/build_vo.py |
 | `vo_p1_hint_b` | 1.9s | और 0 इकाई हैं। | P1 hint_b | new - tools/build_vo.py |
-| `vo_p1_keys` | 3.7s | हाथ को देखिए, और इन अंकों पर टैप कीजिए। | P1 keys; P2 keys | new - tools/build_vo.py |
 | `vo_p1_prompt` | 4.3s | 24 और 46 को जोड़िए और सही जोड़ टाइप करिए। | P1 prompt | new - tools/build_vo.py |
 | `vo_p1_try_again` | 3.3s | ब्लॉक्स को गिनिए और सही जोड़ टाइप करिए। | P1 try_again; P2 try_again | new - tools/build_vo.py |
 | `vo_p2_correct` | 4.5s | शाबाश! 39 जोड़ 26 बराबर 65 | P2 correct | new - tools/build_vo.py |
@@ -54,7 +52,7 @@
 | `vo_t1_count_intro` | 4.3s | यहाँ कुछ ब्लॉक्स हैं। चलिए, इन्हें गिनते हैं। | T1 count_intro | new - tools/build_vo.py |
 | `vo_t1_know` | 5.1s | जैसा कि आप जानते हैं, 10 इकाइयाँ मिलकर 1 दहाई बनाती हैं। | T1 know | new - tools/build_vo.py |
 | `vo_t1_made` | 4.5s | बहुत बढ़िया! 10 इकाइयों से 1 दहाई बन गई। | T1 made | new - tools/build_vo.py |
-| `vo_t1_make` | 3.3s | इस बटन पर टैप करिए और दहाई बनाइए। | T1 make; T3 make | new - tools/build_vo.py |
+| `vo_t1_make` | 3.3s | इस बटन पर टैप करिए और दहाई बनाइए। | T1 make | new - tools/build_vo.py |
 | `vo_t1_move` | 3.2s | अब इस दहाई को दहाई की जगह पर रखते हैं। | T1 move | new - tools/build_vo.py |
 | `vo_t1_rest_intro` | 2.3s | अब बाकी ब्लॉक्स गिनते हैं। | T1 rest_intro | new - tools/build_vo.py |
 | `vo_t1_total` | 4.9s | हमारे पास 1 दहाई और 3 इकाइयाँ यानी कुल 13 ब्लॉक्स हैं। | T1 total | new - tools/build_vo.py |
@@ -65,16 +63,18 @@
 | `vo_t3_a_digits` | 3.3s | 27 में 2 दहाई और 7 इकाई हैं। | T3 a_digits | new - tools/build_vo.py |
 | `vo_t3_a_ones` | 3.4s | अब 7 इकाइयों के लिए 7 ब्लॉक रखते हैं। | T3 a_ones | new - tools/build_vo.py |
 | `vo_t3_a_tens` | 3.2s | पहले 2 दहाई के लिए 2 बंडल रखते हैं। | T3 a_tens | new - tools/build_vo.py |
-| `vo_t3_b_build` | 3.5s | अब आप ब्लॉक्स की सहायता से 15 बनाइए। | T3 b_build | new - tools/build_vo.py |
 | `vo_t3_b_digits` | 4.2s | इसी तरह, 15 में 1 दहाई और 5 इकाई हैं। | T3 b_digits | new - tools/build_vo.py |
+| `vo_t3_b_ones` | 3.5s | अब 5 इकाइयों के लिए 5 ब्लॉक रखते हैं। | T3 b_ones | new - tools/build_vo.py |
+| `vo_t3_b_tens` | 3.4s | पहले 1 दहाई के लिए 1 बंडल रखते हैं। | T3 b_tens | new - tools/build_vo.py |
 | `vo_t3_done` | 5.2s | शाबाश! 27 और 15 को जोड़ने पर 42 मिलता है। | T3 done | new - tools/build_vo.py |
 | `vo_t3_head` | 3.5s | आइए, 27 और 15 को जोड़ते हैं। | T3 head | new - tools/build_vo.py |
 | `vo_t3_intro` | 4.5s | सबसे पहले ब्लॉक्स की सहायता से दोनों संख्याएँ बनाते हैं। | T3 intro | new - tools/build_vo.py |
 | `vo_t3_know` | 4.8s | जैसा कि आपको पता है 10 इकाइयाँ मिलकर 1 दहाई बनाती हैं। | T3 know | new - tools/build_vo.py |
+| `vo_t3_make` | 3.0s | इस बटन पर टैप करके दहाई बनाते हैं। | T3 make | new - tools/build_vo.py |
 | `vo_t3_merge` | 4.2s | बहुत बढ़िया! अब दोनों संख्याओं को जोड़ते हैं। | T3 merge; T6 merge | new - tools/build_vo.py |
 | `vo_t3_ones` | 2.3s | पहले इकाइयों को जोड़ते हैं। | T3 ones | new - tools/build_vo.py |
 | `vo_t3_ones_sum` | 4.3s | 7 इकाइयाँ और 5 इकाइयाँ मिलाकर हुईं 12 इकाइयाँ। | T3 ones_sum | new - tools/build_vo.py |
-| `vo_t3_place` | 2.9s | नई दहाई को दहाई की जगह रखिए। | T3 place; T6 place | new - tools/build_vo.py |
+| `vo_t3_place` | 3.3s | अब नई दहाई को दहाई की जगह पर रखते हैं। | T3 place | new - tools/build_vo.py |
 | `vo_t3_tens` | 2.1s | अब दहाइयों को जोड़ते हैं। | T3 tens | new - tools/build_vo.py |
 | `vo_t3_tens_sum` | 5.1s | 2 दहाई, 1 दहाई और 1 नई दहाई मिलाकर हुईं 4 दहाइयाँ। | T3 tens_sum | new - tools/build_vo.py |
 | `vo_t3_total` | 5.4s | अब हमारे पास कुल 4 दहाइयाँ और 2 इकाइयाँ हैं, यानी 42 | T3 total | new - tools/build_vo.py |
@@ -94,6 +94,7 @@
 | `vo_t6_make` | 2.9s | इस बटन पर टैप करके दहाई बनाइए। | T6 make | new - tools/build_vo.py |
 | `vo_t6_ones` | 2.2s | पहले इकाइयों को जोड़िए। | T6 ones | new - tools/build_vo.py |
 | `vo_t6_ones_sum` | 4.1s | 6 इकाइयाँ और 5 इकाइयाँ मिलाकर हुईं 11 इकाइयाँ। | T6 ones_sum | new - tools/build_vo.py |
+| `vo_t6_place` | 2.9s | नई दहाई को दहाई की जगह रखिए। | T6 place | new - tools/build_vo.py |
 | `vo_t6_tens` | 2.0s | अब दहाइयों को जोड़िए। | T6 tens | new - tools/build_vo.py |
 | `vo_t6_tens_sum` | 5.0s | 3 दहाई, 2 दहाई और 1 नई दहाई मिलाकर हुईं 6 दहाइयाँ। | T6 tens_sum | new - tools/build_vo.py |
 | `vo_t6_total` | 4.8s | अब हमारे पास कुल 6 दहाइयाँ और 1 इकाई है, यानी 61 | T6 total | new - tools/build_vo.py |

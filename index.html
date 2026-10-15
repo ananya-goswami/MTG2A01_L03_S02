@@ -9,13 +9,13 @@
      request, so without this the very first paint is unstyled. This inline rule
      lands the loader's own colour on the first frame. -->
 <style>html,body{background:#FFFFFF;margin:0;}</style>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261015-115211">
 <!-- [loading] the landing's own files start downloading with the page, alongside style.css - not only once app.js has
      arrived and asked for them (the boot loader waits for exactly these: app.js Assets, CRIT). http(s) only: on
      file:// a preload of a fetch() fails, and local files need no head start. -->
 <script>(function(){ if(!/^https?:$/.test(location.protocol)) return;
   [["assets/fonts/baloo2-800.woff2", "font", "font/woff2"], ["assets/gif/new_landing_swiftee_anim.webp", "fetch"],
-   ["assets/startnew_bg_plain.webp", "image"], ["assets/bg_landing_soft2.webp", "image"], ["assets/pv_rod.webp", "image"]
+   ["assets/startnew_bg_plain.webp", "image"], ["assets/bg_landing_soft2.webp", "image"], ["assets/pv_rod11.webp", "image"]
   ].forEach(function(f){ var l = document.createElement("link"); l.rel = "preload"; l.href = f[0]; l.as = f[1];
     if(f[2]) l.type = f[2]; if(f[1] !== "image") l.crossOrigin = "anonymous"; document.head.appendChild(l); });
 })();</script>
@@ -95,7 +95,7 @@
       <img class="sg-mascot" data-src="assets/gif/new_landing_swiftee_anim.webp" alt="Swiftee"
            onerror="this.style.display='none'">
       <div class="sg-content">
-        <div class="sg-title" id="sgTitle">संख्या जोड़, नई दहाई बनाकर</div>
+        <div class="sg-title" id="sgTitle">संख्या जोड़ – नई दहाई बनाकर</div>
 
         <!-- r4/#2: concept strip is now DATA-DRIVEN — the engine fills #sgHero from
              CARD.landing_hero (kind:"concept_strip"). Each tile is a visual example of the
@@ -156,17 +156,16 @@
  "part_label": "",
  "theme": "toybox",
  "title": {
-  "hi": "संख्या जोड़, नई दहाई बनाकर",
+  "hi": "संख्या जोड़ – नई दहाई बनाकर",
   "en": "Add horizontally with regrouping"
  },
  "landing_hero": {
   "kind": "pv_story",
-  "a": 26,
-  "b": 18,
   "people": [
    "aaru",
    "pari"
-  ]
+  ],
+  "build": "house"
  },
  "skill_description_hi": "दो अंकों वाली दो संख्याओं को हासिल (नई दहाई बनाकर) के साथ क्षैतिज रूप में जोड़ता है।",
  "phase_distribution": {
@@ -215,7 +214,6 @@
    "vo_g3_hint_b": "assets/voiceover/vo_g3_hint_b.ogg",
    "vo_g3_prompt": "assets/voiceover/vo_g3_prompt.ogg",
    "vo_hint_dd_1": "assets/voiceover/vo_hint_dd_1.ogg",
-   "vo_hint_tap": "assets/voiceover/vo_hint_tap.ogg",
    "vo_landing": "assets/voiceover/vo_landing.ogg",
    "vo_num_1": "assets/voiceover/vo_num_1.ogg",
    "vo_num_10": "assets/voiceover/vo_num_10.ogg",
@@ -230,7 +228,6 @@
    "vo_p1_correct": "assets/voiceover/vo_p1_correct.ogg",
    "vo_p1_hint_a": "assets/voiceover/vo_p1_hint_a.ogg",
    "vo_p1_hint_b": "assets/voiceover/vo_p1_hint_b.ogg",
-   "vo_p1_keys": "assets/voiceover/vo_p1_keys.ogg",
    "vo_p1_prompt": "assets/voiceover/vo_p1_prompt.ogg",
    "vo_p1_try_again": "assets/voiceover/vo_p1_try_again.ogg",
    "vo_p2_correct": "assets/voiceover/vo_p2_correct.ogg",
@@ -258,12 +255,14 @@
    "vo_t3_a_digits": "assets/voiceover/vo_t3_a_digits.ogg",
    "vo_t3_a_ones": "assets/voiceover/vo_t3_a_ones.ogg",
    "vo_t3_a_tens": "assets/voiceover/vo_t3_a_tens.ogg",
-   "vo_t3_b_build": "assets/voiceover/vo_t3_b_build.ogg",
    "vo_t3_b_digits": "assets/voiceover/vo_t3_b_digits.ogg",
+   "vo_t3_b_ones": "assets/voiceover/vo_t3_b_ones.ogg",
+   "vo_t3_b_tens": "assets/voiceover/vo_t3_b_tens.ogg",
    "vo_t3_done": "assets/voiceover/vo_t3_done.ogg",
    "vo_t3_head": "assets/voiceover/vo_t3_head.ogg",
    "vo_t3_intro": "assets/voiceover/vo_t3_intro.ogg",
    "vo_t3_know": "assets/voiceover/vo_t3_know.ogg",
+   "vo_t3_make": "assets/voiceover/vo_t3_make.ogg",
    "vo_t3_merge": "assets/voiceover/vo_t3_merge.ogg",
    "vo_t3_ones": "assets/voiceover/vo_t3_ones.ogg",
    "vo_t3_ones_sum": "assets/voiceover/vo_t3_ones_sum.ogg",
@@ -287,6 +286,7 @@
    "vo_t6_make": "assets/voiceover/vo_t6_make.ogg",
    "vo_t6_ones": "assets/voiceover/vo_t6_ones.ogg",
    "vo_t6_ones_sum": "assets/voiceover/vo_t6_ones_sum.ogg",
+   "vo_t6_place": "assets/voiceover/vo_t6_place.ogg",
    "vo_t6_tens": "assets/voiceover/vo_t6_tens.ogg",
    "vo_t6_tens_sum": "assets/voiceover/vo_t6_tens_sum.ogg",
    "vo_t6_total": "assets/voiceover/vo_t6_total.ogg",
@@ -365,12 +365,13 @@
     "a_tens": "vo_t3_a_tens",
     "a_ones": "vo_t3_a_ones",
     "b_digits": "vo_t3_b_digits",
-    "b_build": "vo_t3_b_build",
+    "b_tens": "vo_t3_b_tens",
+    "b_ones": "vo_t3_b_ones",
     "merge": "vo_t3_merge",
     "ones": "vo_t3_ones",
     "ones_sum": "vo_t3_ones_sum",
     "know": "vo_t3_know",
-    "make": "vo_t1_make",
+    "make": "vo_t3_make",
     "place": "vo_t3_place",
     "dd_try": "vo_hint_dd_1",
     "tens": "vo_t3_tens",
@@ -383,9 +384,9 @@
     "b": 15,
     "build": [
      "swifty",
-     "child"
+     "swifty"
     ],
-    "ghost_auto": true
+    "auto": true
    }
   },
   {
@@ -461,7 +462,7 @@
     "ones_sum": "vo_t6_ones_sum",
     "know": "vo_t6_know",
     "make": "vo_t6_make",
-    "place": "vo_t3_place",
+    "place": "vo_t6_place",
     "dd_try": "vo_hint_dd_1",
     "tens": "vo_t6_tens",
     "tens_sum": "vo_t6_tens_sum",
@@ -520,7 +521,6 @@
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g1_hint_a",
     "hint_b": "vo_g1_hint_b",
-    "nudge": "vo_hint_tap",
     "dd_try": "vo_hint_dd_1"
    },
    "data": {
@@ -547,7 +547,6 @@
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g2_hint_a",
     "hint_b": "vo_g2_hint_b",
-    "nudge": "vo_hint_tap",
     "dd_try": "vo_hint_dd_1"
    },
    "data": {
@@ -574,7 +573,6 @@
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g3_hint_a",
     "hint_b": "vo_g3_hint_b",
-    "nudge": "vo_hint_tap",
     "dd_try": "vo_hint_dd_1"
    },
    "data": {
@@ -598,8 +596,7 @@
     "correct": "vo_p1_correct",
     "try_again": "vo_p1_try_again",
     "hint_a": "vo_p1_hint_a",
-    "hint_b": "vo_p1_hint_b",
-    "keys": "vo_p1_keys"
+    "hint_b": "vo_p1_hint_b"
    },
    "data": {
     "a": 24,
@@ -617,8 +614,7 @@
     "correct": "vo_p2_correct",
     "try_again": "vo_p1_try_again",
     "hint_a": "vo_p2_hint_a",
-    "hint_b": "vo_p2_hint_b",
-    "keys": "vo_p1_keys"
+    "hint_b": "vo_p2_hint_b"
    },
    "data": {
     "a": 39,
@@ -635,8 +631,7 @@
     "prompt": "vo_p3_prompt",
     "correct": "vo_p3_correct",
     "h_tables": "vo_p3_h_tables",
-    "h_merge": "vo_g1_try_again",
-    "nudge": "vo_hint_tap"
+    "h_merge": "vo_g1_try_again"
    },
    "data": {
     "a": 37,
@@ -663,8 +658,7 @@
     "prompt": "vo_p3_prompt",
     "correct": "vo_p4_correct",
     "h_tables": "vo_p3_h_tables",
-    "h_merge": "vo_g1_try_again",
-    "nudge": "vo_hint_tap"
+    "h_merge": "vo_g1_try_again"
    },
    "data": {
     "a": 18,
@@ -698,6 +692,6 @@
 
 <!-- ============ ENGINE ============ -->
 <script src="swiftpal-bridge.js"></script>   <!-- [QA 01] host bridge: Android / iOS / web - must load before app.js -->
-<script src="app.js"></script>
+<script src="app.js?v=20261015-115211"></script>
 </body>
 </html>

@@ -14,10 +14,10 @@ new ten whenever its ones reach ten. Source: `../pv-addition-kit/` (see its READ
 ## The lesson, page by page
 | slide | deck page | kind | what happens |
 |---|---|---|---|
-| landing | 1 | — | Title "संख्या जोड़, नई दहाई बनाकर"; Pari and Aaru with their blocks and "26 + 18 = ?"; VO "नमस्ते दोस्त! मैं हूँ स्विफ्टी! आज हम ऐसी संख्याओं को जोड़ना सीखेंगे, जिनमें इकाइयों से नई दहाई बनती है।" |
+| landing | 1 | — | Title "संख्या जोड़ – नई दहाई बनाकर"; with the greeting a half-built toy-block house pops up in the middle (its gaps as pale outlines); Aaru and Pari zip in from both sides with a swoosh (user 2026-10-14, "like Chhota Bheem") - Pari running - a block in each hand; Pari puts in the door and the chimney, Aaru the two missing wall blocks; the chimney smokes, sparkles, they cheer (Pari jumps) - then they keep playing; no equation; VO "नमस्ते दोस्त! मैं हूँ स्विफ्टी! आज हम ऐसी संख्याओं को जोड़ना सीखेंगे, जिनमें इकाइयों से नई दहाई बनती है।" |
 | T1 | 2 | PV_MAKE_TEN | "10 इकाइयाँ = 1 दहाई": 13 cubes in the ones column; counted एक … दस, each lighting as it is named; at ten the ten are ringed and "दहाई बनाओ" appears and pulses; the child taps it: the ten come together into one rod; it moves to the tens column; the three left are counted; "1 दहाई और 3 इकाइयाँ यानी कुल 13" lights the rod, the cubes, the column digits and "13" |
 | T2 | 2b (new) | STORY ask | "कुल कितने ब्लॉक्स?" Pari 27, Aaru 15, "= ?" |
-| T3 | 3 | PV_DEMO | Swifty's hand builds 27; the child builds 15; ones tapped across (12); ten of them ringed, the child taps "दहाई बनाओ", the new ten stands beside the table; "नई दहाई को दहाई की जगह रखिए।" - the target place pulses in the tens column and a ghost drag shows the move; the child drags it there (a miss: it returns, "फिर से सोचिए…", then the ghost again); tens tapped across; "2 दहाई, 1 दहाई और 1 नई दहाई … 4 दहाइयाँ"; 42 |
+| T3 | 3 | PV_DEMO | "आइए, 27 और 15 को जोड़ते हैं।" Automatic (user 2026-10-15): all three tables stand from the start (the + comes with the sum table); Swifty's hand builds 27 and 15, taps the ones across (12), taps "दहाई बनाओ" ("इस बटन पर टैप करके दहाई बनाते हैं।") and carries the new ten into the tens column ("अब नई दहाई को दहाई की जगह पर रखते हैं।"), then the tens; = 42, confetti. The child only watches. |
 | T4 | 4 | STORY sum | On "27 जोड़ 15 बराबर 42" every block moves into the third column, the ten ones there turn into a new rod, "?" → 42 |
 | T5 | 5a | STORY ask | "एक और उदाहरण देखते हैं।" Pari 36, Amma gives 25 |
 | T6 | 5b | PV_DEMO | The child builds 36 and 25, adds ("पहले इकाइयों को जोड़िए"), makes the ten - the ghost drag only after 5s idle (deck: "no automatic ghost-drag this time") - 61 |
@@ -40,8 +40,16 @@ Pages 14, 15, 16, 17: deleted (deck).
 - Page 5b gives no heading; it shows "आइए, 36 और 25 को जोड़ते हैं।" (text only).
 - "अम्मा" is Pari's mother (the deck's parallel of S01's "माँ") - the Village world's Amma.
 
+
+### Nudges and the third wrong answer (2026-10-15, matched to the deck)
+The deck's own cues win over the earlier hand nudges: idle 7s = the thing to tap **pulses again** (+ buttons, blocks,
+"दहाई बनाओ", with the nudge chime) - no hand. The hand stays only where the deck asks for it: the number pad's answer
+counter (after 7s idle) and the ghost drag of a new ten on the tutorial page (none on the guided pages). The third
+wrong answer: the right card is highlighted and the others fade and lock (MCQ), or the right digit keys light in turn
+(number pad) - no hand and no extra line. The idle hand, where it shows, touches its target.
+
 ## Assets
-- **Blocks:** `pv_rod.webp`, `pv_cube.webp` (the deck's art).
+- **Blocks:** `pv_rod4.webp`, `pv_cube4.webp` (glossy GPT art, 2026-10-14).
 - **People:** Pari, Aaru and Amma are the Village world's character art ("Village World Chronicles.pdf" and the Drive's
   "Village Design_Final/Characters", 2026-10-12), made into the game's files by `../pv-addition-kit/make_characters.py`
   from the cut-outs kept in `../pv-addition-kit/art_src/`:

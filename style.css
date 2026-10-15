@@ -1821,15 +1821,19 @@ body.is-start .sg-sky{
 .pv-rod.pv-grab{touch-action:none;cursor:grab;}
 .pv-blk.lift{scale:1.08;cursor:grabbing;filter:drop-shadow(0 8px 10px rgba(12,46,92,.35));}
 .pv-blk.pulse{animation:pvBlkPulse 1.1s ease-in-out infinite;}
-@keyframes pvBlkPulse{0%,100%{scale:1;filter:drop-shadow(0 2px 2px rgba(12,46,92,.28));}
-  50%{scale:1.1;filter:drop-shadow(0 0 5px rgba(255,196,26,.95)) drop-shadow(0 2px 2px rgba(12,46,92,.28));}}
+/* review 2026-10-14: "rather than this glow effect, an inner light blink" - no halo round the block any more: the light is
+   INSIDE it (the block itself brightens and dims), its own soft shadow kept */
+@keyframes pvBlkPulse{0%,100%{scale:1;filter:brightness(1) drop-shadow(0 2px 2px rgba(12,46,92,.28));}
+  50%{scale:1.1;filter:brightness(1.22) saturate(1.06) drop-shadow(0 2px 2px rgba(12,46,92,.28));}}
 .pv-blk.hl{animation:pvBlkHl .9s ease-in-out 2;}
-@keyframes pvBlkHl{0%,100%{filter:drop-shadow(0 2px 2px rgba(12,46,92,.28));}
-  50%{filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(255,196,26,1));scale:1.08;}}
-.pv-blk.pv-on{filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px rgba(255,170,0,.95));}
+@keyframes pvBlkHl{0%,100%{filter:brightness(1) drop-shadow(0 2px 2px rgba(12,46,92,.28));}
+  50%{filter:brightness(1.3) saturate(1.06) drop-shadow(0 2px 2px rgba(12,46,92,.28));scale:1.08;}}
+.pv-blk.pv-on{filter:brightness(1.15) saturate(1.05) drop-shadow(0 2px 2px rgba(12,46,92,.28));}   /* counted: lit from inside */
 .pv-ghost{z-index:4;opacity:.28;filter:grayscale(1);pointer-events:none !important;}
 .pv-ghostdrag{z-index:29;opacity:.55;pointer-events:none !important;}
-.pv-new{filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px rgba(255,194,26,.95));}
+.pv-new{animation:pvInnerBlink 1.1s ease-in-out 2;}   /* a new ten: its light blinks twice inside it as it forms, then rests (review 2026-10-14) */
+@keyframes pvInnerBlink{0%,100%{filter:brightness(1) drop-shadow(0 2px 2px rgba(12,46,92,.28));}
+  50%{filter:brightness(1.22) saturate(1.06) drop-shadow(0 2px 2px rgba(12,46,92,.28));}}
 .pv-blk.moving{z-index:30;}
 
 /* numbers and the equation */
@@ -1879,10 +1883,16 @@ body.is-start .sg-sky{
 .pv-make.pv-make-l{transform:none;}
 .pv-make.off{background:#EDEDED;color:#B9B9B9;box-shadow:0 4px 0 #D6D6D6;}
 .pv-make.pulse{animation:pvBtnPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite;}
-.pv-ring{box-sizing:border-box;border:4px dashed #FF8A00;border-radius:14px;background:rgba(255,170,40,.10);pointer-events:none !important;z-index:4;}
-.pv-ring:not(.pv-hide){animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) both,pvRing 1.2s ease-in-out .45s infinite;}
-@keyframes pvRing{0%,100%{border-color:#FF8A00;}50%{border-color:#FFC266;}}
-.pv-target{box-sizing:border-box;border:3px dashed #2E7D0F;border-radius:10px;background:rgba(150,220,90,.22);pointer-events:none !important;z-index:3;
+/* the dotted outlines are SVG (PVK.dashBox): one dot missing, travelling round */
+.pv-dash{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;}
+.pv-dash rect{fill:none;}
+.pv-ring{box-sizing:border-box;border-radius:14px;background:rgba(255,170,40,.10);pointer-events:none !important;z-index:4;}
+.pv-ring .pv-dash rect{stroke:#FF8A00;stroke-width:4;}
+.pv-ring:not(.pv-hide){animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) both;}
+.pv-ring:not(.pv-hide) .pv-dash rect{animation:pvRing 1.2s ease-in-out .45s infinite;}
+@keyframes pvRing{0%,100%{stroke:#FF8A00;}50%{stroke:#FFC266;}}
+.pv-target .pv-dash rect{stroke:#2E7D0F;stroke-width:3;}
+.pv-target{box-sizing:border-box;border-radius:10px;background:rgba(150,220,90,.22);pointer-events:none !important;z-index:3;
   animation:pvTarget 1.1s ease-in-out infinite;}
 @keyframes pvTarget{0%,100%{opacity:.55;}50%{opacity:1;}}
 .pv-hand{width:86px;height:108px;z-index:45;pointer-events:none !important;opacity:0;transition:opacity .2s,scale .12s;transform-origin:34px 16px;}
@@ -1900,7 +1910,7 @@ body.is-start .sg-sky{
 .mq-opts.in .mq-opt:nth-child(2){animation-delay:.12s;}
 .mq-opts.in .mq-opt:nth-child(3){animation-delay:.24s;}
 .mq-opt:active{box-shadow:0 2px 0 #D9D9D9;translate:0 2px;}
-.mq-opt.wrong{border:5px solid #F5A524;}
+/* a wrong answer only wiggles: no amber rim (user 2026-10-15) - .wrong stays as a hook, unstyled */
 .mq-opt.correct{border:5px solid #00B132;background:#EFFBF2;}
 .mq-opt.faded{opacity:.45 !important;}
 @keyframes mdPop{0%{opacity:0;scale:.3;}100%{opacity:1;scale:1;}}
@@ -1909,81 +1919,132 @@ body.is-start .sg-sky{
 .pv-ans{display:flex;gap:10px;padding:10px;border-radius:20px;background:#fff;border:3px solid #B7DCFB;box-shadow:0 4px 0 #CFE3F7;cursor:pointer;z-index:8;
   transition:border-color .2s,background .2s,opacity .3s;-webkit-tap-highlight-color:transparent;}
 .pv-ans.open{cursor:default;}
-.pv-ans.wrong{border-color:#F5A524;}
+
 .pv-ans.ok{border:5px solid #00B132;background:#EFFBF2;}
 .pv-slot{width:66px;height:76px;box-sizing:border-box;border-radius:14px;border:2.69px dashed #8DB8E8;background:#F7FBFF;display:flex;align-items:center;justify-content:center;
   font-family:var(--font-hi);font-weight:800;font-size:46px;line-height:1;color:#012F76;}
 .pv-slot.on{border-style:solid;border-color:#1987FC;animation:pvSlot 1s ease-in-out infinite;}
 @keyframes pvSlot{0%,100%{box-shadow:0 0 0 0 rgba(25,135,252,0);}50%{box-shadow:0 0 0 5px rgba(25,135,252,.22);}}
-.pv-pad{display:grid;grid-template-columns:repeat(3,58px);gap:10px;padding:12px;border-radius:22px;background:#EAF4FF;border:3px solid #B7DCFB;z-index:8;transition:opacity .3s;}
-.pv-key{width:58px;height:58px;padding:0;border-radius:50%;background:#fff;border:2.69px solid #D5D8DF;box-shadow:0 4px 0 #D9D9D9;cursor:pointer;
+/* review 2026-10-14 "make the calculator look better": a white panel, rounded-square keys with the game's raised edge,
+   a backspace ARROW (amber) and a green tick that sends the answer (dim until a digit is in, pulsing once it is full) */
+.pv-pad{display:grid;grid-template-columns:repeat(3,58px);gap:10px;padding:14px;border-radius:24px;background:#fff;border:3px solid #CFE3F7;
+  box-shadow:0 6px 0 #CFE3F7,0 12px 26px rgba(12,46,92,.10);z-index:8;transition:opacity .3s;}
+.pv-key{width:58px;height:58px;padding:0;border-radius:16px;background:linear-gradient(#FFFFFF,#EEF5FE);border:2px solid #C4D8F1;box-shadow:0 5px 0 #B3CAE6;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
   font-family:var(--font-hi);font-weight:800;font-size:30px;line-height:1;color:#012F76;-webkit-tap-highlight-color:transparent;transition:opacity .2s;}
-.pv-key:active{translate:0 2px;box-shadow:0 2px 0 #D9D9D9;}
-.pv-key.pv-back{font-size:24px;color:#5A7CAD;}
-.pv-key.hint-on{border:4px solid #00B132;box-shadow:0 4px 0 #A8E3B9,0 0 0 6px rgba(0,177,50,.25);}
+.pv-key svg{width:30px;height:30px;display:block;pointer-events:none;}
+.pv-key:active{translate:0 3px;box-shadow:0 2px 0 #B3CAE6;}
+.pv-key.pv-back{background:linear-gradient(#FFF7E8,#FFE9C2);border-color:#F6C66E;box-shadow:0 5px 0 #E3A940;color:#A85F00;}
+.pv-key.pv-back:active{box-shadow:0 2px 0 #E3A940;}
+.pv-key.pv-ok{background:linear-gradient(#2FCB5E,#00A82F);border-color:#00982A;box-shadow:0 5px 0 #007E22;color:#fff;}
+.pv-key.pv-ok:active{box-shadow:0 2px 0 #007E22;}
+.pv-key.pv-ok.off{opacity:.4;pointer-events:none;}
+.pv-key.pv-ok.pulse{animation:pvOkPulse 1.1s ease-in-out infinite;}
+@keyframes pvOkPulse{0%,100%{scale:1;}50%{scale:1.1;}}
+.pv-key.hint-on{border:4px solid #00B132;box-shadow:0 5px 0 #A8E3B9,0 0 0 6px rgba(0,177,50,.25);}
 .pv-key.locked{opacity:.35;pointer-events:none;}
+.pv-key.pv-ok.hint-on{opacity:1;}
 @media (prefers-reduced-motion:reduce){
-  .pv-pop,.pv-blk.pulse,.pv-blk.hl,.pv-src.pulse,.pv-make.pulse,.pv-ring:not(.pv-hide),.pv-target,.pv-q.pulse,.pv-slot.on,.pv-th.hl,.mq-opts.in .mq-opt{animation:none;opacity:1;scale:1;}
+  .pv-pop,.pv-blk.pulse,.pv-blk.hl,.pv-src.pulse,.pv-make.pulse,.pv-new,.pv-ring:not(.pv-hide),.pv-target,.pv-q.pulse,.pv-slot.on,.pv-key.pv-ok.pulse,.pv-th.hl,.mq-opts.in .mq-opt{animation:none;opacity:1;scale:1;}
 }
 
-/* ==================== [landing pv] the first screen's picture: the two children, their blocks, the equation ==================== */
+/* ==================== [landing pv] the first screen's picture: the two children finish a build together (pv_landing.js) ==================== */
 .sg-content.has-hero{max-width:1000px;}
 .sg-content .sg-title{top:-14px;}
 #sgHero{margin-top:0;}
-.sgp{display:flex;align-items:center;justify-content:center;gap:34px;}
-.sgp-kid{display:flex;align-items:flex-end;gap:12px;}
-.sgp-r{flex-direction:row-reverse;}
-.sg-art .sgp-av{width:118px;height:118px;max-height:none;max-width:none;filter:drop-shadow(0 6px 10px rgba(0,47,118,.22));}
-.sgp-blocks{display:flex;align-items:flex-end;gap:5px;padding-bottom:4px;}
-.sg-art .sgp-rod{width:auto;height:88px;max-height:none;filter:drop-shadow(0 2px 2px rgba(12,46,92,.3));}
-.sgp-cubes{display:flex;flex-direction:column-reverse;flex-wrap:wrap-reverse;max-height:90px;gap:2px;margin-left:4px;}
-.sg-art .sgp-cube{width:20px;height:auto;max-height:none;filter:drop-shadow(0 1px 1px rgba(12,46,92,.3));}
-.sgp-eq{display:flex;align-items:center;gap:12px;padding:10px 22px;border-radius:24px;background:rgba(255,255,255,.94);
-  border:3px solid #fff;box-shadow:0 6px 0 rgba(0,47,118,.12),0 12px 26px rgba(0,47,118,.18);}
-.sgp-n{min-width:74px;height:64px;padding:0 10px;box-sizing:border-box;border-radius:16px;background:#fff;border:2.69px solid #D5D8DF;box-shadow:0 4px 0 #D9D9D9;
-  display:flex;align-items:center;justify-content:center;font-family:var(--font-hi);font-weight:800;font-size:44px;line-height:1;color:#012F76;}
-.sgp-q{border:3px dashed #8DB8E8;background:#F4F9FF;color:#5A7CAD;box-shadow:none;}
-.sgp-op{font-family:var(--font-hi);font-weight:800;font-size:46px;line-height:1;color:#012F76;}
-.sgp .sgp-av,.sgp .sgp-rod,.sgp .sgp-cube,.sgp .sgp-n,.sgp .sgp-op{opacity:0;}
-.sgp .sgp-av,.sgp .sgp-rod,.sgp .sgp-cube{transform-origin:50% 100%;}
-/* "playing with blocks" (pv_landing.js): each child walks in - a glide that eases to a stop, with a waddle (a rock from
-   foot to foot round the feet, dying away as they slow) instead of hops - then breathes gently while the screen waits.
-   Travel = translate, waddle = rotate, breathing = scale: three properties, so the layers never fight. */
-.sgp.go .sgp-l .sgp-av{animation:sgpInL 1.5s cubic-bezier(.25,.7,.3,1) var(--d,0s) both,sgpWaddle 1.5s linear var(--d,0s) both,
-  sgpBreathe 3.4s ease-in-out calc(var(--d,0s) + 1.6s) infinite;}
-.sgp.go .sgp-r .sgp-av{animation:sgpInR 1.5s cubic-bezier(.25,.7,.3,1) var(--d,0s) both,sgpWaddle 1.5s linear var(--d,0s) both reverse,
-  sgpBreathe 3.9s ease-in-out calc(var(--d,0s) + 1.9s) infinite;}
-.sgp .sgp-av{will-change:translate,rotate,scale,opacity;}
-/* each block is set down onto its tower: it comes down, lands with a small squash, settles */
-.sgp.go .sgp-rod,.sgp.go .sgp-cube{animation:sgpDrop .45s var(--d,0s) both;}
-.sgp.go .sgp-n,.sgp.go .sgp-op{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) var(--d,0s) both;}
-.sgp.go .sgp-q{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) var(--d,0s) both,pvQ 1.3s ease-in-out calc(var(--d,0s) + .5s) 2;}
-@keyframes sgpInL{0%{opacity:0;translate:-120px 0;}18%{opacity:1;}100%{opacity:1;translate:0 0;}}
-@keyframes sgpInR{0%{opacity:0;translate:120px 0;}18%{opacity:1;}100%{opacity:1;translate:0 0;}}
-@keyframes sgpWaddle{0%{rotate:0deg;}10%{rotate:-2.6deg;}26%{rotate:2.4deg;}42%{rotate:-2deg;}58%{rotate:1.4deg;}74%{rotate:-.7deg;}88%{rotate:.25deg;}100%{rotate:0deg;}}
+/* one stage in .sgp's own px (772 x 96): pv_landing.js places the children, the build and its gaps */
+.sgp{position:relative;width:772px;height:96px;}
+/* a child: .sgp-kid sits on their foot point; .sgp-move = the swoosh in (translate), .sgp-fw = hops (translate),
+   .sgp-tilt = leans / the run's tilt and blur (rotate, filter) - one property per layer, so the moves never fight.
+   The pose pictures and the held blocks live in .sgp-tilt, so the blocks stay in the hands through it all. */
+.sgp-kid{position:absolute;width:0;height:0;z-index:40;}
+.sgp-move{position:absolute;left:0;bottom:0;width:0;height:0;opacity:0;}
+.sgp-fw,.sgp-tilt{position:absolute;left:0;bottom:0;width:0;height:0;}
+.sgp-fw{transform-origin:0 0;}
+.sg-art .sgp-pose{position:absolute;bottom:0;left:0;translate:-50% 0;width:auto;height:224px;max-width:none;max-height:none;opacity:0;
+  transform-origin:50% 100%;filter:drop-shadow(0 8px 10px rgba(0,47,118,.18));}
+.sg-art .sgp-pose.sgp-round{height:118px;}
+.sg-art .sgp-pose.on{opacity:1;}
+.sgp.go .sgp-l .sgp-pose{animation:sgpBreathe 3.4s ease-in-out 2.2s infinite;}
+.sgp.go .sgp-r .sgp-pose{animation:sgpBreathe 3.9s ease-in-out 2.5s infinite;}
 @keyframes sgpBreathe{0%,100%{scale:1 1;}50%{scale:1.006 1.016;}}
-@keyframes sgpDrop{0%{opacity:0;translate:0 -46px;animation-timing-function:cubic-bezier(.5,0,.9,.5);}30%{opacity:1;}
-  60%{translate:0 0;scale:1 1;animation-timing-function:ease-out;}74%{scale:1.06 .92;}88%{translate:0 -2px;scale:.99 1.02;}
-  100%{opacity:1;translate:0 0;scale:1 1;}}
-.sgp.still .sgp-av,.sgp.still .sgp-rod,.sgp.still .sgp-cube,.sgp.still .sgp-n,.sgp.still .sgp-op{opacity:1;animation:none;}
-@media (prefers-reduced-motion:reduce){ .sgp .sgp-av,.sgp .sgp-rod,.sgp .sgp-cube,.sgp .sgp-n,.sgp .sgp-op{opacity:1;animation:none !important;} }
-/* a supplied whole figure (Pari, Aaru - make_characters.py) stands beside its blocks in place of the round portrait,
-   taller than the row: it overhangs it above and below, so the title and the play button keep their places */
-.sg-art .sgp-full{width:auto;height:224px;max-height:none;max-width:none;margin:-22px 0 -106px;filter:drop-shadow(0 8px 10px rgba(0,47,118,.18));}
-/* each child on the inner side of their blocks - next to the equation, clear of Swiftie's corner and the title */
-.sgp-l.sgp-has-full{flex-direction:row-reverse;}
-.sgp-r.sgp-has-full{flex-direction:row;}
-/* their blocks stand on the floor at their feet (the figure overhangs the row by 106px below; its soles end ~1px
-   above its box) - not in the air at chest height. top, not translate: the drop animation owns translate */
-.sgp-has-full .sgp-blocks{position:relative;top:101px;}
-/* ground shadows (user: "there should be shadow of the main elements"): a soft contact ellipse under each child's feet
-   (it walks in with them) and under each block stack (it comes with the first block), light from the upper left */
-.sgp-fw{position:relative;display:flex;align-items:flex-end;}
-.sgp-shd{position:absolute;left:0;right:-12%;bottom:-118px;height:26px;border-radius:50%;pointer-events:none;z-index:-1;
-  background:radial-gradient(closest-side,rgba(50,24,4,.62),rgba(50,24,4,.3) 55%,transparent);}
-.sgp-bshd{position:absolute;left:-10px;right:-20px;bottom:-7px;height:20px;border-radius:50%;pointer-events:none;z-index:-1;
-  background:radial-gradient(closest-side,rgba(50,24,4,.58),rgba(50,24,4,.26) 55%,transparent);}
-.sgp .sgp-shd,.sgp .sgp-bshd{opacity:0;}
+.sgp-held{position:absolute;z-index:3;transform-origin:50% 50%;}
+/* speed lines behind a child as they zip in */
+.sgp-lines{position:absolute;bottom:40px;width:120px;height:150px;opacity:0;pointer-events:none;}
+.sgp-l .sgp-lines{right:30px;transform-origin:100% 50%;}
+.sgp-r .sgp-lines{left:30px;transform-origin:0 50%;}
+.sgp-lines b{position:absolute;height:4px;border-radius:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95));}
+.sgp-r .sgp-lines b{background:linear-gradient(270deg,transparent,rgba(255,255,255,.95));}
+.sgp-lines b:nth-child(1){top:18px;width:100%;}
+.sgp-lines b:nth-child(2){top:70px;width:76%;}
+.sgp-lines b:nth-child(3){top:122px;width:88%;}
+.sgp-l .sgp-lines b{right:0;}
+.sgp-r .sgp-lines b{left:0;}
+.sgp-dust{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;pointer-events:none;z-index:45;
+  background:radial-gradient(circle,rgba(236,214,178,.95),rgba(214,186,146,.6) 60%,transparent 72%);}
+/* the build: the standing pieces pop in when the picture starts; the brought ones wait (pale outlines) */
+.sgp-pc,.sgp-ghost{position:absolute;transform-origin:50% 100%;}
+.sgp-pc{opacity:0;}
+.sgp.go .sgp-pc.sgp-stand{animation:sgpUp .42s cubic-bezier(.3,1.5,.5,1) var(--d,0s) both;}
+.sgp-pc.on{opacity:1;}
+@keyframes sgpUp{0%{opacity:0;scale:.5;}100%{opacity:1;scale:1;}}
+.sgp-ghost{opacity:0;filter:brightness(0) invert(1);}
+.sgp.go .sgp-ghost{animation:sgpGhost 1.1s ease-in-out .45s infinite alternate;}
+.sgp.go .sgp-ghost.gone{animation:none;opacity:0;transition:opacity .2s;}
+@keyframes sgpGhost{0%{opacity:.28;}100%{opacity:.62;}}
+.sgp-pc > svg,.sgp-ghost > svg,.sgp-held > svg{display:block;overflow:visible;filter:drop-shadow(0 2px 2px rgba(12,46,92,.28));}
+/* the user's house pieces (make_house.py): the drawing itself, no shadow of their own (it would line the seams) */
+.sg-art .sgp-im{display:block;width:100%;height:100%;max-width:none;max-height:none;}
+.sg-art .sgp-tb{display:block;width:100%;height:100%;max-width:none;max-height:none;filter:drop-shadow(0 1px 1.5px rgba(12,46,92,.32));}
+/* toy-block colours: the lesson's own glossy cube (assets/pv_cube4.webp, golden), re-tinted */
+.sg-art .sgp-tb.c-r{filter:hue-rotate(-32deg) saturate(1.15) drop-shadow(0 1px 1.5px rgba(12,46,92,.32));}
+.sg-art .sgp-tb.c-y{filter:hue-rotate(14deg) brightness(1.06) drop-shadow(0 1px 1.5px rgba(12,46,92,.32));}
+.sg-art .sgp-tb.c-g{filter:hue-rotate(68deg) saturate(.9) drop-shadow(0 1px 1.5px rgba(12,46,92,.32));}
+.sg-art .sgp-tb.c-b{filter:hue-rotate(172deg) saturate(.95) drop-shadow(0 1px 1.5px rgba(12,46,92,.32));}
+.sg-art .sgp-tb.c-p{filter:hue-rotate(230deg) saturate(.85) drop-shadow(0 1px 1.5px rgba(12,46,92,.32));}
+/* the flag (castle): a pennant waving from the pole */
+.sgp-pennant{position:absolute;left:3px;top:2px;width:24px;height:15px;background:linear-gradient(180deg,#FFD84A,#FFB21E);
+  clip-path:polygon(0 0,100% 50%,0 100%);transform-origin:0 50%;}
+.sgp.built .sgp-pennant{animation:sgpFlag 1.1s ease-in-out infinite alternate;}
+@keyframes sgpFlag{0%{transform:scale(1,1) skewY(4deg);}100%{transform:scale(.86,1.06) skewY(-6deg);}}
+/* the chimney's smoke (house): three puffs rising, once the house stands */
+.sgp-smoke{position:absolute;left:3px;bottom:100%;width:12px;height:12px;pointer-events:none;}
+.sgp-smoke b{position:absolute;left:0;bottom:0;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.92);
+  box-shadow:0 0 0 1px rgba(160,170,190,.35);opacity:0;}
+.sgp.built .sgp-smoke b{animation:sgpSmoke 2.7s ease-out infinite;}
+.sgp.built .sgp-smoke b:nth-child(2){animation-delay:.9s;}
+.sgp.built .sgp-smoke b:nth-child(3){animation-delay:1.8s;}
+@keyframes sgpSmoke{0%{opacity:0;translate:0 0;scale:.4;}15%{opacity:.95;}100%{opacity:0;translate:14px -40px;scale:1.7;}}
+/* sparkles: on each block put in, a burst when the build is done, a twinkle now and then while the screen waits */
+.sgp-spk{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;pointer-events:none;z-index:60;
+  background:#FFE066;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);filter:drop-shadow(0 0 3px rgba(255,214,90,.9));}
+.sgp-spk.big{width:22px;height:22px;margin:-11px 0 0 -11px;}
+.sgp-spk.conf{width:10px;height:10px;margin:-5px 0 0 -5px;}
+.sgp-spk.c1{background:#FF7A6B;}
+.sgp-spk.c2{background:#6BC7FF;}
+.sgp-spk.c3{background:#8EE06B;}
+/* ground shadows by the scene's light (user 2026-10-15 "correct the shadows as per physics"): the sun is beyond the
+   veranda at the back, a little right, so each shadow falls toward the viewer and to the left. Two parts each:
+   - the CAST shadow: the thing's own silhouette laid on the floor - flipped about its foot line, foreshortened to
+     .32, sheared left, black, blurred, see-through (the children's: their pose pictures; the build's: its pieces);
+   - the CONTACT shadow: a small dark, tight ellipse where it touches the floor. */
+.sgp-cast,.sgp-bcast{position:absolute;pointer-events:none;opacity:.34;filter:brightness(0) blur(9px);}   /* soft: the shape and the fall, no details (user 2026-10-15) */
+.sgp-cast{left:0;bottom:0;width:0;height:0;transform-origin:0 0;transform:skewX(-48deg) scaleY(-.32);}
+.sgp-bcast{inset:0;transform:skewX(-48deg) scaleY(-.32);}
+.sg-art .sgp-cast .sgp-pose{animation:none !important;}
+.sgp-pcs{position:absolute;opacity:0;}
+.sgp-pcs.on,.sgp.go .sgp-pcs.sgp-stand{opacity:1;transition:opacity .25s;}
+.sgp-pcs .sgp-smoke,.sgp-pcs .sgp-pennant{display:none;}
+.sgp-shd{position:absolute;bottom:-5px;height:10px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(40,18,2,.62),rgba(40,18,2,.3) 55%,transparent);}
+.sgp-bshd{position:absolute;height:12px;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(closest-side,rgba(40,18,2,.5),rgba(40,18,2,.24) 60%,transparent);}
+.sgp.go .sgp-bshd{opacity:1;transition:opacity .4s;}
+/* reduced motion: the finished build, the children standing by it */
+.sgp.still .sgp-move,.sgp.still .sgp-pc,.sgp.still .sgp-pcs{opacity:1;animation:none;}
+.sgp.still .sgp-held,.sgp.still .sgp-ghost{display:none;}
+@media (prefers-reduced-motion:reduce){ .sgp .sgp-move,.sgp .sgp-pc{opacity:1;animation:none !important;}
+  .sgp .sgp-held,.sgp .sgp-ghost,.sgp .sgp-lines{display:none;} .sgp-bshd{opacity:1;} }
 /* the title painted on the wall (card landing_hero.title_look "wall"): terracotta wall paint with brush streaks,
    multiplied into the wall so its texture shows through, no sticker outline; a painted dot border under it */
 .sg-title.sg-wall{color:transparent !important;text-shadow:none !important;mix-blend-mode:multiply;letter-spacing:1px;}
@@ -1993,9 +2054,49 @@ body.is-start .sg-sky{
   -webkit-background-clip:text;background-clip:text;}
 .sg-title.sg-wall::after{content:"";position:absolute;left:8%;right:8%;bottom:-10px;height:10px;pointer-events:none;
   background:radial-gradient(circle,#A3361A 2.4px,transparent 3px) 0 50%/16px 10px repeat-x;opacity:.85;}
-.sgp.go .sgp-l .sgp-shd{animation:sgpInL 1.5s cubic-bezier(.25,.7,.3,1) var(--d,0s) both;}
-.sgp.go .sgp-r .sgp-shd{animation:sgpInR 1.5s cubic-bezier(.25,.7,.3,1) var(--d,0s) both;}
-.sgp.go .sgp-bshd{animation:sgpShdIn .5s ease-out var(--d,0s) both;}
-@keyframes sgpShdIn{0%{opacity:0;scale:.6 1;}100%{opacity:1;scale:1 1;}}
-.sgp.still .sgp-shd,.sgp.still .sgp-bshd{opacity:1;animation:none;}
-@media (prefers-reduced-motion:reduce){ .sgp .sgp-shd,.sgp .sgp-bshd{opacity:1;animation:none !important;} }
+/* review 2026-10-14: "all the buttons' pop up effect should be an exact replication of the front screen play button" -
+   every button arrives with the play button's pop (sgPlayPop: 1 -> 1.2 -> .93 -> 1.05 -> 1, .6s) - never the blocks'
+   fade-in from .55 - and, once live, pulses with its idle pulse (sgPlayPulse, 1.15s) the moment the pop settles,
+   as the play button does (app.js armStartPulse: +600ms). On `scale`, so it never fights a centring transform. */
+@keyframes pvBtnPop{0%{scale:1;}35%{scale:1.2;}60%{scale:.93;}80%{scale:1.05;}100%{scale:1;}}
+.pv-src.pv-pop,.pv-make.pv-pop{animation:pvBtnPop .6s cubic-bezier(.34,1.3,.5,1) both;}
+.pv-src.pulse,.pv-make.pulse,
+.nav-btn.active,.stage .nav-btn.active,
+.end-btn.show{animation:pvBtnPop .6s cubic-bezier(.34,1.3,.5,1) both,pvBtnPulse 1.15s cubic-bezier(.34,.62,.3,1) .6s infinite;}
+.nav-btn.active:active,.stage .nav-btn.active:active{animation:none;}
+@media (prefers-reduced-motion:reduce){
+  .pv-src.pv-pop,.pv-make.pv-pop,.pv-src.pulse,.pv-make.pulse,.nav-btn.active,.stage .nav-btn.active,.end-btn.show{animation:none;scale:1;}
+}
+/* review 2026-10-14: "the buttons pop up a lot on the left side and less on the right - they should pop from the centre".
+   These are centred with transform:translateX(-50%), and the individual `scale` (the pops, the pulse) is applied about
+   transform-origin in the element's UNshifted box - whose centre is the visible right edge, so they grew leftwards.
+   Origin at the unshifted box's left edge = the visible centre. (The play button carries its translate inside its
+   keyframes, so it never had this.) */
+.pv-src,.pv-make,.pv-num,.pv-sym,.pv-person,.nav-btn,.stage .nav-btn,.stage.tut .nav-btn{transform-origin:0 50%;}
+.pv-make.pv-make-l{transform-origin:50% 50%;}
+.pv-dig{transform-origin:0 0;}
+.pv-eq{transform-origin:0 0;}
+/* review 2026-10-14: "when the sticks pop out they go out of the table" - a rod nearly fills its column's height
+   (10-12px to spare above and below), so the cubes' springy pop (.55 -> ~1.15) and their 1.1 pulse / 1.08 highlight
+   pushed it past the table's edges. A rod gets the same effects, sized to fit: at most 1.04 (~6px each way). */
+@keyframes pvRodPop{0%{opacity:0;scale:.82;}70%{opacity:1;scale:1.04;}100%{opacity:1;scale:1;}}
+.pv-rod.pv-pop{animation:pvRodPop .42s cubic-bezier(.3,.9,.4,1) both;}
+@keyframes pvRodPulse{0%,100%{scale:1;filter:brightness(1) drop-shadow(0 2px 2px rgba(12,46,92,.28));}
+  50%{scale:1.04;filter:brightness(1.22) saturate(1.06) drop-shadow(0 2px 2px rgba(12,46,92,.28));}}
+.pv-rod.pulse{animation:pvRodPulse 1.1s ease-in-out infinite;}
+@keyframes pvRodHl{0%,100%{filter:brightness(1) drop-shadow(0 2px 2px rgba(12,46,92,.28));}
+  50%{filter:brightness(1.3) saturate(1.06) drop-shadow(0 2px 2px rgba(12,46,92,.28));scale:1.03;}}
+.pv-rod.hl{animation:pvRodHl .9s ease-in-out 2;}
+.pv-rod.lift{scale:1.04;}
+@media (prefers-reduced-motion:reduce){ .pv-rod.pv-pop,.pv-rod.pulse,.pv-rod.hl{animation:none;opacity:1;scale:1;} }
+/* review 2026-10-14: "when the correct option goes up, remove the other 2 options completely" - .mq-opt.faded's
+   !important opacity (.45) outranked .pv-gone's, so the gone cards stayed half there */
+.mq-opt.pv-gone,.mq-opts.in .mq-opt.pv-gone{opacity:0 !important;visibility:hidden;pointer-events:none !important;
+  transition:opacity .35s ease-out,visibility 0s linear .35s !important;}
+/* review 2026-10-14: the number pad's answer is ONE box with a blinking typing cursor "|"; the pad is two rows beside it */
+.pv-slot.pv-slot-one{gap:2px;padding:0 12px;border-style:solid;}
+.pv-slot-one .pv-ch{display:inline-block;}
+.pv-caret{display:inline-block;font-weight:400;color:#1987FC;margin-left:2px;animation:pvCaret 1s steps(1) infinite;}
+@keyframes pvCaret{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+.pv-pad.pv-pad-2{grid-template-columns:repeat(6,58px);}
+@media (prefers-reduced-motion:reduce){ .pv-caret{animation:none;} }
