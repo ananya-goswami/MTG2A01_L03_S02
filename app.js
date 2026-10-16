@@ -1078,7 +1078,7 @@ Object.assign(PVK, (function(){
        the ten-frame stood 12px lower to clear its ring - the ring now runs in the gap itself, see ring()) */
     const TF = 0, rowsH = r => r ? r * cH + (r - 1) * g + (r > 2 ? TF : 0) : 0;
     const inH = Math.max(rH, rowsH(rows)), H = head + inH + 2 * pad, W = tensW + onesW;
-    const x = o.cx - W / 2, y = o.y, fs = Math.round(head * .52);
+    const x = o.cx - W / 2, y = o.y, fs = Math.round(head * .64);   // (the दहाई / इकाई heads bigger, for reading - user 2026-10-15)
     const el = add(sc, "div", "pv-table", "width:" + px(W) + ";height:" + px(H) + ";--head:" + px(head));
     el.innerHTML = '<div class="pv-th pv-th-t" style="width:' + px(tensW) + ';height:' + px(head) + ';font-size:' + px(fs) + '">दहाई</div>' +
                    '<div class="pv-th pv-th-o" style="left:' + px(tensW) + ';right:0;height:' + px(head) + ';font-size:' + px(fs) + '">इकाई</div>' +
@@ -1472,25 +1472,32 @@ Object.assign(PVK, (function(){
   function numpad(C, cfg){
     return new Promise(res =>{
       const slide = C.slide, sc = C.sc, digits = String(cfg.answer).split(""), N = digits.length;
-      const slotW = Math.max(120, N * 30 + 60), ansW = slotW + 26;
+      /* cfg.target (user 2026-10-15): the child types straight into the equation's "?" - no separate answer box - and the
+         pad stands alone at the centre under the tables. Else the old way: an answer box with the pad beside it. */
+      const T = cfg.target, slotW = Math.max(120, N * 30 + 60), ansW = slotW + 26;
       const x0 = cfg.x - ansW / 2;                                   // the answer box stands at the centre
-      const ans = add(sc, "div", "pv-ans"); setXY(ans, x0, cfg.y + 40);
-      const slot = add(ans, "div", "pv-slot pv-slot-one", "width:" + px(slotW));
-      /* the pad: two rows (1-5 + back, 6-0) beside the box, level with it - it stays on the stage under the tables
-         (review 2026-10-14 "place the calculator correctly"; the 4-row pad ran past the stage's bottom) */
-      const pad = add(sc, "div", "pv-pad pv-pad-2 pv-hide"); setXY(pad, x0 + ansW + 40, cfg.y + 40 + 51 - 78);
+      const ans = T || add(sc, "div", "pv-ans"); if(!T) setXY(ans, x0, cfg.y);   // (user 2026-10-15: the box at the bottom centre, the pad under it)
+      const slot = T || add(ans, "div", "pv-slot pv-slot-one", "width:" + px(slotW));
+      /* the pad: two rows (1-5 + back, 6-0) - it stays on the stage under the tables (review 2026-10-14 "place the
+         calculator correctly"; the 4-row pad ran past the stage's bottom) */
+      const P3 = cfg.cols === 3;                                    // the 3 x 4 phone pad (user's art, 2026-10-15): 1-9, back 0 tick
+      const pad = add(sc, "div", "pv-pad " + (P3 ? "pv-pad-3" : "pv-pad-2") + " pv-hide"); setXY(pad, x0 + ansW + 40, cfg.y + 40 + 51 - 78);
       const keys = {};
       /* review 2026-10-14: a backspace ARROW (the ⌫ glyph read as a cross) and a green tick that sends the answer */
       const ICON = { "⌫": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5.5M11 5.5 4.5 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
                      "✓": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' };
-      ["1","2","3","4","5","⌫","6","7","8","9","0","✓"].forEach(k =>{
+      if(P3) ICON["⌫"] = '<svg viewBox="0 0 40 26" aria-hidden="true"><path d="M13 2h23a2.5 2.5 0 0 1 2.5 2.5v17A2.5 2.5 0 0 1 36 24H13L2 13z" fill="#fff" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>' +
+        '<path d="M19 8.5l9 9M28 8.5l-9 9" stroke="#E5282E" stroke-width="3.4" stroke-linecap="round"/></svg>';
+      (P3 ? ["1","2","3","4","5","6","7","8","9","⌫","0","✓"] : ["1","2","3","4","5","⌫","6","7","8","9","0","✓"]).forEach(k =>{
         const b = add(pad, "button", "pv-key" + (k === "⌫" ? " pv-back" : k === "✓" ? " pv-ok off" : "")); b.type = "button";
         if(ICON[k]){ b.innerHTML = ICON[k]; b.setAttribute("aria-label", k === "⌫" ? "मिटाएँ" : "जाँचें"); } else b.textContent = k;
         b._k = k; keys[k] = b; });
       const ok = keys["✓"];
+      if(T){ T.classList.add("pv-typein"); if(cfg.padAt) setXY(pad, cfg.padAt.x, cfg.padAt.y); else setXY(pad, cfg.x - pad.offsetWidth / 2, cfg.y + 6); }
+      else setXY(pad, cfg.x - pad.offsetWidth / 2, cfg.y + ans.offsetHeight + 12);   // centred under the answer box
       let typed = [], wrong = 0, busy = false, open = false, over = false, idleT = 0, guide = null;
       const P = { ans, pad,
-        hide(on){ ans.classList.toggle("pv-hide", on !== false); pad.classList.toggle("pv-hide", on !== false || !open); },
+        hide(on){ if(!T) ans.classList.toggle("pv-hide", on !== false); pad.classList.toggle("pv-hide", on !== false || !open); },
         guideKeys(){ guide = 0; Object.values(keys).forEach(b => b.classList.add("locked")); lightKey(); } };
       /* the third layer: the right digit keys light one after the other, then the tick */
       const lightKey = ()=>{ Object.values(keys).forEach(b => b.classList.remove("hint-on"));
@@ -1499,6 +1506,7 @@ Object.assign(PVK, (function(){
       /* the tick: dim until a digit is in, pulsing once the box holds the whole answer */
       const okState = ()=>{ ok.classList.toggle("off", !typed.length); ok.classList.toggle("pulse", typed.length >= N && !over && !busy); };
       const render = ()=>{ const full = typed.length >= N || over;
+        if(T && !open && !typed.length){ if(ok) okState(); return; }          // (the "?" stays until the pad opens)
         slot.innerHTML = typed.map(d => '<span class="pv-ch">' + d + '</span>').join("") + (full ? "" : '<span class="pv-caret">|</span>');
         slot.classList.toggle("on", open && !full); if(ok) okState(); };
       render();                                                    // the cursor shows from the start
@@ -1507,6 +1515,7 @@ Object.assign(PVK, (function(){
         busy = true; C.say(cfg.reask || "prompt").then(()=>{ busy = false; arm(); }, ()=>{}); }, IDLE_MS); };
       const openPad = ()=>{ if(open || over) return; open = true; stopNudge(); pad.classList.remove("pv-hide"); pop(pad); ans.classList.add("open"); render(); arm(); };
       ans.onclick = ()=>{ if(!C.alive() || busy) return; openPad(); };
+      P.open = openPad;
       async function check(){
         busy = true; clearTimeout(idleT); stopNudge(); okState();
         const v = typed.join("");
@@ -1559,7 +1568,7 @@ const PV_LAY = {
   /* blk / pad: the blocks' width and the tables' inner margin - as big as each screen's two rows of tables allow
      (review 2026-10-14 "make the cubes look bigger"; a rod is 6.7 blocks tall) */
   tut:  { numY: 206, numH: 46, tableY: 260, sumY: 476, cube: 23, blk: 23, pad: 10, cxL: 451, cxR: 881, cx: 666 },   // inside the tutorial card
-  main: { eqY: 160, eqH: 62, tableY: 232, sumY: 466, cube: 29, blk: 25, pad: 10, cxL: 410, cxR: 922, cx: 666 }    // under the header band
+  main: { eqY: 148, eqH: 62, tableY: 232, sumY: 466, cube: 23, blk: 20, pad: 8, cxL: 410, cxR: 922, cx: 666 }    // under the header band (smaller tables: user 2026-10-15)
 };
 const pvSplit = n =>({ t: Math.floor(n / 10), o: n % 10 });
 function pvReplay(C){ state.replayAudio = ()=>{ if(!isPlaying && C.cur && C.alive()) C.say(C.cur).catch(()=>{}); }; }
@@ -1570,6 +1579,77 @@ function pvTapOnce(C, btn){
     btn.onclick = ()=>{ if(!C.alive()) return; btn.onclick = null; clearTimeout(idleT); stopNudge(); btn.classList.remove("pulse"); res(); };
     arm(); });
 }
+/* ---------- [pv play] independent practice as a game (user 2026-10-15: "the end pages look really bland - make it a better
+   interaction"; QA checklist: practice = a game in an environment): "help them finish the build". The practice pages
+   stand in the first screen's own place (its courtyard / veranda art, washed light so the numbers stay clear); the
+   lesson's two children are there - one in the bottom left corner, one beside their castle / house in the bottom right -
+   and the build (the first screen's picture: a white outline of it) fills in from the bottom with every right answer,
+   the last one finishing it (the two cubes the children carried drop on top); a row of stars counts the answers.
+   A wrong answer: the children wobble a little ("hmm") - the deck's own help ladder runs as before. The question, its
+   answers, its VO and its hints are the deck's, untouched. Which part a page builds = its place among the practice
+   pages (P1..P4): the build is always as far along as the answers before it. ---------- */
+const PVPlay = {
+  KIDS: [100, 1080], BUILD_X: 1226, FLOOR: 714, FIG: 186, SCALE: 1.08, STARS: [1088, 166],   // (the stars under the header band)
+  mount(sc, slide){
+    const K = PVK, L = this, list = (CARD.slides || []).filter(s => s.phase === "practice" && (s.type === "PV_NUMPAD" || s.type === "MENTAL_MCQ"));
+    const N = list.length, k = list.indexOf(slide);
+    if(k < 0 || !N || typeof PVLanding === "undefined") return null;
+    const h = CARD.landing_hero || {}, kind = PVLanding.ART[h.build] ? h.build : "house";
+    const bg = K.add(sc, "div", "pvp-bg"); sc.insertBefore(bg, sc.firstChild);
+    /* the stars: one per practice page, the ones before this page already gold */
+    const row = K.add(sc, "div", "pvp-stars"); K.setXY(row, L.STARS[0], L.STARS[1]);
+    const stars = Array.from({ length: N }, (_, i)=> K.add(row, "i", "pvp-star" + (i < k ? " on" : "")));
+    /* the build: the first screen's pieces, its outline under them; the standing body revealed from the bottom up */
+    const plan = PVLanding.build(kind, 0, 0), S = L.SCALE;
+    const x0 = Math.min(...plan.map(p => p[1] - p[3] / 2)), x1 = Math.max(...plan.map(p => p[1] + p[3] / 2));
+    const y0 = Math.min(...plan.map(p => p[2] - p[4])), y1 = Math.max(...plan.map(p => p[2]));
+    const W = (x1 - x0) * S, H = (y1 - y0) * S;
+    const bd = K.add(sc, "div", "pvp-build", "width:" + W.toFixed(1) + "px;height:" + H.toFixed(1) + "px"); K.setXY(bd, L.BUILD_X - W / 2, L.FLOOR - H);
+    K.add(bd, "i", "pvp-shd");
+    const ghost = K.add(bd, "div", "pvp-layer pvp-ghost"), body = K.add(bd, "div", "pvp-layer pvp-body"), top = K.add(bd, "div", "pvp-layer pvp-top");
+    const img = (p, into)=>{ const e = K.add(into, "img", ""); e.src = "assets/" + p[5] + ".webp"; e.alt = "";
+      e.style.cssText = "left:" + ((p[1] - p[3] / 2 - x0) * S).toFixed(1) + "px;top:" + ((p[2] - p[4] - y0) * S).toFixed(1) + "px;width:" +
+        (p[3] * S).toFixed(1) + "px;height:" + (p[4] * S).toFixed(1) + "px"; return e; };
+    plan.forEach(p => img(p, ghost));
+    plan.forEach(p => img(p, (p[6] === 0 || p[6] === 1) ? top : body));
+    const reveal = n => body.style.clipPath = "inset(" + ((1 - Math.min(1, n / N)) * 100).toFixed(1) + "% 0 0 0)";
+    reveal(k);
+    /* the two children: idle, and their cheering pose for a right answer */
+    const kid = (w, x)=>{ if(!w) return null;
+      const e = K.add(sc, "div", "pvp-kid"); K.setXY(e, x, L.FLOOR);
+      [["idle", pvChar(w, true) || pvChar(w)], ["cheer", pvChar(w, "cheer") || pvChar(w, true) || pvChar(w)]].forEach(([c, f])=>{
+        const im = K.add(e, "img", c); im.src = f; im.alt = ""; im.style.height = L.FIG + "px"; });
+      return e; };
+    const kids = [kid((h.people || [])[0], L.KIDS[0]), kid((h.people || [])[1], L.KIDS[1])].filter(Boolean);
+    const spark = (x, y, big)=>{ const e = K.add(sc, "i", "pvp-spk" + (big ? " big" : "")); K.setXY(e, x, y);
+      e.animate([{ scale: "0", rotate: "0deg", opacity: 1 }, { scale: "1", rotate: "45deg", opacity: 1, offset: .45 }, { scale: "0", rotate: "90deg", opacity: 0 }],
+        { duration: big ? 900 : 700, easing: "ease-out" }).onfinish = ()=> e.remove(); };
+    const tone = f =>{ try{ f(); }catch(e){} };
+    return {
+      /* a right answer: its star turns gold, the build rises one part (the last: finished), the children cheer and hop */
+      right(){
+        const n = k + 1, st = stars[k];
+        if(st){ st.classList.add("on"); K.pop(st); spark(L.STARS[0] + k * 48 + 20, L.STARS[1] + 20); }
+        reveal(n); tone(()=> K.knock());
+        const bx = L.BUILD_X, by = L.FLOOR - H * Math.min(1, n / N);
+        setTimeout(()=>{ spark(bx - W * .3, by + 8); spark(bx + W * .3, by + 14); tone(()=> _tone([520, 700], "triangle", .12, .07)); }, 450);
+        if(n >= N){
+          setTimeout(()=>{ top.classList.add("on");
+            top.animate([{ translate: "0 -40px", opacity: 0 }, { translate: "0 3px", opacity: 1, offset: .7 }, { translate: "0 0", opacity: 1 }], { duration: 520, easing: "cubic-bezier(.3,1.3,.5,1)" });
+            for(let i = 0; i < 7; i++) setTimeout(()=> spark(bx + (Math.random() - .5) * W * 1.1, L.FLOOR - H * (.4 + Math.random() * .7), i % 2 === 0), i * 90);
+            tone(()=> _tone([660, 880, 1180], "sine", .5, .1)); }, 800);
+        }
+        kids.forEach((e, i)=>{ e.classList.add("cheer");
+          e.animate([{ translate: "0 0" }, { translate: "0 -18px", offset: .4, easing: "ease-in" }, { translate: "0 0", offset: .62 }, { translate: "0 0" }],
+                    { duration: 560, iterations: 2, delay: i * 110, easing: "ease-out" });
+          setTimeout(()=> e.classList.remove("cheer"), 2400); });
+      },
+      /* a wrong answer: a small "hmm" wobble - no red, no fuss */
+      wrong(){ kids.forEach((e, i)=> e.animate([{ rotate: "0deg" }, { rotate: (i ? 4 : -4) + "deg", offset: .3 }, { rotate: (i ? -3 : 3) + "deg", offset: .65 }, { rotate: "0deg" }],
+        { duration: 700, easing: "ease-in-out" })); }
+    };
+  }
+};
 const PVModules = {
   STORY: {
     /* deck pages 2, 3b, 4a, 5 (S02: 2b, 4, 5a, 6). Two people with their blocks and the equation under them.
@@ -1697,10 +1777,10 @@ const PVModules = {
         if(C.has("head")) await C.say("head");
         if(C.has("intro")) await C.say("intro");
         await build(TA, cA, d.a, d.build[0], "a");
-        if(!d.auto){ K.show(plus); await C.wait(300); }
+        /* (the + comes with the merge line's "जोड़ते" - user 2026-10-15; no longer after the second number) */
         await build(TB, cB, d.b, d.build[1], "b");
         GameBus.emit("pv_build_done", { slide_id: slide.id });
-        await C.cue("merge", [[0.5, ()=>{ showT(TS); if(d.auto) K.show(plus); }]]);
+        await C.cue("merge", [[0.44, ()=> showT(TS)], [0.78, ()=> K.show(plus)]]);   // the sum table on "अब दोनों...", the + on "जोड़ते" (3.27s of 4.19s)
         const across = async kind =>{
           if(!d.auto) return K.tapAcross(C, [TA, TB], TS, kind);
           const H = K.hand(sc); await K.demoAcross(C, H, [TA, TB], TS, kind); H.off(); await C.wait(250); H.el.remove(); };
@@ -1740,15 +1820,22 @@ const PVModules = {
         /* the whole sum stays on screen - "23 + 12 ... 35" is what the VO says - in ONE row: [23] + [12] = [35], each table
            under its number, so the bottom centre is free for the next button (user 2026-10-15; before: the two number
            tables faded and the sum table rose into their place) */
-        { const sumW = TA.W + TB.W + TS.W, GAP = Math.max(30, Math.min(62, (1060 - sumW) / 2)), tw = sumW + 2 * GAP;   // (fits inside the card, ~1130 wide)
-          const x0 = L.cx - tw / 2, ms = 700;
-          const dA = x0 - TA.x, dB = x0 + TA.W + GAP - TB.x, dSx = x0 + TA.W + TB.W + 2 * GAP - TS.x, dSy = L.tableY - TS.y;
-          const opY = L.tableY + TA.H / 2 - 34, mv = (e, x, y)=> K.shift(e, x - e._x, y - e._y, ms);
+        { const AV = 1060, sumW = TA.W + TB.W + TS.W, GAP = Math.max(40, Math.min(62, (AV - sumW) / 2)), tw = sumW + 2 * GAP;   // (the card is ~1130 wide)
+          const x0 = L.cx - tw / 2, ms = 700, s = Math.min(1, AV / tw);
+          /* the row stands in the middle of the free space, between the title (~200) and the next button (~565) - user
+             2026-10-15 "the tables at the centre of the screen"; DY: how far down from the build's own height */
+          const rowH = (L.tableY + Math.max(TA.H, TB.H, TS.H)) - (L.numY - 10), DY = Math.round(382 - (L.numY - 10) - rowH * s / 2);
+          /* a row wider than the card (a big sum: 86 = 8 rods) is scaled down round its top centre to fit, as it moves */
+          if(tw > AV){ const wrap = K.add(sc, "div", "pv-row", "position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;transform-origin:" + L.cx + "px " + (L.numY - 10 + DY) + "px");
+            [...TA.all(), ...TA.ghosts, ...TB.all(), ...TB.ghosts, ...TS.all(), cA, cB, plus, eqS, tot].forEach(e =>{ if(e && e.parentNode === sc) wrap.appendChild(e); });
+            wrap.animate([{ scale: "1" }, { scale: s.toFixed(3) }], { duration: ms, easing: "ease-in-out", fill: "forwards" }); }
+          const dA = x0 - TA.x, dB = x0 + TA.W + GAP - TB.x, dSx = x0 + TA.W + TB.W + 2 * GAP - TS.x, dSy = L.tableY + DY - TS.y;
+          const opY = L.tableY + DY + TA.H / 2 - 34, mv = (e, x, y)=> K.shift(e, x - e._x, y - e._y, ms);
           const sx = TS.x + dSx + TS.W / 2; TS.extra = TS.extra.filter(e => e !== eqS && e !== tot);   // (= and the total move on their own)
-          await Promise.all([TA.move(dA, 0, ms), ...TA.ghosts.map(e => K.shift(e, dA, 0, ms)), K.shift(cA, dA, 0, ms),
-            TB.move(dB, 0, ms), ...TB.ghosts.map(e => K.shift(e, dB, 0, ms)), K.shift(cB, dB, 0, ms),
+          await Promise.all([TA.move(dA, DY, ms), ...TA.ghosts.map(e => K.shift(e, dA, DY, ms)), K.shift(cA, dA, DY, ms),
+            TB.move(dB, DY, ms), ...TB.ghosts.map(e => K.shift(e, dB, DY, ms)), K.shift(cB, dB, DY, ms),
             TS.move(dSx, dSy, ms).then(()=>{}), mv(plus, x0 + TA.W + GAP / 2, opY), mv(eqS, x0 + TA.W + TB.W + GAP * 1.5, opY),
-            mv(tot, sx, L.numY)]); C.guard(); }
+            mv(tot, sx, L.numY + DY)]); C.guard(); }
         sfxCorrect(); try{ confettiCannon(); }catch(e){} setSwMood("happy");
         await C.say("done");
         setNavActive(true);
@@ -1838,28 +1925,62 @@ const PVModules = {
        after the other, the hand on each. RIGHT: the answer flies into the "?". data: { a, b }.
        audio: prompt, correct, try_again, hint_a, hint_b, keys. */
     mount(host, slide){
-      const d = slide.data, K = PVK, sc = K.scene(host), C = K.ctx(slide, sc), L = PV_LAY.main;
+      /* the number pad's page sits a little higher than the other main pages - the equation and the tables up - so the
+         answer box and a bigger pad under it fit (user 2026-10-15) */
+      /* user 2026-10-15: the tables to the left and closer together (the equation centred over them), the 3 x 4 pad on
+         the right, and the child types straight into the "?" */
+      const d = slide.data, K = PVK, sc = K.scene(host), C = K.ctx(slide, sc),
+            L = Object.assign({}, PV_LAY.main, { eqY: 150, eqH: 104, tableY: 296, cxL: 236, cxR: 630, cx: 433, qx: 1100, cube: 30, blk: 27, pad: 12 });
+      /* the user's layout (2026-10-15 mock-up): each number's card stands over its own table, the + between them; the = and
+         the answer box on the right, the 3 x 4 pad straight under the box - the child types into that box */
       state.ownsAudio = true; state.locked = false; setNavActive(false); $("navBtn").style.display = "none"; setSwMood("point"); pvReplay(C);
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), tMax = Math.max(A.t, B.t, 3);
-      const E = K.equation(sc, d.a, d.b, L.cx, L.eqY, L.eqH);
+      const sym = (t, x)=>{ const e = K.add(sc, "div", "pv-op pv-sym", "font-size:76px"); e.textContent = t; K.setXY(e, x, L.eqY + L.eqH / 2 - 36); return e; };   // (level with the cards' middle)
+      const E = { a: K.numCard(sc, d.a, L.cxL, L.eqY, L.eqH), plus: sym("+", L.cx), b: K.numCard(sc, d.b, L.cxR, L.eqY, L.eqH),
+                  eq: sym("=", 885), q: K.numCard(sc, null, L.qx, L.eqY, L.eqH, "pv-q") };
+      E.fill = n =>{ E.q.innerHTML = K.numHTML(n); E.q.classList.add("filled"); K.pop(E.q); };
       const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
       const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
-      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+      const PADY = 286, PADH = 370;                                           // the pad: its top, its height (3 x 4 keys)
+      { const GAP = 44, tw = TA.W + GAP + TB.W, x0 = Math.max(40, 470 - tw / 2);            // the two side by side, an even gap, centred left of the pad
+        /* ...and level with the pad's middle (user 2026-10-15) */
+        const dy = Math.round(PADY + PADH / 2 - TA.H / 2 - L.tableY); L.tableY += dy;
+        [[TA, x0], [TB, x0 + TA.W + GAP]].forEach(([T, x])=>{ const dx = x - T.x; T.x += dx; T.y += dy; T.all().forEach(e => K.setXY(e, e._x + dx, e._y + dy)); });
+        L.cxL = TA.x + TA.W / 2; L.cxR = TB.x + TB.W / 2; L.cx = x0 + TA.W + GAP / 2;
+        /* user 2026-10-15 (final): the first number's card over the first table, the second's over the second, the +
+           between them, the answer box over the pad (centred on it) and the = midway between the second card and the box */
+        const w = e => e.offsetWidth, qc = L.qx;
+        K.setXY(E.a, L.cxL, E.a._y); K.setXY(E.b, L.cxR, E.b._y); K.setXY(E.plus, (L.cxL + L.cxR) / 2, E.plus._y);   // (the + midway between the two cards) K.setXY(E.q, qc, E.q._y);
+        K.setXY(E.eq, (L.cxR + w(E.b) / 2 + qc - w(E.q) / 2) / 2, E.eq._y); }
+      /* the help's sum table comes where the pad stands (the pad steps aside for it), then takes the tables' place */
+      const TS = K.table(sc, { cx: L.qx, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
       TS.el.classList.add("pv-hide");
-      const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:56px"); plus.textContent = "+"; K.setXY(plus, L.cx, L.tableY + TA.H / 2 - 36);
+      const plus = { classList: { add(){} } };                                // (the + is the cards' own, between them)
       let merged = false;
       K.run(C, async ()=>{
         await Promise.all([TA.fill(d.a), TB.fill(d.b)]); await C.wait(250);
-        await K.numpad(C, { answer: sum, x: L.cx, y: L.tableY + TA.H + 18, reask: "prompt",
-          onReady: P =>{ P.hide(true); C.cue("prompt", [[0.6, ()=>{ P.hide(false); K.pop(P.ans); }]]).then(()=> P.ready(), ()=>{}); },
-          onRight: ans => K.flyAnsToQ(C, ans, E, sum),
+        /* the old format (user 2026-10-15 "bring the old format: the box in the bottom centre and the calculator below
+           that"): the answer box under the tables; a tap on it opens the pad under it (the deck: "an answer counter below
+           with a hand nudge. On tap, open the number pad"); the right answer flies up into the "?" */
+        await K.numpad(C, { answer: sum, x: L.cx, y: L.tableY + TA.H + 18, reask: "prompt", target: E.q, cols: 3, padAt: { x: L.qx - 166, y: PADY },
+          onReady: P =>{ P.hide(true); C.cue("prompt", [[0.6, ()=>{ P.hide(false); P.open(); E.q.classList.remove("pulse"); }]]).then(()=> P.ready(), ()=>{}); },
+          onRight: ()=>{ E.fill(sum); },
           ladder: async (n, P)=>{
             if(n === 1){ await C.say("try_again"); return; }
             if(n === 2){
-              if(!merged){ merged = true; P.hide(true); K.showTable(TS); await C.wait(500);
+              if(!merged){ merged = true; P.hide(true);
+                /* the help needs room for a third table: the pad and the equation step away, the two tables rise into the
+                   equation's place, the sum table forms under them; then the two fade, the sum table takes their place
+                   and the equation and the pad come back */
+                const eqs = [E.a, E.plus, E.b, E.eq, E.q]; eqs.forEach(e => e.classList.add("pv-hide"));
+                const up = L.eqY - TA.y; await Promise.all([TA.move(0, up, 500), TB.move(0, up, 500)]);
+                const tx = Math.max(30, Math.min(1303 - TS.W, L.cx - TS.W / 2)), ty = L.eqY + TA.H + 16;
+                const dx = tx - TS.x, dy = ty - TS.y; TS.x += dx; TS.y += dy; TS.all().forEach(e => K.setXY(e, e._x + dx, e._y + dy));
+                K.showTable(TS); await C.wait(500);
                 await K.autoMerge(C, [TA, TB], TS);
                 [TA, TB].forEach(T => T.fade()); plus.classList.add("pv-gone");
-                await TS.move(0, L.tableY - TS.y, 700); P.hide(false); }
+                await TS.move(Math.max(30, Math.min(910 - TS.W, 470 - TS.W / 2)) - TS.x, L.tableY - TS.y, 700);
+                eqs.forEach(e => e.classList.remove("pv-hide")); P.hide(false); }
               await C.cue("hint_a", [[0.35, ()=> K.sweep(TS.rods, 120)]]); await C.cue("hint_b", [[0.1, ()=> K.sweep(TS.cubes, 90)]]);
               return;
             }
@@ -1882,6 +2003,7 @@ const PVModules = {
       const d = slide.data, K = PVK, sc = K.scene(host), C = K.ctx(slide, sc), L = PV_LAY.main;
       state.ownsAudio = true; state.locked = false; setNavActive(false); $("navBtn").style.display = "none"; setSwMood("point"); pvReplay(C);
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), tMax = Math.max(A.t, B.t, 3);
+      const PP = PVPlay.mount(sc, slide);                                     // [pv play] the practice game around the question
       const E = K.equation(sc, d.a, d.b, L.cx, 282, L.eqH); E.el.classList.add("big");
       let TA = null, TB = null, TS = null, plus = null, merged = false;
       const optTop = { solo: 452, tables: 600 };
@@ -1909,8 +2031,9 @@ const PVModules = {
         await C.wait(300);
         await K.mcq(C, { options: d.options, answer: sum, y: optTop.solo, reask: "prompt",
           onReady: M =>{ M.open(); C.say("prompt").then(()=> M.ready(), ()=>{}); },
-          onRight: o => K.flyToQ(C, o, E),
+          onRight: async o =>{ await K.flyToQ(C, o, E); if(PP) PP.right(); },
           ladder: async (n, M)=>{
+            if(PP) PP.wrong();
             const step = d.hints[Math.min(n, d.hints.length) - 1];
             if(step === "digits"){
               await C.say("h_lead");
@@ -2002,16 +2125,15 @@ const PVLanding = {
      boxes in the drawing's px; the build's middle at x WX, its foot at FOOT (on BASE + DY); S stage px per drawing px. order: the
      pieces bottom up, [name, who brings it, the order]. */
   ART: {
-    /* a house of cubes only (user, 12:44 2026-10-15): two rows of three under a red roof of three, two, one; all of it
-       stands but the roof row of three's two end cubes - each child brings ONE (Aaru the left, Pari the right) and they
-       put them in together */
-    house: { S: .16, WX: 768, FOOT: 986,
-      order: [["blocks"], ["block_l", 0, 1], ["block_r", 1, 1]],
-      blocks: [353, 32, 1184, 986], block_l: [334, 366, 632, 592], block_r: [902, 366, 1202, 592] },
+    /* a house of cubes only (user 2026-10-15, 18:39 - make_house.py): yellow walls with two blue windows and a doorway
+       under a stepped red roof; all of it stands but the roof's two eave cubes - each child brings ONE (Aaru the left,
+       Pari the right) and they put them in together */
+    house: { S: .125, WX: 628, FOOT: 1145,                                       // (user 2026-10-15 18:39: the house of image 2 - yellow walls, blue windows, a doorway, a stepped red roof; FOOT = its lowest cubes, not the picture's edge - house_blocks.webp has 109px of empty canvas under them, which floated the house over its shadow: user 2026-10-16)
+      order: [["block_l", 0, 1], ["block_r", 1, 1], ["blocks"]],   // (each child brings one roof eave cube; they go in BEHIND the rest)
+      blocks: [33, 33, 1224, 1254], block_l: [83, 458, 268, 677], block_r: [986, 463, 1170, 677] },
     /* a castle of cubes only (user, 2026-10-15): all of it stands but the red cube on top of each tower - each child
-       brings ONE (Kabir the left, Tara the right) and they put them on together. DY: it stands a little lower than BASE,
-       so the towers clear S01's painted title dots */
-    castle: { S: .15, WX: 768, FOOT: 992, DY: 12, KIDX: [176, 596],     // (the castle is wide: the children stop clear of it - user 2026-10-15)
+       brings ONE (Kabir the left, Tara the right) and they put them on together */
+    castle: { S: .1106, WX: 768, FOOT: 992, DY: -30,     // (DY -30: a little further back, clear of the play button - user 2026-10-16) (the size of S02's house - user 2026-10-16 "replicate the size of the house exactly": as wide as it (1346 x .1106 = 149 stage px), standing on the same BASE, the children stopping where they stop there)
       order: [["cubes"], ["cube_l", 0, 1], ["cube_r", 1, 1]],
       cubes: [95, 190, 1441, 992], cube_l: [220, 41, 439, 220], cube_r: [1096, 41, 1315, 220] }
   },
@@ -2047,7 +2169,7 @@ const PVLanding = {
     const foot = L.BASE + (L.ART[kind].DY || 0);                                // (the build's foot line: a castle stands DY lower)
     return '<div class="sgp sgp-' + kind + '" id="sgp">' +
       '<div class="sgp-bcast" style="transform-origin:' + L.MID + 'px ' + foot + 'px">' + casts + '</div>' +
-      '<i class="sgp-bshd" style="left:' + (bx0 - 6) + 'px;width:' + (bx1 - bx0 + 12) + 'px;top:' + (foot - 6) + 'px"></i>' +
+      '<i class="sgp-bshd" style="left:' + (bx0 - 6) + 'px;width:' + (bx1 - bx0 + 12) + 'px;top:' + (foot - 7) + 'px"></i>' +
       pieces + kid(h.people[0], 0) + kid(h.people[1], 1) + '</div>';
   },
   intro(){
@@ -2057,25 +2179,32 @@ const PVLanding = {
     /* title_look "wall": the title is painted on the courtyard wall behind it (S01; user 2026-10-13) */
     const ttl = document.getElementById("sgTitle");
     if(ttl && CARD.landing_hero && CARD.landing_hero.title_look === "wall"){ ttl.classList.add("sg-wall");
-      /* hand-painted, not typeset (user's handwritten sample): the words ride a slow, smooth wave, so their top bar
-         (शिरोरेखा) rises and dips a little along the line. The wave is a displacement map that varies with x only - a
-         gradient of two mixed sines, about +-3.5px - so every letter moves straight up or down and stays crisp. Only the
-         words (.sgw) get it. */
-      const txt = ttl.textContent.trim(); ttl.innerHTML = '<span class="sgw"></span>'; ttl.firstChild.textContent = txt;
-      if(!document.getElementById("sgHand")){
-        let stops = "";
-        for(let i = 0; i <= 40; i++){ const x = i / 40;
-          const w = .6 * Math.sin(2 * Math.PI * (1.3 * x + .1)) + .4 * Math.sin(2 * Math.PI * (2.7 * x + .6));
-          stops += "<stop offset='" + x.toFixed(3) + "' stop-color='rgb(128," + Math.round(255 * (.5 + .2 * w)) + ",0)'/>"; }
-        const map = "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='400' height='10' preserveAspectRatio='none'>" +
-          "<linearGradient id='g'>" + stops + "</linearGradient><rect width='400' height='10' fill='url(#g)'/></svg>");
-        document.body.insertAdjacentHTML("beforeend", '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
-          '<filter id="sgHand" x="-3%" y="-30%" width="106%" height="160%" color-interpolation-filters="sRGB">' +
-          '<feImage href="' + map + '" preserveAspectRatio="none" result="m"/>' +
-          '<feDisplacementMap in="SourceGraphic" in2="m" scale="18" xChannelSelector="R" yChannelSelector="G"/></filter></svg>'); } }
+      /* user 2026-10-16 "shift the title a little up and make it a little circular with white outline": the words
+         ride a gentle arc (an SVG textPath - Devanagari stays shaped, its top bar unbroken), in the brush-streaked
+         terracotta paint, edged like S02's title (user 2026-10-16 "just the 2 outline effect"): a white ring and,
+         under it, a dark one dropped 4.8px (.sgw-b - S02's text-shadow rings, in deep brown here; pv.css). The arc is sized to the words once the font is in. */
+      const txt = ttl.textContent.trim(), NS = "http://www.w3.org/2000/svg";
+      ttl.innerHTML = '<svg class="sgw-arc" xmlns="' + NS + '" aria-hidden="true"><defs>' +
+        '<pattern id="sgPaint" patternUnits="userSpaceOnUse" width="21" height="80" patternTransform="rotate(7)">' +
+        '<rect width="7" height="80" fill="#A93816"/><rect x="7" width="3" height="80" fill="#932C10"/>' +
+        '<rect x="10" width="7" height="80" fill="#B4421C"/><rect x="17" width="4" height="80" fill="#9E3214"/></pattern>' +
+        '<path id="sgArc"/></defs>' +
+        '<text class="sgw-b" transform="translate(0 4.8)"><textPath href="#sgArc" startOffset="50%" text-anchor="middle"></textPath></text>' +
+        '<text class="sgw-t"><textPath href="#sgArc" startOffset="50%" text-anchor="middle"></textPath></text></svg>' +
+        '<span class="sr-only"></span>';
+      ttl.querySelectorAll("textPath").forEach(p => p.textContent = txt); ttl.lastChild.textContent = txt;
+      const fit = ()=>{ const svg = ttl.firstChild, t = svg.querySelector("text"), fs = parseFloat(getComputedStyle(ttl).fontSize) || 60;
+        const len = t.getComputedTextLength() || txt.length * fs * .45, pad = 14, W = len + 2 * pad + 8, sag = Math.round(W * .045);
+        const base = fs * 1.05 + sag + pad;                                     // the ends' baseline; the middle rises by sag
+        svg.setAttribute("width", W.toFixed(0)); svg.setAttribute("height", (base + fs * .38 + pad).toFixed(0));
+        svg.querySelector("#sgArc").setAttribute("d", "M " + pad + " " + base + " Q " + (W / 2) + " " + (base - 2 * sag) + " " + (W - pad) + " " + base); };
+      fit(); if(document.fonts && document.fonts.ready) document.fonts.ready.then(fit); }
     const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     const kids = [...root.querySelectorAll(".sgp-kid")], pcs = [...root.querySelectorAll(".sgp-pc")];
     const plan = L.build(root.classList.contains("sgp-castle") ? "castle" : "house", L.MID, L.BASE);
+    /* TEMPO: every move of the children x this (user 2026-10-15: "the motion of the characters on the first screen is too
+       fast") - the swoosh in, the leans, the hops, a block's hop into place and the gaps between them */
+    const T = 2.2;   // (1.7 still read as fast - user 2026-10-15 "they are more faster now, reduce their speed")
     const q = (e, s)=> e.querySelector(s), wait = ms => new Promise(r => setTimeout(r, ms));
     const dir = s => s ? -1 : 1;                                                // toward the middle: the left child faces right
     const sound = f =>{ try{ f(); }catch(e){} };
@@ -2091,7 +2220,7 @@ const PVLanding = {
       [...k.querySelectorAll(".sgp-held")].forEach((b, j)=>{ const [fx, fy] = hands[j % 2], w = parseFloat(b.style.width), h = parseFloat(b.style.height);
         b.style.scale = Math.min(1, 34 / w).toFixed(3);
         b.style.left = ((fx - .5) * W - w / 2).toFixed(1) + "px"; b.style.top = (-H + fy * H - h / 2).toFixed(1) + "px"; });
-      const sh = q(k, ".sgp-shd"), iw = +idle.dataset.w * .74;                 // the contact shadow: the feet and a little round them
+      const sh = q(k, ".sgp-shd"), iw = +idle.dataset.w * .92;                 // the contact shadow: the feet and a little round them
       sh.style.width = iw.toFixed(0) + "px"; sh.style.left = (-iw / 2).toFixed(0) + "px"; };
     /* a pose change is a cut, not a cross-fade (two half-seen poses read as a double child), hidden by a quick squash */
     const pose = (k, n, pop)=>{ k.querySelectorAll(".sgp-pose").forEach(im => im.classList.toggle("on", im.dataset.for.split(" ").includes(n)));
@@ -2104,10 +2233,10 @@ const PVLanding = {
        it the same way (it lies flipped on the floor, so its rotation is the mirror one); in a hop it stays on the floor
        and shrinks and fades while the child is up, darkest again as they land */
     const cast = k => q(k, ".sgp-cast"), contact = k => q(k, ".sgp-shd");
-    const lean = (s, deg, ms)=>{ const d = dir(s) * deg, o = { duration: ms, easing: "ease-in-out" };
+    const lean = (s, deg, ms)=>{ const d = dir(s) * deg, o = { duration: ms * T, easing: "ease-in-out" };
       cast(kids[s]).animate([{ rotate: "0deg" }, { rotate: -d * 1.6 + "deg", offset: .4 }, { rotate: -d * 1.6 + "deg", offset: .6 }, { rotate: "0deg" }], o);
       return tilt(kids[s]).animate([{ rotate: "0deg" }, { rotate: d + "deg", offset: .4 }, { rotate: d + "deg", offset: .6 }, { rotate: "0deg" }], o); };
-    const hop = (s, n, hgt)=>{ const k = kids[s], h = hgt || 18, o = { duration: 560, iterations: n, easing: "ease-out" };
+    const hop = (s, n, hgt)=>{ const k = kids[s], h = hgt || 18, o = { duration: 560 * T, iterations: n, easing: "ease-out" };
       const up = (el, sc, f)=>{ const b = parseFloat(getComputedStyle(el).opacity) || 1;   // from its own resting darkness
         el.animate([{ scale: "1", opacity: b }, { scale: sc, opacity: b * f, offset: .4, easing: "ease-in" }, { scale: "1", opacity: b, offset: .62 }, { scale: "1", opacity: b }], o); };
       up(cast(k), (1 - h / 90).toFixed(2), .55); up(contact(k), (1 - h / 45).toFixed(2), .35);
@@ -2125,36 +2254,37 @@ const PVLanding = {
       for(let i = 0; i < 7; i++){ const dx = -dir(s) * (14 + Math.random() * 44), dy = -(6 + Math.random() * 22);
         fx("sgp-dust", x0 + (Math.random() - .5) * 24, L.FEET - 6, [{ translate: "0 0", scale: ".4", opacity: .85 }, { translate: dx + "px " + dy + "px", scale: (1.2 + Math.random() * .8).toFixed(2), opacity: 0 }],
            520 + Math.random() * 260); } };
-    /* the swoosh in: from beyond the card's edge, fast, leaning into the run and blurred, a skid past the spot, back */
-    const zoom = s =>{ const k = kids[s], d = dir(s), far = (s ? 772 - L.KID_X[1] : L.KID_X[0]) + 260;
+    /* the entrance: a calm glide in (user 2026-10-15: the dash in from beyond the card's edge read as too fast) - each child
+       fades in ~200px out from their spot, glides over leaning a little into it, a small settle, still */
+    const zoom = s =>{ const k = kids[s], d = dir(s), far = 200;
       sound(()=> playSfxFile("sfx_whoosh", .75));
-      move(k).animate([{ translate: -d * far + "px 0", opacity: 1 }, { translate: d * 16 + "px 0", opacity: 1, offset: .6, easing: "cubic-bezier(.3,0,.4,1)" },
-        { translate: -d * 4 + "px 0", opacity: 1, offset: .82, easing: "ease-in-out" }, { translate: "0 0", opacity: 1 }],
-        { duration: 680, easing: "cubic-bezier(.12,.62,.3,1)", fill: "both" });
-      tilt(k).animate([{ rotate: d * 11 + "deg", filter: "blur(5px)" }, { rotate: d * 9 + "deg", filter: "blur(2px)", offset: .45 },
-        { rotate: -d * 7 + "deg", filter: "blur(0px)", offset: .64 }, { rotate: d * 2 + "deg", filter: "blur(0px)", offset: .84 }, { rotate: "0deg", filter: "blur(0px)" }],
-        { duration: 680, easing: "ease-out" });
-      q(k, ".sgp-lines").animate([{ opacity: 0, scale: ".3 1" }, { opacity: .95, scale: "1 1", offset: .3 }, { opacity: 0, scale: "1.3 1", offset: .7 }, { opacity: 0 }],
-        { duration: 680, easing: "ease-out" });
-      setTimeout(()=> dust(s), 400); };
+      move(k).animate([{ translate: -d * far + "px 0", opacity: 0 }, { translate: -d * far * .8 + "px 0", opacity: 1, offset: .15 },
+        { translate: d * 6 + "px 0", opacity: 1, offset: .75, easing: "ease-in-out" }, { translate: "0 0", opacity: 1 }],
+        { duration: 680 * T, easing: "cubic-bezier(.12,.62,.3,1)", fill: "both" });
+      tilt(k).animate([{ rotate: d * 5 + "deg", filter: "blur(2px)" }, { rotate: d * 4 + "deg", filter: "blur(1px)", offset: .45 },
+        { rotate: -d * 3 + "deg", filter: "blur(0px)", offset: .7 }, { rotate: "0deg", filter: "blur(0px)" }],
+        { duration: 680 * T, easing: "ease-out" });
+      q(k, ".sgp-lines").animate([{ opacity: 0, scale: ".3 1" }, { opacity: .5, scale: "1 1", offset: .3 }, { opacity: 0, scale: "1.2 1", offset: .65 }, { opacity: 0 }],
+        { duration: 680 * T, easing: "ease-out" });
+      setTimeout(()=> dust(s), 400 * T); };
     const k = ()=> root.getBoundingClientRect().width / 772 || 1;
     const ctr = (e, o)=>{ const r = e.getBoundingClientRect(), z = k(); return { x: (r.left + r.width / 2 - o.left) / z, y: (r.bottom - o.top) / z }; };
     /* a block from the hand into its place: the child leans in, the block hops across in a small arc, lands, settles */
     const put = async i =>{
       const p = plan[i], s = p[6], kd = kids[s], held = q(kd, '.sgp-held[data-i="' + i + '"]'), pc = pcs[i], gh = q(root, '.sgp-ghost[data-i="' + i + '"]');
-      lean(s, 7, 620); await wait(150);
+      lean(s, 7, 620); await wait(150 * T);
       const o = root.getBoundingClientRect(), a = ctr(held, o), sc = parseFloat(held.style.scale) || 1;
       const dx = a.x - p[1], dy = a.y - p[2], apex = Math.min(a.y, p[2] - p[4]) - 34 - p[2], F = [];
       held.style.visibility = "hidden"; pc.classList.add("on");
-      const pcs_ = q(root, '.sgp-pcs[data-i="' + i + '"]'); if(pcs_) setTimeout(()=> pcs_.classList.add("on"), 470);   // its shadow, as it lands
+      const pcs_ = q(root, '.sgp-pcs[data-i="' + i + '"]'); if(pcs_) setTimeout(()=> pcs_.classList.add("on"), 470 * T);   // its shadow, as it lands
       for(let j = 0; j <= 10; j++){ const t = j / 10, y = (1 - t) * (1 - t) * dy + 2 * (1 - t) * t * (2 * apex - dy / 2);
         F.push({ translate: (dx * (1 - t)).toFixed(1) + "px " + y.toFixed(1) + "px", rotate: (dir(s) * -24 * (1 - t)).toFixed(1) + "deg",
                  scale: (sc + (1 - sc) * t).toFixed(3), offset: t * .76 }); }
       F.push({ translate: "0 0", rotate: "0deg", scale: "1.14 .84", offset: .87 }, { translate: "0 0", rotate: "0deg", scale: "1 1" });
-      pc.animate(F, { duration: 640, easing: "linear" });
+      pc.animate(F, { duration: 640 * T, easing: "linear" });
       setTimeout(()=>{ if(gh) gh.classList.add("gone"); sparkle(p[1] + (Math.random() - .5) * 10, p[2] - p[4] * .7);
-        sound(()=> _tone([700, 470], "triangle", .1, .07)); }, 500);
-      if(![...kd.querySelectorAll(".sgp-held")].some(e => e.style.visibility !== "hidden")) setTimeout(()=> pose(kd, "idle", true), 420); };
+        sound(()=> _tone([700, 470], "triangle", .1, .07)); }, 500 * T);
+      if(![...kd.querySelectorAll(".sgp-held")].some(e => e.style.visibility !== "hidden")) setTimeout(()=> pose(kd, "idle", true), 420 * T); };
     const twinkle = ()=>{ const p = pcs[Math.floor(Math.random() * pcs.length)], b = plan[+p.dataset.i];
       sparkle(b[1] + (Math.random() - .5) * b[3] * .6, b[2] - b[4] * (.4 + Math.random() * .5)); };
     /* while the screen waits: one child at a time leans in to admire it, now and then a hop; a twinkle on the build */
@@ -2162,7 +2292,7 @@ const PVLanding = {
       const iv = setInterval(()=>{
         if(!root.isConnected){ clearInterval(iv); return; }
         if(!root.getClientRects().length) return;                                 // (the landing is not showing)
-        const s = n++ % 2; lean(s, 3, 900); if(n % 3 === 0) hop(s, 1); twinkle(); }, 2400); };
+        const s = n++ % 2; lean(s, 2, 1100); if(n % 3 === 0) hop(s, 1, 10); twinkle(); }, 2400 * T); };
     const top = Math.min(...plan.map(p => p[2] - p[4]));
     let started = false;
     const go = async ()=>{ if(started) return; started = true;
@@ -2170,26 +2300,26 @@ const PVLanding = {
       if(reduce){ root.classList.add("go", "still", "built"); pcs.forEach(p => p.classList.add("on")); root.querySelectorAll(".sgp-pcs").forEach(p => p.classList.add("on")); done(); return; }
       root.classList.add("go");                                                   // the half-built castle / house and its gaps
       await wait(380);
-      zoom(0); await wait(240); zoom(1); await wait(860);
+      zoom(0); await wait(240 * T); zoom(1); await wait(860 * T);
       const order = plan.map((p, i)=> i).filter(i => plan[i][6] === 0 || plan[i][6] === 1).sort((a, b)=> plan[a][7] - plan[b][7]);
       const steps = [...new Set(order.map(k => plan[k][7]))];                    // (pieces of the same order go in together)
-      order.forEach(i => setTimeout(()=> put(i), 560 * steps.indexOf(plan[i][7])));
-      await wait(560 * steps.length);
+      order.forEach(i => setTimeout(()=> put(i), 560 * T * steps.indexOf(plan[i][7])));
+      await wait(560 * T * steps.length);
       await wait(380);
       plan.forEach((p, i)=>{ if(p[6] !== "pop") return; pcs[i].classList.add("on");               // the flag goes up
-        const sh = q(root, '.sgp-pcs[data-i="' + i + '"]'); if(sh) setTimeout(()=> sh.classList.add("on"), 300);
+        const sh = q(root, '.sgp-pcs[data-i="' + i + '"]'); if(sh) setTimeout(()=> sh.classList.add("on"), 300 * T);
         pcs[i].animate([{ translate: "0 -24px", scale: ".4", opacity: 0 }, { translate: "0 2px", scale: "1.1", opacity: 1, offset: .6 }, { translate: "0 0", scale: "1" }],
-                       { duration: 480, easing: "cubic-bezier(.3,1.4,.5,1)" });
+                       { duration: 480 * T, easing: "cubic-bezier(.3,1.4,.5,1)" });
         sparkle(p[1] + 10, p[2] - 26, true); });
       root.classList.add("built");
       await wait(260);
       burst(L.MID, top + 34); sparkle(L.MID - 44, top + 14, true); sparkle(L.MID + 50, top + 40, true);
       sound(()=> _tone([660, 880, 1180], "sine", .5, .1));
-      kids.forEach(kd => pose(kd, "cheer", true)); hop(0, 2, 20); setTimeout(()=> hop(1, 2, 24), 110);
-      await wait(1300);
+      kids.forEach(kd => pose(kd, "cheer", true)); hop(0, 2, 14); setTimeout(()=> hop(1, 2, 16), 110 * T);
+      await wait(1300 * T);
       kids.forEach(kd => pose(kd, "idle", true));
       await wait(250);
-      done(); play(); };
+      done(); };   // then they stand still (user 2026-10-15: the idle leans / hops / twinkles distracted) - only their blinks
     /* the picture comes in on the greeting's "आज हम ... सीखेंगे" (user 2026-10-15), not on its "नमस्ते": card
        landing_hero.start_at = that word's time in vo_landing (s); it waits for the clip itself to reach it, so a slow
        start never puts it early. Never stranded: 2.5s past that time it comes in anyway. */
@@ -2613,7 +2743,7 @@ function conceptTileHTML(c){
    from Safari 18.4). */
 /* @asset-sizes:begin (generated by tools/gen_asset_sizes.js - do not edit by hand) */
 const ASSET_SIZES = {
-  "assets/bg_landing_soft2.webp": 71450,
+  "assets/bg_landing_v3.webp": 71450,
   "assets/bgdeco_spark.svg": 220,
   "assets/bgdeco_star.svg": 391,
   "assets/bgdeco_star_o.svg": 448,
@@ -2643,9 +2773,9 @@ const ASSET_SIZES = {
   "assets/gif/sw_head_celebrate_anim.webp": 293618,
   "assets/gif/sw_head_hint_anim.webp": 316076,
   "assets/gif/sw_head_tryagain_anim.webp": 313414,
-  "assets/house_block_l.webp": 5178,
-  "assets/house_block_r.webp": 5018,
-  "assets/house_blocks.webp": 38916,
+  "assets/house_block_l.webp": 6682,
+  "assets/house_block_r.webp": 6726,
+  "assets/house_blocks.webp": 107582,
   "assets/last_swifty_end.webp": 1779506,
   "assets/last_swifty_still.webp": 26456,
   "assets/mascot.webp": 8006,
@@ -2871,7 +3001,7 @@ const Assets = (function(){
   function init(){
     if(items.size) return;
     /* CRIT: the landing - what the boot loader waits for */
-    ["startnew_bg_plain.webp", "start_card.webp", "bg_landing_soft2.webp", "pv_rod11.webp", "pv_cube4.webp", "pv_cube10.webp",
+    ["startnew_bg_plain.webp", "start_card.webp", "bg_landing_v3.webp", "pv_rod11.webp", "pv_cube4.webp", "pv_cube10.webp",
      "btn-play-round-waiting.svg", "btn-play-round.svg", "bgdeco_star.svg", "bgdeco_star_o.svg", "bgdeco_spark.svg",
      ...((CARD.landing_hero && CARD.landing_hero.people) || []).map(w => (pvChar(w, true) || pvChar(w)).slice(7)),
      ...PVLanding.files(CARD.landing_hero)].forEach(f => add("assets/" + f, CRIT));

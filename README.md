@@ -48,6 +48,14 @@ counter (after 7s idle) and the ghost drag of a new ten on the tutorial page (no
 wrong answer: the right card is highlighted and the others fade and lock (MCQ), or the right digit keys light in turn
 (number pad) - no hand and no extra line. The idle hand, where it shows, touches its target.
 
+
+### Practice as a game (P3-P4 so far, 2026-10-15)
+"Help them finish the build" (pv_mod_tut.js PVPlay): the practice pages stand in the first screen's courtyard / veranda
+(washed light); the lesson's two children are in the bottom corners, the first screen's castle / house beside the right
+one, its unbuilt part pale; every right answer fills it a quarter more from the bottom (P4 finishes it: the two carried
+cubes drop on top) and turns a star gold (top right); a wrong answer: the children wobble ("hmm"). The deck's question,
+answers, VO and hint ladder are unchanged. P1-P2 (number pad) next; no practice music track ships yet (bgm_game.ogg).
+
 ## Assets
 - **Blocks:** `pv_rod4.webp`, `pv_cube4.webp` (glossy GPT art, 2026-10-14).
 - **People:** Pari, Aaru and Amma are the Village world's character art ("Village World Chronicles.pdf" and the Drive's

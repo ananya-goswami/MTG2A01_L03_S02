@@ -1788,12 +1788,12 @@ body.is-start .sg-sky{
 /* a bigger working area on the pv tutorial card: it grows into the stage's spare top / bottom margin (the slide-stage
    pads 96 / 92) so the sum table clears the card's bottom border - the tables keep their size */
 .tut-card.tc-pv{margin:-20px 0 -40px;}
-/* the first screen's scene is each game's own village art (assets/bg_landing_soft2.webp - a new name, so no browser keeps the old room): shown whole-width and
+/* the first screen's scene is each game's own village art (assets/bg_landing_v3.webp - a new name each time the art changes, so no browser keeps the old one; v3 = S01 wall raised over the sky): shown whole-width and
    cropped top / bottom (not stretched into the 2.5:1 card), and the old room art's lamp glow + lens flare are off */
-.sg-card::before{background-image:url("assets/bg_landing_soft2.webp") !important;background-size:cover !important;background-position:center 40% !important;}
+.sg-card::before{background-image:url("assets/bg_landing_v3.webp") !important;background-size:cover !important;background-position:center 40% !important;}
 .sg-fx .sg-lamp,.sg-fx .sg-sun{display:none;}
 .pv-stage{position:absolute;width:1333px;height:750px;pointer-events:none;z-index:2;}
-.pv-stage > *{position:absolute;pointer-events:auto;}
+.pv-stage > *,.pv-stage > .pv-row > *{position:absolute;pointer-events:auto;}
 .pv-hide{opacity:0 !important;pointer-events:none !important;}
 .pv-gone{opacity:0 !important;pointer-events:none !important;transition:opacity .45s ease-out !important;}
 .pv-pop{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) both;}
@@ -1804,8 +1804,8 @@ body.is-start .sg-sky{
   box-shadow:0 4px 0 #D5E6F7,0 10px 24px rgba(0,47,118,.10);transition:opacity .35s;}
 .pv-th{position:absolute;top:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-bottom:3px solid #B7DCFB;
   font-family:var(--font-hi);font-weight:800;line-height:1;transition:background .25s,color .25s;}
-.pv-th-t{left:0;background:#E7F6DC;color:#2E7D0F;}
-.pv-th-o{background:#FFF1D8;color:#B35A00;}
+.pv-th-t{left:0;background:#E7F6DC;color:#1E6400;}
+.pv-th-o{background:#FFF1D8;color:#9A4300;}
 .pv-th.hl{animation:pvHead .9s ease-in-out infinite;}
 .pv-th-t.hl{background:#C9EDB0;}
 .pv-th-o.hl{background:#FFDDA3;}
@@ -1962,11 +1962,10 @@ body.is-start .sg-sky{
 .sgp-fw,.sgp-tilt{position:absolute;left:0;bottom:0;width:0;height:0;}
 .sgp-fw{transform-origin:0 0;}
 .sg-art .sgp-pose{position:absolute;bottom:0;left:0;translate:-50% 0;width:auto;height:224px;max-width:none;max-height:none;opacity:0;
-  transform-origin:50% 100%;filter:drop-shadow(0 8px 10px rgba(0,47,118,.18));}
+  transform-origin:50% 100%;}   /* no drop shadow (user 2026-10-16 "look like they are in the air"): a soft one under the figure lifts it off the floor like a sticker - the floor shadows below ground them */
 .sg-art .sgp-pose.sgp-round{height:118px;}
 .sg-art .sgp-pose.on{opacity:1;}
-.sgp.go .sgp-l .sgp-pose{animation:sgpBreathe 3.4s ease-in-out 2.2s infinite;}
-.sgp.go .sgp-r .sgp-pose{animation:sgpBreathe 3.9s ease-in-out 2.5s infinite;}
+/* (no idle breathing once in: user 2026-10-15 - the children stand still after the intro) */
 @keyframes sgpBreathe{0%,100%{scale:1 1;}50%{scale:1.006 1.016;}}
 .sgp-held{position:absolute;z-index:3;transform-origin:50% 50%;}
 /* speed lines behind a child as they zip in */
@@ -1989,8 +1988,9 @@ body.is-start .sg-sky{
 .sgp-pc.sgp-stand{opacity:1;}
 .sgp-pc.on{opacity:1;}
 @keyframes sgpUp{0%{opacity:0;scale:.5;}100%{opacity:1;scale:1;}}
-.sgp-ghost{opacity:.45;filter:brightness(0) invert(1);}
-.sgp.go .sgp-ghost{animation:sgpGhost 1.1s ease-in-out infinite alternate;}
+/* no placeholders where the brought cubes go (user 2026-10-15: the white shapes read as empty space): the build just
+   stands unfinished until the children put their cubes on */
+.sgp-ghost{display:none !important;}
 .sgp.go .sgp-ghost.gone{animation:none;opacity:0;transition:opacity .2s;}
 @keyframes sgpGhost{0%{opacity:.28;}100%{opacity:.62;}}
 .sgp-pc > svg,.sgp-ghost > svg,.sgp-held > svg{display:block;overflow:visible;filter:drop-shadow(0 2px 2px rgba(12,46,92,.28));}
@@ -2029,32 +2029,38 @@ body.is-start .sg-sky{
    - the CAST shadow: the thing's own silhouette laid on the floor - flipped about its foot line, foreshortened to
      .32, sheared left, black, blurred, see-through (the children's: their pose pictures; the build's: its pieces);
    - the CONTACT shadow: a small dark, tight ellipse where it touches the floor. */
-.sgp-cast,.sgp-bcast{position:absolute;pointer-events:none;opacity:.34;filter:brightness(0) blur(9px);}   /* soft: the shape and the fall, no details (user 2026-10-15) */
-.sgp-cast{left:0;bottom:0;width:0;height:0;transform-origin:0 0;transform:skewX(-48deg) scaleY(-.32);}
-.sgp-bcast{inset:0;transform:skewX(-48deg) scaleY(-.32);}
+.sgp-cast,.sgp-bcast{position:absolute;pointer-events:none;opacity:.4;filter:brightness(0) blur(6px);}   /* soft: the shape and the fall, no details (user 2026-10-15) */
+/* short and only a little sheared (user 2026-10-16 "still look like they are in the air"): a long, far-sheared cast put its
+   dark mass (the body's) well away from the feet, so it read as a shadow under something hanging above the floor */
+.sgp-cast{left:0;bottom:0;width:0;height:0;transform-origin:0 0;transform:skewX(-40deg) scaleY(-.13);}
+.sgp-bcast{inset:0;transform:skewX(-40deg) scaleY(-.13);}
+/* darkest at the feet, fading toward the head's end - a shadow is joined to what casts it */
+.sg-art .sgp-cast .sgp-pose{-webkit-mask-image:linear-gradient(to top,#000 0%,#000 18%,rgba(0,0,0,.45) 100%);mask-image:linear-gradient(to top,#000 0%,#000 18%,rgba(0,0,0,.45) 100%);}
 .sg-art .sgp-cast .sgp-pose{animation:none !important;}
 .sgp-pcs{position:absolute;opacity:0;}
 .sgp-pcs.on,.sgp-pcs.sgp-stand{opacity:1;transition:opacity .25s;}
 .sgp-pcs .sgp-smoke,.sgp-pcs .sgp-pennant{display:none;}
 /* the contact shadow (user 2026-10-15 "they look like they are in the air"): its dark core ON the soles' line - the upper
    half hides behind the feet, the lower shows as a dark band right under the toes, fading out round them */
-.sgp-shd{position:absolute;bottom:-9px;height:18px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(closest-side,rgba(36,16,2,.9),rgba(36,16,2,.62) 45%,rgba(36,16,2,.2) 78%,transparent);}
-.sgp-bshd{position:absolute;height:12px;border-radius:50%;pointer-events:none;opacity:0;
-  background:radial-gradient(closest-side,rgba(40,18,2,.5),rgba(40,18,2,.24) 60%,transparent);}
+.sgp-shd{position:absolute;bottom:-11px;height:22px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(36,16,2,.95),rgba(36,16,2,.72) 45%,rgba(36,16,2,.3) 78%,transparent);}
+.sgp-bshd{position:absolute;height:14px;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(closest-side,rgba(40,18,2,.9),rgba(40,18,2,.55) 60%,transparent);}
 .sgp-bshd{opacity:1;}
 /* reduced motion: the finished build, the children standing by it */
 .sgp.still .sgp-move,.sgp.still .sgp-pc,.sgp.still .sgp-pcs{opacity:1;animation:none;}
 .sgp.still .sgp-held,.sgp.still .sgp-ghost{display:none;}
 @media (prefers-reduced-motion:reduce){ .sgp .sgp-move,.sgp .sgp-pc{opacity:1;animation:none !important;}
   .sgp .sgp-held,.sgp .sgp-ghost,.sgp .sgp-lines{display:none;} .sgp-bshd{opacity:1;} }
-/* the title painted on the wall (card landing_hero.title_look "wall"): terracotta wall paint with brush streaks,
-   multiplied into the wall so its texture shows through, no sticker outline (the dot border under it: removed, user 2026-10-15) */
-.sg-title.sg-wall{color:transparent !important;text-shadow:none !important;mix-blend-mode:multiply;letter-spacing:1px;}
-/* the words: brush-streaked paint, riding pv_landing.js's #sgHand wave (hand-painted, so their top bar is never ruler-straight) */
-.sg-title.sg-wall .sgw{display:inline-block;text-shadow:0 0 1.5px rgba(120,34,10,.35);filter:url(#sgHand);
-  background:repeating-linear-gradient(97deg,#A93816 0 7px,#932C10 7px 10px,#B4421C 10px 17px,#9E3214 17px 21px);
-  -webkit-background-clip:text;background-clip:text;}
+/* the title on the wall (card landing_hero.title_look "wall"): terracotta brush paint on a gentle arc, edged in white
+   (user 2026-10-16 "a little up, a little circular, white outline" - so no longer multiplied into the wall), then S02's
+   two rings: white, and a darker one dropped below it (.sgw-b) - deep brown, the paint's own dark, not S02's blue: blue read
+   as a cold sticker on S01's all-warm courtyard (user 2026-10-16 "is the blue matching?") */
+.sg-content .sg-title.sg-wall{top:-34px;color:transparent !important;text-shadow:none !important;line-height:0;}
+.sg-title.sg-wall .sgw-arc{display:block;margin:0 auto;overflow:visible;filter:drop-shadow(0 3px 4px rgba(90,30,8,.28));}
+.sg-title.sg-wall .sgw-t{fill:url(#sgPaint);stroke:#fff;stroke-width:9px;stroke-linejoin:round;paint-order:stroke fill;letter-spacing:1px;}
+.sg-title.sg-wall .sgw-b{fill:#5E2410;stroke:#5E2410;stroke-width:9px;stroke-linejoin:round;letter-spacing:1px;}
+.sg-title.sg-wall .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
 /* review 2026-10-14: "all the buttons' pop up effect should be an exact replication of the front screen play button" -
    every button arrives with the play button's pop (sgPlayPop: 1 -> 1.2 -> .93 -> 1.05 -> 1, .6s) - never the blocks'
    fade-in from .55 - and, once live, pulses with its idle pulse (sgPlayPulse, 1.15s) the moment the pop settles,
@@ -2104,6 +2110,125 @@ body.is-start .sg-sky{
 /* the landing's play button is never seen grey (user 2026-10-15 "a small time when the disabled button is also shown"):
    while it waits it is not there at all; it arrives gold, with its pop (a tap anywhere still starts a blocked greeting) */
 .sg-btn.sg-waiting{opacity:0 !important;pointer-events:none;}
+/* the number pad in the screen's own family (user 2026-10-15 review): keys like the number cards - white to light blue,
+   a soft blue base, navy numerals; backspace a quiet grey-blue; the tick in the game's gold, like the next button (green
+   and orange mean tens and ones here, so the pad does not use them). A pressed key sinks onto its base. */
+.pv-pad{background:#FFFFFF;border:3px solid #CFE3F7;border-radius:26px;box-shadow:0 6px 0 #CFE3F7,0 14px 26px rgba(12,46,92,.10);}
+.pv-key{border-radius:18px;background:linear-gradient(#FFFFFF,#E4F1FE);border:2px solid #A9CDF2;color:#012F76;
+  box-shadow:0 5px 0 #8DB8E8,0 7px 10px rgba(12,46,92,.10);transition:translate .08s,box-shadow .08s;}
+.pv-key:active{translate:0 4px;box-shadow:0 1px 0 #8DB8E8;}
+.pv-key.pv-back{background:linear-gradient(#F7FAFE,#E3EAF3);border-color:#B9C8DA;color:#4F6B8F;box-shadow:0 5px 0 #A3B4C9,0 7px 10px rgba(12,46,92,.10);}
+.pv-key.pv-back:active{box-shadow:0 1px 0 #A3B4C9;}
+.pv-key.pv-ok{background:linear-gradient(#FFD45A,#FCB717);border-color:#E9A100;color:#012F76;box-shadow:0 5px 0 #D18F00,0 7px 10px rgba(12,46,92,.14);}
+.pv-key.pv-ok:active{box-shadow:0 1px 0 #D18F00;}
+.pv-key.pv-ok.off{opacity:1;}
+.pv-key.hint-on{border:3px solid #1987FC;box-shadow:0 5px 0 #8DB8E8,0 0 0 6px rgba(25,135,252,.28);}
+.pv-key.pv-ok.hint-on{box-shadow:0 5px 0 #D18F00,0 0 0 6px rgba(25,135,252,.28);}
+/* the "?" being typed into: solid blue while open, the cursor blinking in it; wrong: a red flash */
+.pv-q.pv-typein.open:not(.filled){border-style:solid;border-color:#1987FC;color:#012F76;background:#fff;}
+.pv-q.pv-typein .pv-ch{color:#012F76;}
+.pv-q.pv-typein.open.wrong{border-color:#1987FC;background:#fff;}   /* never red (QA checklist): a wrong answer only shakes */
+
+/* ---------- [pv play] the practice game (pv_mod_tut.js PVPlay) ---------- */
+.pvp-bg{position:absolute;left:0;top:0;width:1333px;height:750px;pointer-events:none;
+  background:url("assets/bg_landing_v3.webp") center 40%/cover no-repeat;}
+.pvp-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,252,246,.62),rgba(255,252,246,.42) 55%,rgba(255,252,246,.2));}
+.pvp-stars{display:flex;gap:8px;z-index:6;pointer-events:none;}
+.pvp-star{width:44px;height:44px;display:block;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z' fill='%23ffffff' fill-opacity='.75' stroke='%23C9B48A' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  filter:drop-shadow(0 2px 2px rgba(12,46,92,.18));}
+.pvp-star.on{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z' fill='%23FFC531' stroke='%23E08A00' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E");}
+.pvp-build{z-index:4;pointer-events:none;}
+.pvp-layer{position:absolute;inset:0;}
+.pvp-layer img{position:absolute;display:block;max-width:none;}
+.pvp-ghost{filter:saturate(.35) brightness(1.15);opacity:.38;}   /* the part still to build: its own blocks, pale (a white outline vanished on the light walls) */
+.pvp-body{transition:clip-path .8s cubic-bezier(.3,1.25,.5,1);}
+.pvp-top{opacity:0;}
+.pvp-top.on{opacity:1;}
+.pvp-shd{position:absolute;left:-8%;right:-8%;bottom:-7px;height:14px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(40,18,2,.42),rgba(40,18,2,.18) 60%,transparent);}
+.pvp-kid{width:0;height:0;z-index:4;pointer-events:none;transform-origin:0 0;}
+.pvp-kid img{position:absolute;left:0;bottom:0;translate:-50% 0;width:auto;max-width:none;transition:opacity .12s;}
+.pvp-kid::before{content:"";position:absolute;left:-46px;width:92px;bottom:-6px;height:12px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(40,18,2,.45),rgba(40,18,2,.18) 60%,transparent);}
+.pvp-kid .cheer,.pvp-kid.cheer .idle{opacity:0;}
+.pvp-kid.cheer .cheer{opacity:1;}
+.pvp-spk{width:16px;height:16px;margin:-8px 0 0 -8px;z-index:8;pointer-events:none;
+  background:#FFD54A;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);}
+.pvp-spk.big{width:24px;height:24px;margin:-12px 0 0 -12px;}
+@media (prefers-reduced-motion:reduce){ .pvp-body{transition:none;} }
+
+/* ---------- [toy keys] the number pad as toy blocks, ONE colour (user 2026-10-15: "too basic", then "the buttons should be
+   of the same colour"): every digit key - and the backspace - is the same glossy blue block (a bright top, a darker 3D
+   edge, a shine across its top, a bold white number); the tick stays the game's gold button. ---------- */
+.pv-pad .pv-key:not(.pv-ok){position:relative;overflow:hidden;color:#fff;border:2px solid rgba(255,255,255,.7);
+  background:linear-gradient(#2A5BAE,#0B3D8C);box-shadow:0 5px 0 #052463,0 8px 12px rgba(12,46,92,.2);
+  text-shadow:0 2px 0 rgba(0,0,0,.25);font-size:32px;}   /* the numbers' own dark blue (user 2026-10-15) */
+.pv-pad .pv-key:not(.pv-ok)::before{content:"";position:absolute;left:12%;right:12%;top:6%;height:30%;border-radius:12px;
+  background:linear-gradient(rgba(255,255,255,.38),rgba(255,255,255,0));pointer-events:none;}
+.pv-pad .pv-key:not(.pv-ok):active{box-shadow:0 1px 0 #052463;}
+.pv-pad .pv-key svg{filter:drop-shadow(0 2px 0 rgba(0,0,0,.2));}
+/* the third help layer lights a key: a bright white ring round the block */
+.pv-pad .pv-key.hint-on{box-shadow:0 5px 0 #052463,0 0 0 4px #fff,0 0 0 8px rgba(255,197,49,.9) !important;}
+.pv-pad .pv-key.pv-ok.hint-on{box-shadow:0 5px 0 #D18F00,0 0 0 4px #fff,0 0 0 8px rgba(25,135,252,.6) !important;}
+/* compact, so the box and the pad under it both fit under the tables */
+.pv-pad.pv-pad-2{grid-template-columns:repeat(6,62px);gap:12px;padding:14px;}   /* bigger keys (user 2026-10-15) */
+.pv-pad .pv-key{width:62px;height:62px;border-radius:17px;}
+.pv-pad .pv-key svg{width:30px;height:30px;}
+.pv-ans .pv-slot{height:56px;font-size:38px;}
+.pv-ans{padding:8px;}
+/* the practice screens' equation sits 12px higher (user 2026-10-15), a little above the slide box's top edge: let it show
+   there (the box still clips sideways, for the slide-in) */
+.slide-stage:has(.pv-eq){overflow-x:clip;overflow-y:visible;}
+/* ---------- [phone pad] the 3 x 4 pad from the user's art (2026-10-15): a thick glossy sky-blue frame round a pale panel;
+   pale-blue glossy keys with a blue rim and navy numerals; a red backspace and a green tick ---------- */
+.pv-pad.pv-pad-3{grid-template-columns:repeat(3,76px);gap:12px;padding:16px;border-radius:34px;
+  background:linear-gradient(#EAF6FF,#DDEFFF);border:9px solid #39B2F7;
+  box-shadow:inset 0 0 0 3px #A7E2FF,0 0 0 2px #1C8EE0,0 10px 22px rgba(12,46,92,.18);}
+.pv-pad.pv-pad-3 .pv-key{position:relative;overflow:hidden;width:76px;height:64px;border-radius:18px;
+  background:linear-gradient(#FBFDFF 0%,#E3F2FF 55%,#C8E5FF 100%);border:2.5px solid #2E9BF2;color:#0B1F4D;text-shadow:none;
+  box-shadow:0 5px 0 #3A9BF0,0 7px 10px rgba(12,46,92,.14);font-size:36px;}
+.pv-pad.pv-pad-3 .pv-key::before{content:"";position:absolute;left:9px;top:6px;width:16px;height:9px;border-radius:50%;
+  background:rgba(255,255,255,.95);rotate:-28deg;pointer-events:none;}
+.pv-pad.pv-pad-3 .pv-key:active{translate:0 4px;box-shadow:0 1px 0 #3A9BF0;}
+.pv-pad.pv-pad-3 .pv-key.pv-back{background:linear-gradient(#FFA2A2,#F25A5A);border-color:#D92F35;color:#D92F35;box-shadow:0 5px 0 #C0262C,0 7px 10px rgba(12,46,92,.14);}
+.pv-pad.pv-pad-3 .pv-key.pv-back svg{width:42px;height:28px;}
+.pv-pad.pv-pad-3 .pv-key.pv-ok{background:linear-gradient(#7CF59A,#20C454);border-color:#0E9A3A;color:#fff;box-shadow:0 5px 0 #0B8031,0 7px 10px rgba(12,46,92,.14);}
+.pv-pad.pv-pad-3 .pv-key.pv-ok svg{width:36px;height:36px;filter:drop-shadow(0 2px 0 rgba(0,80,20,.35));}
+.pv-pad.pv-pad-3 .pv-key.pv-ok.off{opacity:1;}
+.pv-pad.pv-pad-3 .pv-key.hint-on{box-shadow:0 5px 0 #3A9BF0,0 0 0 4px #fff,0 0 0 8px rgba(255,197,49,.9) !important;}
+/* the pad's digit keys as the user's blue tile (2026-10-15): solid bright blue, a white numeral, a thin light rim, a
+   deeper blue edge under it; the frame round the pad thinner */
+.pv-pad.pv-pad-3{border-width:4px;box-shadow:0 0 0 1px #1C8EE0,0 8px 18px rgba(12,46,92,.16);}
+.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok){background:linear-gradient(#3C9DFF,#1F86F5);border:2px solid #8CC6FF;color:#fff;
+  border-radius:12px;box-shadow:0 4px 0 #1565C8,0 6px 10px rgba(12,46,92,.16);text-shadow:none;}
+.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok)::before{display:none;}
+.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok):active{box-shadow:0 1px 0 #1565C8;}
+.pv-pad.pv-pad-3 .pv-key.pv-back,.pv-pad.pv-pad-3 .pv-key.pv-ok{border-radius:12px;}
+/* the keys in the style of the user's reference pad (2026-10-15), in the current colours: puffy rounded keys, a light rim
+   inside a darker outline, a glossy shine at the top left, a soft lighter band along the bottom, a deep 3D edge */
+.pv-pad.pv-pad-3{grid-template-columns:repeat(3,84px);gap:12px;padding:16px;}
+.pv-pad.pv-pad-3 .pv-key{width:84px;height:70px;border-radius:20px !important;overflow:hidden;}
+.pv-pad.pv-pad-3 .pv-key::before,.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok)::before{display:block;content:"";position:absolute;
+  left:10px;top:7px;width:20px;height:11px;border-radius:50%;background:rgba(255,255,255,.95);rotate:-30deg;pointer-events:none;}
+.pv-pad.pv-pad-3 .pv-key::after{content:"";position:absolute;left:6px;right:6px;bottom:4px;height:30%;border-radius:0 0 14px 14px;
+  background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.22));pointer-events:none;}
+.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok){background:linear-gradient(#56B0FF,#2389F7 60%,#1C7CEB);
+  border:3px solid #1466D0;box-shadow:inset 0 0 0 2px rgba(190,226,255,.75),0 5px 0 #0F55B5,0 8px 12px rgba(12,46,92,.18);font-size:38px;}
+.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok):active{box-shadow:inset 0 0 0 2px rgba(190,226,255,.75),0 1px 0 #0F55B5;}
+.pv-pad.pv-pad-3 .pv-key.pv-back{border:3px solid #C9252B;box-shadow:inset 0 0 0 2px rgba(255,210,210,.7),0 5px 0 #A51C22,0 8px 12px rgba(12,46,92,.18);}
+.pv-pad.pv-pad-3 .pv-key.pv-ok{border:3px solid #0C8A34;box-shadow:inset 0 0 0 2px rgba(200,255,215,.7),0 5px 0 #08702A,0 8px 12px rgba(12,46,92,.18);}
+.pv-pad.pv-pad-3 .pv-key.pv-back:active,.pv-pad.pv-pad-3 .pv-key.pv-ok:active{translate:0 4px;}
+/* user 2026-10-15: bigger numerals, a softer shine, the keys' blue 20% lighter (80% strength) */
+.pv-pad.pv-pad-3 .pv-key{font-size:48px !important;}
+.pv-pad.pv-pad-3 .pv-key svg{transform:scale(1.2);}
+.pv-pad.pv-pad-3 .pv-key::before,.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok)::before{background:rgba(255,255,255,.45);}
+.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok){background:linear-gradient(rgba(86,176,255,.8),rgba(35,137,247,.8) 60%,rgba(28,124,235,.8));}
+/* user 2026-10-15: the blue 10% stronger (90%), the numerals fully opaque white, the outline a touch lighter */
+.pv-pad.pv-pad-3 .pv-key:not(.pv-back):not(.pv-ok){background:linear-gradient(rgba(86,176,255,.9),rgba(35,137,247,.9) 60%,rgba(28,124,235,.9));
+  color:#fff;opacity:1;border-color:#3D8DE6;}
+/* user 2026-10-15: bigger numerals on the pad */
+.pv-pad.pv-pad-3 .pv-key{font-size:58px !important;}
+.pv-pad.pv-pad-3 .pv-key svg{transform:scale(1.35);}
 /* the + buttons in the gap between the two tables (PV_DEMO with the sum table shown - user 2026-10-15): compact */
 .pv-src.pv-src-mid{height:58px;gap:6px;padding:0 8px 0 10px;}
 .pv-src.pv-src-mid img{height:38px;}

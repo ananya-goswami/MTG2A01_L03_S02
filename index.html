@@ -9,13 +9,13 @@
      request, so without this the very first paint is unstyled. This inline rule
      lands the loader's own colour on the first frame. -->
 <style>html,body{background:#FFFFFF;margin:0;}</style>
-<link rel="stylesheet" href="style.css?v=20261015-145009">
+<link rel="stylesheet" href="style.css?v=20261016-110135">
 <!-- [loading] the landing's own files start downloading with the page, alongside style.css - not only once app.js has
      arrived and asked for them (the boot loader waits for exactly these: app.js Assets, CRIT). http(s) only: on
      file:// a preload of a fetch() fails, and local files need no head start. -->
 <script>(function(){ if(!/^https?:$/.test(location.protocol)) return;
   [["assets/fonts/baloo2-800.woff2", "font", "font/woff2"], ["assets/gif/new_landing_swiftee_anim.webp", "fetch"],
-   ["assets/startnew_bg_plain.webp", "image"], ["assets/bg_landing_soft2.webp", "image"], ["assets/pv_rod11.webp", "image"]
+   ["assets/startnew_bg_plain.webp", "image"], ["assets/bg_landing_v3.webp", "image"], ["assets/pv_rod11.webp", "image"]
   ].forEach(function(f){ var l = document.createElement("link"); l.rel = "preload"; l.href = f[0]; l.as = f[1];
     if(f[2]) l.type = f[2]; if(f[1] !== "image") l.crossOrigin = "anonymous"; document.head.appendChild(l); });
 })();</script>
@@ -95,7 +95,7 @@
       <img class="sg-mascot" data-src="assets/gif/new_landing_swiftee_anim.webp" alt="Swiftee"
            onerror="this.style.display='none'">
       <div class="sg-content">
-        <div class="sg-title" id="sgTitle">संख्या जोड़ – नई दहाई बनाकर</div>
+        <div class="sg-title" id="sgTitle">संख्या जोड़ नई दहाई बनाकर</div>
 
         <!-- r4/#2: concept strip is now DATA-DRIVEN — the engine fills #sgHero from
              CARD.landing_hero (kind:"concept_strip"). Each tile is a visual example of the
@@ -156,7 +156,7 @@
  "part_label": "",
  "theme": "toybox",
  "title": {
-  "hi": "संख्या जोड़ – नई दहाई बनाकर",
+  "hi": "संख्या जोड़, नई दहाई बनाकर",
   "en": "Add horizontally with regrouping"
  },
  "landing_hero": {
@@ -733,6 +733,6 @@
 
 <!-- ============ ENGINE ============ -->
 <script src="swiftpal-bridge.js"></script>   <!-- [QA 01] host bridge: Android / iOS / web - must load before app.js -->
-<script src="app.js?v=20261015-145009"></script>
+<script src="app.js?v=20261016-110135"></script>
 </body>
 </html>
