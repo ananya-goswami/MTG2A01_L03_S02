@@ -93,7 +93,7 @@
    "vo_p4_correct": "assets/voiceover/vo_p4_correct.ogg",
    "vo_pt_guided": "assets/voiceover/vo_pt_guided.ogg",
    "vo_pt_practice": "assets/voiceover/vo_pt_practice.ogg",
-   "vo_pt_tutorial": "assets/voiceover/vo_pt_tutorial.ogg",
+   "vo_pt_tutorial": "assets/voiceover/vo_pt_tutorial.wav",
    "vo_t1_count_intro": "assets/voiceover/vo_t1_count_intro.ogg",
    "vo_t1_know": "assets/voiceover/vo_t1_know.ogg",
    "vo_t1_made": "assets/voiceover/vo_t1_made.ogg",
@@ -249,7 +249,8 @@
      "swifty",
      "swifty"
     ],
-    "auto": true
+    "auto": true,
+    "sum_at": 0.738
    }
   },
   {
@@ -360,7 +361,8 @@
      "child"
     ],
     "ghost_auto": false,
-    "ghost_idle": 5000
+    "ghost_idle": 5000,
+    "sum_at": 0.771
    }
   },
   {
@@ -423,6 +425,13 @@
      33,
      16,
      43
+    ],
+    "eq_at": [
+     0.363,
+     0.511,
+     0.605,
+     0.709,
+     0.836
     ]
    }
   },
@@ -449,6 +458,13 @@
      70,
      61,
      60
+    ],
+    "eq_at": [
+     0.384,
+     0.525,
+     0.613,
+     0.712,
+     0.831
     ]
    }
   },
@@ -475,6 +491,13 @@
      84,
      94,
      81
+    ],
+    "eq_at": [
+     0.361,
+     0.51,
+     0.603,
+     0.708,
+     0.835
     ]
    }
   },
@@ -493,7 +516,14 @@
    },
    "data": {
     "a": 24,
-    "b": 46
+    "b": 46,
+    "eq_at": [
+     0.385,
+     0.524,
+     0.612,
+     0.71,
+     0.829
+    ]
    }
   },
   {
@@ -511,7 +541,14 @@
    },
    "data": {
     "a": 39,
-    "b": 26
+    "b": 26,
+    "eq_at": [
+     0.377,
+     0.522,
+     0.613,
+     0.715,
+     0.839
+    ]
    }
   },
   {
@@ -538,6 +575,13 @@
      "tables",
      "merge",
      "reveal"
+    ],
+    "eq_at": [
+     0.386,
+     0.526,
+     0.614,
+     0.713,
+     0.832
     ]
    }
   },
@@ -565,6 +609,13 @@
      "tables",
      "merge",
      "reveal"
+    ],
+    "eq_at": [
+     0.376,
+     0.52,
+     0.61,
+     0.711,
+     0.833
     ]
    }
   },

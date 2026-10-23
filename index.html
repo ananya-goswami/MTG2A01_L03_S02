@@ -494,8 +494,11 @@ body.is-start .start-bg{display:block;}
 .mascot-wrap{position:absolute;left:var(--mascot-left,16.5px);top:var(--mascot-top,18px);width:var(--mascot-size,132px);height:var(--mascot-size,132px);z-index:40;cursor:pointer;}
 .mascot-circle{width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;background:#9DDBF5;border:4px solid #FFFFFF;box-shadow:0 6px 14px rgba(0,47,118,.20);}
 .mascot-img{width:100%;height:100%;display:block;object-fit:cover;}
-.mascot-wrap.anim .mascot-circle{overflow:visible !important;background:transparent !important;border:none !important;box-shadow:none !important;}
-.mascot-wrap.anim .mascot-circle .mascot-img{position:static !important;inset:auto !important;width:100% !important;height:auto !important;object-fit:contain !important;transform:none !important;}
+/* the animated poses (hint bulb, try-again, cheer) stay INSIDE the same round white frame as the resting face (user
+   2026-10-23: the hint's bulb came out of the white circle) - the frame keeps its border, shadow, sky fill and clip; the
+   clip's own blue disc is scaled to fill it, so no second disc edge shows */
+.mascot-wrap.anim .mascot-circle{overflow:hidden !important;}
+.mascot-wrap.anim .mascot-circle .mascot-img{width:100% !important;height:100% !important;object-fit:cover !important;transform:scale(1.12) !important;}
 .stage.gating .mascot-wrap{visibility:hidden;}            /* one-Swiftie: the peeking Swiftie is the only one during a gate */
 .stage.tut .mascot-wrap{display:none;}          /* header avatar off — the tut-mascot is the only Swiftie */
 /* KEPT FROM MTG, not from HI01: MTG's setSwMood() pops the avatar on every
@@ -2333,6 +2336,39 @@ body.is-start .sg-sky{
 .pv-src.pv-src-mid img[src*="pv_cube"]{height:26px;}
 .pv-src.pv-src-mid .pv-plus{width:40px;height:40px;font-size:30px;}
 
+/* SME review 2026-10-22: the equation lights part by part as the correct VO reads it (sayEq) */
+/* (user 2026-10-22: the scaled boxes and their outer ring ran into their neighbours) - the light stays INSIDE each part's own
+   outline: a box gets a gold rim and a warm fill; a sign turns gold with a soft glow - nothing grows or moves */
+.pv-num,.pv-op{transition:background-color .2s,border-color .2s,box-shadow .2s,color .2s,text-shadow .2s,translate .2s;}
+.pv-num.pv-say{border-color:#F5B301 !important;background:#FFF6D6 !important;box-shadow:inset 0 0 0 2px #FFD65A,0 4px 0 #E9B320 !important;}   /* (no lift: on the number pad's page the row sits at the play area's top edge, which clips - user 2026-10-22) */
+.pv-op.pv-say{color:#F5A524;text-shadow:0 0 10px rgba(255,190,40,.6);}
+/* ...and the number pad's third layer: only the key to press is live - it pulses until tapped, every other key dims */
+.pv-pad .pv-key.locked{opacity:.3 !important;filter:grayscale(.7);pointer-events:none !important;}
+/* the key to press: as the deck's picture (user 2026-10-22) - a bold gold outline round the WHOLE key: its face AND the
+   5px ledge under it (two gold shadows, the face's and the ledge's, make one outline); the key keeps its own inner rim and
+   depth. It pulses with a warm glow breathing out from the outline (a drop-shadow - it follows the key's shape) and a
+   slight brightening - it never grows, so nothing runs into the keys round it ("more visible" - user 2026-10-22) */
+.pv-pad.pv-pad-3 .pv-key.hint-on{box-shadow:inset 0 0 0 2px rgba(190,226,255,.75),0 5px 0 #0F55B5,0 0 0 4px #FFB300,0 5px 0 4px #FFB300 !important;
+  animation:pvKeyHint 1.1s ease-in-out infinite;}
+.pv-pad.pv-pad-3 .pv-key.pv-ok.hint-on{box-shadow:inset 0 0 0 2px rgba(200,255,215,.7),0 5px 0 #08702A,0 0 0 4px #FFB300,0 5px 0 4px #FFB300 !important;}
+@keyframes pvKeyHint{0%,100%{filter:drop-shadow(0 0 3px rgba(255,179,0,.55)) brightness(1);}50%{filter:drop-shadow(0 0 13px rgba(255,179,0,1)) brightness(1.1);}}
+@media (prefers-reduced-motion:reduce){ .pv-pad .pv-key.hint-on{animation:none;} }
+/* SME review (S02 T1): a counted cube BRIGHTENS - richer, lighter, a warm glow round it (the inner white light read as dimmed) */
+.pv-blk.pv-on{filter:brightness(1.32) saturate(1.4) drop-shadow(0 0 9px rgba(255,190,30,1)) drop-shadow(0 2px 2px rgba(12,46,92,.28)) !important;}
+/* the source box (SME review + user 2026-10-22 "both in 1 box, separated by a line"): one white box at the bottom centre,
+   two halves - [rod +] | [cube +] - each its own button, the same width, a thin line between them */
+.pv-src-bar{position:absolute;display:flex;align-items:stretch;padding:0 6px;box-sizing:border-box;z-index:8;transform-origin:50% 100%;
+  background:#fff;border:3px solid #B7DCFB;border-radius:26px;box-shadow:0 4px 0 #CFE3F7,0 8px 14px rgba(12,46,92,.10);transition:opacity .25s;}
+.pv-src-bar .pv-src{position:relative;left:auto;top:auto;transform:none;transform-origin:50% 50%;height:100%;
+  display:flex;align-items:center;justify-content:center;gap:14px;padding:0 18px;margin:0;box-sizing:border-box;
+  background:transparent;border:0;border-radius:20px;box-shadow:none;}
+.pv-src-bar .pv-src:active{translate:0 2px;box-shadow:none;}
+.pv-src-bar .pv-src-blk{display:flex;align-items:center;justify-content:center;width:24px;}
+.pv-src-bar .pv-src img{display:block;filter:drop-shadow(0 2px 1px rgba(12,46,92,.18));}
+.pv-src-bar .pv-plus{width:44px;height:44px;font-size:36px;line-height:44px;}
+.pv-src-div{flex:none;width:2px;margin:16px 0;border-radius:2px;background:#D3E6FA;}
+/* the answer's box after its green moment (settle): a plain number box like the others, the green rim fading away */
+.pv-q.filled.settled{border:2.69px solid #D5D8DF;background:#fff;box-shadow:0 4px 0 #D9D9D9;color:#012F76;transition:border-color .5s,background-color .5s,box-shadow .5s;}
 </style>
 <!-- [loading] the landing's own files start downloading with the page, alongside style.css - not only once app.js has
      arrived and asked for them (the boot loader waits for exactly these: app.js Assets, CRIT). http(s) only: on
@@ -2565,7 +2601,7 @@ body.is-start .sg-sky{
    "vo_p4_correct": "assets/voiceover/vo_p4_correct.ogg",
    "vo_pt_guided": "assets/voiceover/vo_pt_guided.ogg",
    "vo_pt_practice": "assets/voiceover/vo_pt_practice.ogg",
-   "vo_pt_tutorial": "assets/voiceover/vo_pt_tutorial.ogg",
+   "vo_pt_tutorial": "assets/voiceover/vo_pt_tutorial.wav",
    "vo_t1_count_intro": "assets/voiceover/vo_t1_count_intro.ogg",
    "vo_t1_know": "assets/voiceover/vo_t1_know.ogg",
    "vo_t1_made": "assets/voiceover/vo_t1_made.ogg",
@@ -2721,7 +2757,8 @@ body.is-start .sg-sky{
      "swifty",
      "swifty"
     ],
-    "auto": true
+    "auto": true,
+    "sum_at": 0.738
    }
   },
   {
@@ -2832,7 +2869,8 @@ body.is-start .sg-sky{
      "child"
     ],
     "ghost_auto": false,
-    "ghost_idle": 5000
+    "ghost_idle": 5000,
+    "sum_at": 0.771
    }
   },
   {
@@ -2895,6 +2933,13 @@ body.is-start .sg-sky{
      33,
      16,
      43
+    ],
+    "eq_at": [
+     0.363,
+     0.511,
+     0.605,
+     0.709,
+     0.836
     ]
    }
   },
@@ -2921,6 +2966,13 @@ body.is-start .sg-sky{
      70,
      61,
      60
+    ],
+    "eq_at": [
+     0.384,
+     0.525,
+     0.613,
+     0.712,
+     0.831
     ]
    }
   },
@@ -2947,6 +2999,13 @@ body.is-start .sg-sky{
      84,
      94,
      81
+    ],
+    "eq_at": [
+     0.361,
+     0.51,
+     0.603,
+     0.708,
+     0.835
     ]
    }
   },
@@ -2965,7 +3024,14 @@ body.is-start .sg-sky{
    },
    "data": {
     "a": 24,
-    "b": 46
+    "b": 46,
+    "eq_at": [
+     0.385,
+     0.524,
+     0.612,
+     0.71,
+     0.829
+    ]
    }
   },
   {
@@ -2983,7 +3049,14 @@ body.is-start .sg-sky{
    },
    "data": {
     "a": 39,
-    "b": 26
+    "b": 26,
+    "eq_at": [
+     0.377,
+     0.522,
+     0.613,
+     0.715,
+     0.839
+    ]
    }
   },
   {
@@ -3010,6 +3083,13 @@ body.is-start .sg-sky{
      "tables",
      "merge",
      "reveal"
+    ],
+    "eq_at": [
+     0.386,
+     0.526,
+     0.614,
+     0.713,
+     0.832
     ]
    }
   },
@@ -3037,6 +3117,13 @@ body.is-start .sg-sky{
      "tables",
      "merge",
      "reveal"
+    ],
+    "eq_at": [
+     0.376,
+     0.52,
+     0.61,
+     0.711,
+     0.833
     ]
    }
   },
@@ -4008,7 +4095,7 @@ const PVK = (function(){
   /* the lateral buzz of the FLN kit (recipes 11/20): +-9px decaying, .4s, on `translate` */
   /* the decks' idle cue ("if idle, pulsate again"): the pulse restarts from its start, with the nudge chime - no hand
      (user 2026-10-15: match the decks; their hand nudges are only the answer counter's and the ghost drags) */
-  function repulse(el){ if(!el) return; el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse"); try{ sfxNudge(); }catch(e){} }
+  function repulse(el, quiet){ if(!el) return; el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse"); if(!quiet) try{ sfxNudge(); }catch(e){} }   // quiet: the pulse alone, no chime
   function shake(el, amp){ if(!el || reduce()) return; const a = amp || 9;
     el.animate([{ translate: "0 0" }, { translate: -a + "px 0" }, { translate: a + "px 0" }, { translate: -a * .67 + "px 0" },
                 { translate: a * .67 + "px 0" }, { translate: "0 0" }], { duration: 400, easing: "ease-in-out" }); }
@@ -4138,13 +4225,15 @@ const PVK = (function(){
                              { duration: n * 85, iterations: Infinity, easing: "steps(" + n + ")" });
     return svg;
   }
+  /* the answer's box: green as the right answer lands, then (1.2s) back to a plain number box like the others (user 2026-10-22) */
+  const settle = q =>{ setTimeout(()=>{ if(q.isConnected) q.classList.add("settled"); }, 1200); };
   function equation(sc, a, b, cx, y, h){
     const row = add(sc, "div", "pv-eq", "height:" + px(h) + ";--h:" + px(h));
     const box = (n, cls)=>{ const e = add(row, "div", "pv-num " + cls, "height:" + px(h) + ";font-size:" + px(h * .7) + ";min-width:" + px(h * 1.55) + ";border-radius:" + px(h * .28) + ";position:relative");
       e.innerHTML = n == null ? "?" : numHTML(n); return e; };
     const sym = t =>{ const e = add(row, "span", "pv-op", "font-size:" + px(h * .78)); e.textContent = t; return e; };
     const E = { el: row, a: box(a, "pv-ea"), plus: sym("+"), b: box(b, "pv-eb"), eq: sym("="), q: box(null, "pv-q") };
-    E.fill = n =>{ E.q.innerHTML = numHTML(n); E.q.classList.add("filled"); pop(E.q); };
+    E.fill = n =>{ E.q.innerHTML = numHTML(n); E.q.classList.add("filled"); pop(E.q); settle(E.q); };
     setXY(row, cx, y); return E;
   }
   /* ---- one person of a story page: the round portrait and the name under it ---- */
@@ -4158,7 +4247,7 @@ const PVK = (function(){
   }
 
   return { reduce, px, wait, ROD, CUBE, FIT, dashBox, kNow, add, setXY, xy, knock, pop, show, shake, repulse, softGlow, scene, ctx, run, block, glide, shift,
-           hand, centre, numHTML, numCard, lightDigit, equation, person };
+           hand, centre, numHTML, numCard, lightDigit, equation, settle, person };
 })();
 
 /* ---- [pv kit] the place-value table, block groups, moving blocks between tables, making a ten ---- */
@@ -4175,19 +4264,25 @@ Object.assign(PVK, (function(){
     /* g: the gap between the cubes - the same everywhere. A table that can reach ten ones gets a wider one (>= 18px), so the
        ten's dashed ring runs in the gap clear of the cubes on both sides (user 2026-10-16: "the dotted lines are colliding
        with the cubes") and the spacing stays even (user 2026-10-15) */
-    const g = Math.max((o.onesMax || 9) >= 10 ? 18 : 4, Math.round(Q * .2)), rW = G, rH = G * ROD.ar, rg = Math.max(6, Math.round(rW * .5));
+    const g = Math.max((o.onesMax || 9) >= 10 ? 26 : 4, Math.round(Q * .2)),   /* (26: the ring's 3px line ~11px clear of the cubes on both sides - user 2026-10-23, it read as touching at 18) */ rW = G, rH = G * ROD.ar, rg = Math.max(6, Math.round(rW * .5));
     const pad = o.pad != null ? o.pad : Math.round(Q * .45) + 4, head = Math.round(Q * .55 + 22), cH = G * CUBE.ar;
     const rows = Math.max(2, Math.ceil((o.onesMax || 9) / 5)), tSlots = Math.max(o.tensMax || 5, 3);
     /* the two columns are always the same width: the wider one's need sets both (blocks centre in their column) */
     /* a table that can reach ten ones keeps a rod lane at the right of its इकाई column: the new ten forms there,
        inside the table, and waits there until it is put in the tens column */
     const lane = (o.onesMax || 9) >= 10 ? rW + 2 * g : 0;
-    const onesNeed = 5 * G + 4 * g + lane + 2 * pad, colW = Math.max(onesNeed, tSlots * rW + (tSlots - 1) * rg + 2 * pad);
+    /* a tens column that will HOLD 4+ rods gets breathing room - two rod gaps more on each side ("a little more" - user 2026-10-22), so the rods never run up to the
+       column's edges (user 2026-10-22: "breathable space for the दहाई" - the sum tables, 5+ rods) */
+    const tensNeed = tSlots * rW + (tSlots - 1) * rg + 2 * pad + ((o.tensFinal || 0) >= 4 ? 4 * rg : 0);
+    const onesNeed = 5 * G + 4 * g + lane + 2 * pad, colW = Math.max(onesNeed, tensNeed) + (o.grow || 0);   // o.grow: extra room in each column (the sum table - SME review)
     const onesW = colW, tensW = colW, onesIn = (colW - onesNeed) / 2;
     /* every row the same gap apart (user 2026-10-15 "spacing between each cube should be the same"; before: rows after
        the ten-frame stood 12px lower to clear its ring - the ring now runs in the gap itself, see ring()) */
     const TF = 0, rowsH = r => r ? r * cH + (r - 1) * g + (r > 2 ? TF : 0) : 0;
-    const inH = Math.max(rH, rowsH(rows)), H = head + inH + 2 * pad, W = tensW + onesW;
+    /* a table that can make a ten: room above and below the cubes for the ten's ring (it stands half a gap out from them) -
+       so the ring stays inside the table body, never over the head (user 2026-10-23) */
+    const ringRoom = (o.onesMax || 9) >= 10 ? Math.max(0, g / 2 + 12 - pad) : 0;
+    const inH = Math.max(rH, rowsH(rows) + 2 * ringRoom), H = head + inH + 2 * pad, W = tensW + onesW;
     const x = o.cx - W / 2, y = o.y, fs = Math.round(head * .64);   // (the दहाई / इकाई heads bigger, for reading - user 2026-10-15)
     /* soft trays with name tags (user 2026-10-16: the solid saffron / green bands "looked like Independence Day"): each
        column a pale tint of its own block's colour, its head a rounded tag with a little picture of its block (a rod for
@@ -4267,27 +4362,23 @@ Object.assign(PVK, (function(){
   function ring(T, on){
     const rp = T.g / 2;                                                    // (half the gap out: its 4px line clear of the ten AND of the next row)
     if(!T._ring){ const w = 5 * T.G + 4 * T.g + 2 * rp, h = 2 * T.cH + T.g + 2 * rp;
-      T._ring = add(T.sc, "div", "pv-ring pv-hide", "width:" + px(w) + ";height:" + px(h)); K.dashBox(T._ring, w, h, 4, 14, 11, 8);
+      T._ring = add(T.sc, "div", "pv-ring pv-hide", "width:" + px(w) + ";height:" + px(h)); K.dashBox(T._ring, w, h, 3, 14, 10, 7);
       T.extra.push(T._ring); }
     if(on !== false){ const p = T.onesXY(0); setXY(T._ring, p.x - rp, p.y - rp); }      // round the first ten where they stand now
     T._ring.classList.toggle("pv-hide", on === false); if(on !== false) pop(T._ring);
     return T._ring;
   }
-  /* MAKE A TEN: the first ten cubes of table S stack into one column in their इकाई column - left of the cubes left over, the
-     two centred together - (each one on its place in the rod - a rod is ten cubes), and become ONE rod (a "new ten", glowing); the cubes left over move up to the first places.
+  /* MAKE A TEN: the first ten cubes of table S fly into the new rod's place in their इकाई column - left of the cubes left
+     over, the two centred together - shrinking and fading as they go (they never stand touching - SME review: the yellow
+     blocks always apart), and become ONE rod (a "new ten", glowing); the cubes left over move up to the first places.
      Resolves with that rod - not yet in S.rods: it waits in the lane until it is put in the tens column. */
   async function makeTen(S){
     const ten = S.cubes.slice(0, 10), rest = S.cubes.slice(10);
     S.cubes = rest; S.laneRod = ten[9];                               // (a stand-in until the rod is made: the layout leaves its place)
     const q = S.onesBox(rest.length, true), rx = q.rx, ry = q.ry, sc = S.sc;
     rest.forEach((c, i)=> glide(c, S.onesXY(i), 560, false));
-    const unit = S.G * CUBE.pitch;                                 // one cube's step = one tenth of the rod
     ring(S, false);
-    await Promise.all(ten.map((c, j)=> wait(j * 45).then(()=>{
-      c.style.zIndex = 30;
-      return glide(c, { x: rx, y: ry + (9 - j) * unit }, 560, true);
-    })));
-    await wait(140);
+    await Promise.all(ten.map((c, j)=> wait(j * 45).then(()=> intoRod(c, rx, ry, S.rH, S.cH, 560))));
     const rod = K.block(sc, "t", rx, ry, S.rH); newTen(rod); pop(rod);
     ten.forEach(c =>{ c.classList.add("pv-gone"); setTimeout(()=> c.remove(), 400); });
     try{ playSfxFile("sfx_correct", 0.5); }catch(e){}
@@ -4295,19 +4386,29 @@ Object.assign(PVK, (function(){
     await wait(420);
     return rod;
   }
+  /* a cube flying into the place of the rod it becomes part of (top-left x, y; rod height rH; cube height cH): it ends
+     at the rod's middle, shrinking and fading on the way, so the ten never stand touching (SME review) */
+  function intoRod(c, x, y, rH, cH, ms){
+    c.style.zIndex = 30;
+    if(!K.reduce()) c.animate([{ opacity: 1, scale: 1 }, { opacity: .7, scale: .8, offset: .35 }, { opacity: 0, scale: .5, offset: .65 }, { opacity: 0, scale: .45 }], { duration: ms, fill: "forwards" });   // (gone before they meet)
+    return glide(c, { x, y: y + rH / 2 - cH / 2 }, ms, true);
+  }
   /* a person's blocks on a story page: the rods side by side, then the cubes in columns of five, bottom-aligned.
      g.add(blocks) re-lays a set of blocks (another group's, flying in) into this group's places */
   function group(sc, n, cx, bottom, H){
     const G = { sc, n, cx, bottom, H, rods: [], cubes: [] };
-    const rW = H / ROD.ar, cs = rW, cH = cs * CUBE.ar, fH = cs * CUBE.pitch;   // a cube = one of the rod's ten
-    /* the cubes stack like the rod's (each one's top face under the next one), so five of them are half a rod */
-    G.layout = (t, u)=>{ const cols = Math.ceil(u / 5), rw = t ? t * rW + (t - 1) * 5 : 0, cw = cols ? cols * cs + (cols - 1) * 3 : 0;
+    const rW = H / ROD.ar, cs = rW, cH = cs * CUBE.ar;   // a cube = one of the rod's ten
+    /* the cubes stand apart, a clear gap between each one (SME review: the loose ones must not look stuck together) */
+    const cg = Math.max(4, Math.round(cs * .22)), fH = cH + cg;
+    G.layout = (t, u)=>{ const cols = Math.ceil(u / 5), rw = t ? t * rW + (t - 1) * 5 : 0, cw = cols ? cols * cs + (cols - 1) * cg : 0;
       const W = rw + (t && cols ? 10 : 0) + cw, x0 = cx - W / 2, cx0 = x0 + rw + (t && cols ? 10 : 0);
-      return { rod: j =>({ x: x0 + j * (rW + 5), y: bottom - H }), cube: i =>({ x: cx0 + Math.floor(i / 5) * (cs + 3), y: bottom - cH - (i % 5) * fH }) }; };
+      return { rod: j =>({ x: x0 + j * (rW + 5), y: bottom - H }), cube: i =>({ x: cx0 + Math.floor(i / 5) * (cs + cg), y: bottom - cH - (i % 5) * fH }) }; };
     G.make = ()=>{ const t = Math.floor(n / 10), u = n % 10, L = G.layout(t, u);
       for(let j = 0; j < t; j++){ const p = L.rod(j); G.rods.push(K.block(sc, "t", p.x, p.y, H)); }
       for(let i = 0; i < u; i++){ const p = L.cube(i); G.cubes.push(K.block(sc, "o", p.x, p.y, cs)); } return G; };
     G.all = ()=> [...G.rods, ...G.cubes];
+    G.width = (t, u)=>{ const cols = Math.ceil(u / 5);                       // the layout's width for t rods + u cubes
+      return (t ? t * rW + (t - 1) * 5 : 0) + (t && cols ? 10 : 0) + (cols ? cols * cs + (cols - 1) * cg : 0); };
     G.cs = cs; G.rW = rW;
     return G;
   }
@@ -4321,7 +4422,7 @@ Object.assign(PVK, (function(){
       (extra || []).forEach(e =>{ if(e) setXY(e, e._x + dx, e._y); }); });
     return x0 + TA.W + g / 2;                                               // where the + goes
   }
-  return { table, showTable, transfer, newTen, sweep, ring, makeTen, group, pair };
+  return { table, showTable, transfer, newTen, sweep, ring, makeTen, intoRod, group, pair };
 })());
 
 /* ---- [pv kit] what the child does: add blocks with the + buttons, tap blocks across into the sum table, make a
@@ -4330,15 +4431,24 @@ Object.assign(PVK, (function(){
   const K = PVK, { px, add, setXY, glide, wait, pop, shake } = K;
   const idleMs = ()=> IDLE_MS;
 
-  /* the two source buttons under a table being built: [rod +] (दहाई) and [cube +] (इकाई); centred on mid (stage x)
-     when given - the screen's centre, review 2026-10-14 - else under the table */
+  /* the two source buttons for a table being built: [rod +] (दहाई) | [cube +] (इकाई) - ONE box at the bottom centre
+     (user 2026-10-22: "both in 1 box, separated by a line"), centred on mid (stage x) when given, else under the table;
+     y = the line its bottom stands on (SME review: bottom centre, aligned, evenly spaced). Each half is its own button
+     (its pulse / off / demo states): its block on the left - upright as in the table and in the table's exact ratio, a
+     rod ten cubes tall (SME review) - the rod drawn smaller and the cube a little bigger (user 2026-10-22), so the box
+     stays control-sized - and the + on the right. The two halves the same width, a thin line between them */
   function sources(sc, T, y, mid){
-    const mk = (kind, cx)=>{ const b = add(sc, "button", "pv-src pv-hide"); b.type = "button";
-      b.innerHTML = '<img alt="" src="' + (kind === "t" ? K.ROD.src : K.CUBE.src) + '"><span class="pv-plus">+</span>';
-      b.setAttribute("aria-label", kind === "t" ? "दहाई" : "इकाई"); setXY(b, cx, y); b._kind = kind; return b; };
-    const cx = mid != null ? mid : T.x + T.W / 2, S = { t: mk("t", cx - 92), o: mk("o", cx + 92) };   // (bigger buttons, user 2026-10-16)
-    S.show = on =>{ K.show(S.t, on); K.show(S.o, on); };
-    S.remove = ()=>{ S.t.remove(); S.o.remove(); };
+    const G = Math.round(T.G * .45), rodL = G * K.ROD.ar, GC = Math.round(T.G * .72), H = Math.round(rodL + 24);   // G: the rod's width, GC: the cube's
+    const bar = add(sc, "div", "pv-src-bar pv-hide", "height:" + px(H));
+    const mk = kind =>{ const b = add(bar, "button", "pv-src"); b.type = "button";
+      b.innerHTML = '<span class="pv-src-blk"><img alt="" src="' + (kind === "t" ? K.ROD.src : K.CUBE.src) + '" style="width:' + px(kind === "t" ? G : GC) + ';height:' +
+        px(kind === "t" ? rodL : GC * K.CUBE.ar) + '"></span><span class="pv-plus">+</span>';
+      b.setAttribute("aria-label", kind === "t" ? "दहाई" : "इकाई"); b._kind = kind; return b; };
+    const S = { t: mk("t") }; add(bar, "i", "pv-src-div"); S.o = mk("o");
+    const w = Math.max(S.t.offsetWidth, S.o.offsetWidth); [S.t, S.o].forEach(b => b.style.width = px(w));
+    const cx = mid != null ? mid : T.x + T.W / 2; setXY(bar, cx - bar.offsetWidth / 2, y - H);
+    S.show = on =>{ bar.classList.toggle("pv-hide", on === false); if(on !== false) pop(bar); };
+    S.remove = ()=>{ bar.remove(); };
     return S;
   }
   /* the child adds n blocks of one kind with its + button: it pulses, each tap adds one, it switches off at n.
@@ -4361,10 +4471,12 @@ Object.assign(PVK, (function(){
   }
   /* Swifty's hand taps a + button n times (the deck: "Swiftee adds 2 rods by tapping on plus") */
   async function demoAdd(C, H, btn, T, n, kind){
+    btn.classList.remove("off");                                       // its turn: lit (the other half stays grey - user 2026-10-22)
     for(let j = 0; j < n; j++){
       await H.tap(K.centre(btn.querySelector(".pv-plus"), C.sc)); C.guard();
       T.addBlock(kind); K.knock(); await C.wait(260);
     }
+    btn.classList.add("off");
   }
   /* the child taps blocks of one kind (or any kind, kind null) in the addend tables: each flies to the sum table.
      Resolves when none are left. Other blocks are not tappable meanwhile. Idle 7s: they pulse + the hand. */
@@ -4423,9 +4535,12 @@ Object.assign(PVK, (function(){
   /* the "दहाई बनाओ" button (gold, the game's button style); .off = not yet (fewer than ten ones) */
   /* x = the button's centre, or its LEFT edge when left (beside a table: it then never reaches back over it) */
   function makeBtn(sc, x, y, left){ const b = add(sc, "button", "pv-make pv-hide" + (left ? " pv-make-l" : "")); b.type = "button"; b.textContent = "दहाई बनाओ"; setXY(b, x, y); return b; }
+  /* the same button beside a sum table: ONE place on every page (user 2026-10-23 "position should be consistent") - its
+     right edge 40px in from the stage's right edge, level with the middle of the table's body */
+  function makeBtnSide(sc, T){ const b = makeBtn(sc, 0, 0, true); setXY(b, 1333 - 40 - b.offsetWidth, T.y + T.head + T.inH / 2 + T.pad - b.offsetHeight / 2); return b; }
 
   /* the child puts the new ten into the tens column: it pulses beside the table; drag it ANYWHERE onto the table's
-     दहाई side (no target box - review 2026-10-14) and it settles on its place there (or tap it). cfg: { demo: the ghost drag once at the start, idle: ms before the ghost drag
+     दहाई side (no target box - review 2026-10-14) and it settles on its place there (drag only - a tap shows the ghost drag). cfg: { demo: the ghost drag once at the start, idle: ms before the ghost drag
      plays by itself (0 = never), wrongs: the Drag & Drop ladder - 1st miss "फिर से सोचिए...", then the ghost } */
   function placeRod(C, rod, S, cfg){
     cfg = cfg || {};
@@ -4463,7 +4578,8 @@ Object.assign(PVK, (function(){
           setXY(rod, drag.x0 + dx, drag.y0 + dy); };
         const up = ()=>{ rod.removeEventListener("pointermove", mv); rod.removeEventListener("pointerup", up); rod.removeEventListener("pointercancel", up);
           rod.classList.remove("lift"); const d = drag; drag = null;
-          if(d.moved < 8 || near(rod._x, rod._y)) finish(); else miss().catch(()=>{}); };
+          if(d.moved < 8){ setXY(rod, d.x0, d.y0); ghost().then(arm); return; }   // a tap does not place it (SME review: drag-and-drop only) - it shows the drag
+          if(near(rod._x, rod._y)) finish(); else miss().catch(()=>{}); };
         rod.addEventListener("pointermove", mv); rod.addEventListener("pointerup", up); rod.addEventListener("pointercancel", up);
       };
       (async ()=>{ if(cfg.say && C.has(cfg.say)) await C.say(cfg.say); if(cfg.demo && !fin) await ghost(); arm(); })().catch(()=>{});
@@ -4475,12 +4591,15 @@ Object.assign(PVK, (function(){
      Done when every block is across, the ones are fewer than ten and no ten is waiting. Idle 7s - the visual hint
      that fits: the waiting ten's ghost drag, else the live button, else the blocks pulse (+ the hand). */
   function mergeChild(C, from, S, btn, opt){
-    opt = opt || {}; const point = el => K.repulse(el);   // the decks (pages 6-9): "if inactive for 7 seconds, pulsate" - no hand
+    opt = opt || {}; const point = el => K.repulse(el, true);   // the decks (pages 6-9): "if inactive for 7 seconds, pulsate" - no hand, no SFX (SME review)
     return new Promise(res =>{
       const pool = ()=> from.flatMap(T => [...T.rods, ...T.cubes]);
       let flying = 0, pending = null, idleT = 0, fin = false, making = false;
       const ready = ()=> S.cubes.length >= 10 && !pending && !making && !flying;
-      const sync = ()=>{ if(!btn) return; btn.classList.toggle("off", !ready()); btn.classList.toggle("pulse", ready()); };
+      /* the दहाई बनाओ button (SME review): live from the child's first tap on any block; tapped before there are ten ones it
+         shakes and switches off until the next block tap; it pulses once the ones reach ten */
+      let armed = false;
+      const sync = ()=>{ if(!btn) return; btn.classList.toggle("off", !armed || making || !!pending); btn.classList.toggle("pulse", ready()); };
       const done = ()=>{ sync(); if(fin || pool().length || flying || pending || making || S.cubes.length >= 10) return; fin = true; clearTimeout(idleT); res(); };
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || fin) return;
         if(pending){ arm(); return; }                                   // (placeRod runs its own idle ghost)
@@ -4491,7 +4610,7 @@ Object.assign(PVK, (function(){
         b.onclick = ()=>{
           if(!C.alive() || fin || !b.classList.contains("pv-tap")) return;
           if(pending || making){ shake(pending || b, 6); return; }
-          stopNudge(); b.onclick = null; flying++;
+          stopNudge(); b.onclick = null; flying++; armed = true;
           pool().forEach(x => x.classList.remove("pulse"));
           const A = from.find(T => T.list(b._kind).includes(b));
           K.transfer(b, A, S).then(()=>{ flying--; GameBus.emit("pv_block_moved", { slide_id: C.slide.id, kind: b._kind }); done(); });
@@ -4499,8 +4618,8 @@ Object.assign(PVK, (function(){
         };
       });
       if(btn) btn.onclick = async ()=>{
-        if(!C.alive() || fin) return;
-        if(!ready()){ shake(btn, 7); return; }
+        if(!C.alive() || fin || !armed) return;                         // (off: disabled until the next block tap)
+        if(!ready()){ shake(btn, 7); try{ sfxWrongSoft(); }catch(e){} armed = false; sync(); return; }   // (not ten yet: off till the next block tap)
         stopNudge(); making = true; sync();
         K.ring(S, true); await wait(500);
         const rod = await K.makeTen(S); making = false; pending = rod; sync();
@@ -4511,7 +4630,7 @@ Object.assign(PVK, (function(){
       sync(); arm();
     });
   }
-  return { sources, childAdd, demoAdd, tapAcross, demoAcross, autoMerge, putRod, makeBtn, placeRod, mergeChild };
+  return { sources, childAdd, demoAdd, tapAcross, demoAcross, autoMerge, putRod, makeBtn, makeBtnSide, placeRod, mergeChild };
 })());
 
 /* ---- [pv kit] answering: the three answer cards and the number pad. One behaviour on every answer screen, as in
@@ -4523,13 +4642,20 @@ Object.assign(PVK, (function(){
 
   /* cfg: { options, answer, y, ladder: async n => (help after the n-th wrong tap), reask: role, onRight: async card =>,
      confetti: false - none on the tap (the practice castle throws its own once it stands complete) } */
+  /* the correct VO reads the equation ("a और b बराबर c"): each part lights as it is said (SME review). The slide's
+     data.eq_at = the five words' start times in its correct clip, as fractions of the clip (measured from the VO) */
+  function sayEq(C, E){
+    const at = (C.slide.data || {}).eq_at, parts = E && at ? [E.a, E.plus, E.b, E.eq, E.q] : [];
+    const lit = i => parts.forEach((e, j)=>{ if(e) e.classList.toggle("pv-say", j === i); });
+    return C.cue("correct", parts.map((e, i)=> [at[i], ()=> lit(i)])).finally(()=> lit(-1));
+  }
   function mcq(C, cfg){
     return new Promise(res =>{
       const slide = C.slide, sc = C.sc;
       const box = add(sc, "div", "mq-opts"); box.style.top = px(cfg.y); box.style.width = "1333px";
       const els = cfg.options.map(v =>{ const o = add(box, "button", "mq-opt"); o.type = "button"; o.textContent = devNumeral(v); o._v = v; return o; });
       const right = els.find(o => o._v === cfg.answer);
-      let wrong = 0, busy = true, idleT = 0, layer3 = false, over = false;
+      let wrong = 0, busy = true, idleT = 0, layer3 = false, over = false, reasking = false;
       const M = { box, els, right,
         open(){ box.classList.add("in"); },
         hide(on){ box.classList.toggle("pv-hide", on !== false); },
@@ -4539,7 +4665,9 @@ Object.assign(PVK, (function(){
           right.classList.add("hint-on"); K.softGlow(right); } };   // highlighted + the others faded (the decks' WA3) - no hand
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{
         if(!C.alive() || busy || over) return;
-        busy = true; C.say(cfg.reask || "ask").then(()=>{ busy = false; arm(); }, ()=>{}); }, IDLE_MS); };
+        /* the idle reminder never locks the cards: a tap while it speaks cuts it short and counts (it used to set busy -
+           every tap during the reminder was swallowed) */
+        reasking = true; C.say(cfg.reask || "ask").then(()=>{ if(reasking){ reasking = false; arm(); } }, ()=>{}); }, IDLE_MS); };
       async function onWrong(o){
         wrong++; busy = true; clearTimeout(idleT);
         if(cfg.onPick) try{ cfg.onPick(o._v, o); }catch(e){}            // (the practice castle: that many cubes fly in)
@@ -4559,17 +4687,19 @@ Object.assign(PVK, (function(){
         try{ XAPI.send("question_answered", { slide_id: slide.id, type: slide.type, phase: slide.phase }, { is_correct: true, attempt: wrong + 1, score: wrong === 0 ? 1 : 0 }); }catch(e){}
         recordResult(slide, wrong === 0);
         GameBus.emit("mcq_correct", { slide_id: slide.id, phase: slide.phase, value: wrong === 0, first_try: wrong === 0, attempts: wrong + 1, latency_ms: Date.now() - state.slideStart });
-        sfxCorrect(); if(cfg.confetti !== false) try{ confettiCannon(); }catch(e){} setSwMood("happy");
+        sfxCorrect(); setSwMood("happy");
         if(cfg.onRight) await cfg.onRight(o);
         els.forEach(x => x.classList.add("pv-gone"));   // the answer now stands in the equation: the cards below go
-        await C.say("correct");
-        await C.wait(500);
+        await sayEq(C, cfg.eq);
+        /* the confetti comes LAST - after the answer is in, its animation and the equation's VO (user 2026-10-22) */
+        if(cfg.confetti !== false) try{ confettiCannon(); }catch(e){}
+        await C.wait(1200);
         completeSlide(wrong === 0);
         res();
       }
       els.forEach(o => o.addEventListener("click", ()=>{
         if(busy || over || !C.alive() || o.classList.contains("locked")) return;
-        stopNudge(); clearTimeout(idleT);
+        stopNudge(); clearTimeout(idleT); if(reasking){ reasking = false; stopAudio(); }
         if(o === right) onRight(o).catch(()=>{}); else onWrong(o).catch(()=>{});
       }));
       C.mcq = M;
@@ -4621,12 +4751,13 @@ Object.assign(PVK, (function(){
       const ok = keys["✓"];
       if(T){ T.classList.add("pv-typein"); if(cfg.padAt) setXY(pad, cfg.padAt.x, cfg.padAt.y); else setXY(pad, cfg.x - pad.offsetWidth / 2, cfg.y + 6); }
       else setXY(pad, cfg.x - pad.offsetWidth / 2, cfg.y + ans.offsetHeight + 12);   // centred under the answer box
-      let typed = [], wrong = 0, busy = false, open = false, over = false, idleT = 0, guide = null;
+      let typed = [], wrong = 0, busy = false, open = false, over = false, idleT = 0, guide = null, reasking = false;
+      const hush = ()=>{ if(reasking){ reasking = false; stopAudio(); } };   // a tap during the idle reminder cuts it short and counts
       const P = { ans, pad,
         hide(on){ if(!T) ans.classList.toggle("pv-hide", on !== false); pad.classList.toggle("pv-hide", on !== false || !open); },
         guideKeys(){ guide = 0; Object.values(keys).forEach(b => b.classList.add("locked")); lightKey(); } };
       /* the third layer: the right digit keys light one after the other, then the tick */
-      const lightKey = ()=>{ Object.values(keys).forEach(b => b.classList.remove("hint-on"));
+      const lightKey = ()=>{ Object.values(keys).forEach(b =>{ b.classList.remove("hint-on"); if(guide != null) b.classList.add("locked"); });   // (a key already used locks again - SME review)
         if(guide == null || guide > N) return; const b = guide < N ? keys[digits[guide]] : ok; b.classList.remove("locked"); b.classList.add("hint-on");
         K.softGlow(b); };   // the key lights (the decks' WA3 "highlight the correct digit buttons in sequence") - no hand
       /* the tick: dim until a digit is in, pulsing once the box holds the whole answer */
@@ -4638,9 +4769,9 @@ Object.assign(PVK, (function(){
       render();                                                    // the cursor shows from the start
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || busy || over) return;
         if(!open) placeNudge(ans); else if(guide != null) lightKey(); else if(typed.length >= N) K.repulse(ok);   // the answer counter's hand (the decks)
-        busy = true; C.say(cfg.reask || "prompt").then(()=>{ busy = false; arm(); }, ()=>{}); }, IDLE_MS); };
+        reasking = true; C.say(cfg.reask || "prompt").then(()=>{ if(reasking){ reasking = false; arm(); } }, ()=>{}); }, IDLE_MS); };   // (never locks the pad)
       const openPad = ()=>{ if(open || over) return; open = true; stopNudge(); pad.classList.remove("pv-hide"); pop(pad); ans.classList.add("open"); render(); arm(); };
-      ans.onclick = ()=>{ if(!C.alive() || busy) return; openPad(); };
+      ans.onclick = ()=>{ if(!C.alive() || busy) return; hush(); openPad(); };
       P.open = openPad;
       async function check(){
         busy = true; clearTimeout(idleT); stopNudge(); okState();
@@ -4650,10 +4781,11 @@ Object.assign(PVK, (function(){
           try{ XAPI.send("question_answered", { slide_id: slide.id, type: slide.type, phase: slide.phase }, { is_correct: true, attempt: wrong + 1, score: wrong === 0 ? 1 : 0, response: v }); }catch(e){}
           recordResult(slide, wrong === 0);
           GameBus.emit("numpad_correct", { slide_id: slide.id, phase: slide.phase, value: wrong === 0, first_try: wrong === 0, attempts: wrong + 1, latency_ms: Date.now() - state.slideStart });
-          sfxCorrect(); try{ confettiCannon(); }catch(e){} setSwMood("happy");
+          sfxCorrect(); setSwMood("happy");
           pad.classList.add("pv-gone");   // the keypad goes as the answer goes up (review 2026-10-14)
           if(cfg.onRight) await cfg.onRight(ans);
-          await C.say("correct"); await C.wait(500);
+          await sayEq(C, cfg.eq);
+          try{ confettiCannon(); }catch(e){} await C.wait(1200);   // (the confetti last - user 2026-10-22)
           completeSlide(wrong === 0); res(); return;
         }
         wrong++;
@@ -4667,7 +4799,7 @@ Object.assign(PVK, (function(){
       }
       Object.values(keys).forEach(b => b.addEventListener("click", ()=>{
         if(!C.alive() || busy || over || !open || b.classList.contains("locked")) return;
-        stopNudge(); arm();
+        stopNudge(); hush(); arm();
         if(b._k === "⌫"){ typed.pop(); render(); return; }
         if(b._k === "✓"){ if(!typed.length) return; K.knock(); check().catch(()=>{}); return; }   // the answer goes in on the tick only
         if(typed.length >= N) return;
@@ -4693,7 +4825,7 @@ Object.assign(PVK, (function(){
 const PV_LAY = {
   /* blk / pad: the blocks' width and the tables' inner margin - as big as each screen's two rows of tables allow
      (review 2026-10-14 "make the cubes look bigger"; a rod is 6.7 blocks tall) */
-  tut:  { numY: 118, numH: 52, tableY: 202, sumY: 444, cube: 26, blk: 26, pad: 11, cxL: 451, cxR: 881, cx: 666 },   // inside the tutorial card; no title (user 2026-10-16): all up ~70, blocks 23 -> 26; a healthy gap under the number cards (user 2026-10-16)
+  tut:  { numY: 112, numH: 52, tableY: 188, sumY: 444, srcY: 640, cube: 26, blk: 26, pad: 11, cxL: 451, cxR: 881, cx: 666 },   // inside the tutorial card; no title (user 2026-10-16): all up ~70, blocks 23 -> 26; a healthy gap under the number cards (user 2026-10-16); the two number tables 14px higher - a healthy gap above the sum table (user 2026-10-22)
   main: { eqY: 148, eqH: 62, tableY: 232, sumY: 466, cube: 23, blk: 20, pad: 8, cxL: 410, cxR: 922, cx: 666 }    // under the header band (smaller tables: user 2026-10-15)
 };
 const pvSplit = n =>({ t: Math.floor(n / 10), o: n % 10 });
@@ -4734,7 +4866,7 @@ const CASTLES = {
 };
 /* @castles:end */
 const PVPlay = {
-  FLOOR: 712, TOP: 394, MAXCUBE: 32, G: 2600,     // the castle's ground line; the highest it may reach (under the answer cards); the biggest cube; gravity (stage px / s^2)
+  FLOOR: 712, TOP: 440, MAXCUBE: 32, G: 2600,     // the castle's ground line; the highest it may reach (under the answer cards); the biggest cube; gravity (stage px / s^2)
   mount(sc, slide){
     const K = PVK, L = this, d = slide.data || {}, sum = (d.a || 0) + (d.b || 0), S = pvSplit(sum), calm = K.reduce(), g = L.G;
     const regroup = (d.a % 10) + (d.b % 10) >= 10;
@@ -4937,13 +5069,11 @@ const PVPlay = {
         if(busy) await busy;
         [o.TA, o.TB, o.TS].forEach(t => t && t.fade()); if(o.plus) o.plus.classList.add("pv-gone");
         box.classList.remove("pvp-away"); await K.wait(250);
-        await build(p =>{ K.lightDigit(o.E.q, "t", p === "t"); K.lightDigit(o.E.q, "o", p === "o"); });
-        K.lightDigit(o.E.q, "o", false); redraw();
+        await build(()=>{}); redraw();                                       // (no tens-then-ones lighting of the answer - SME review)
         try{ K.knock(); _tone([523, 659, 784, 1046], "triangle", .55, .09); }catch(e){}
         glint();
         if(!calm) box.animate([{ transform: "none" }, { transform: "translateY(-8px)", offset: .35 }, { transform: "translateY(1px)", offset: .7 }, { transform: "none" }], { duration: 520, delay: 150, easing: "ease-out" });
         for(let i = 0; i < 10; i++) setTimeout(()=> spark(cx0 + Math.random() * W, topY + Math.random() * Hc * .8, i % 2 === 0), 150 + i * 80);
-        setTimeout(()=>{ try{ confettiCannon(); sfxConfetti(); }catch(e){} }, 250);
         await K.wait(900);
       }
     };
@@ -4964,6 +5094,13 @@ const PVModules = {
       { const card = host.closest(".tut-card"); if(card) card.classList.add("tc-story"); }   // no title on these pages (user 2026-10-16) - the VO asks it
       const COL = [386, 666, 946], AV = 112, AVY = 116, BOT = 488, BH = 222, EY = 504, EH = 62;   // no title now (user 2026-10-16 "make the other elements bigger"): rods 176 -> 222, portraits 90 -> 112, number boxes 56 -> 62, the columns spread; the number row stays put, clear of the Next button   // rods 176 tall: bigger blocks; the portraits a little smaller, clear of the title (review 2026-10-14); the Next button sits ~30px under the number row
       const [P0, P1] = d.people, sum = d.a + d.b;
+      /* the columns spread so no two groups of blocks touch (SME review T6: 86's rods ran into 52's grey blocks): each
+         pair of neighbours at least MIN apart edge to edge (the + / = stand in that gap), else the default spacing; the
+         row stays centred. Both pages of a sum (ask and answered) get the same columns. */
+      { const pA = pvSplit(d.a), pB = pvSplit(d.b), pS = pvSplit(sum), w = (n, t, u)=> K.group(sc, n, 0, BOT, BH).width(t, u), MIN = 90;
+        const wA = w(d.a, pA.t, pA.o), wB = w(d.b, pB.t, pB.o), wS = Math.max(w(sum, pA.t + pB.t, pA.o + pB.o), w(sum, pS.t, pS.o));
+        const dAB = Math.max(COL[1] - COL[0], (wA + wB) / 2 + MIN), dBS = Math.max(COL[2] - COL[1], (wB + wS) / 2 + MIN);
+        COL[0] = COL[1] - (dAB + dBS) / 2; COL[1] = COL[0] + dAB; COL[2] = COL[1] + dBS; }
       const pA = K.person(sc, P0.who, P0.name, COL[0], AVY, AV), pB = K.person(sc, P1.who, P1.name, COL[1], AVY, AV);
       const gA = K.group(sc, d.a, COL[0], BOT, BH).make(), gB = K.group(sc, d.b, COL[1], BOT, BH).make();
       const op = (t, x)=>{ const e = K.add(sc, "div", "pv-op pv-sym", "font-size:52px"); e.textContent = t; K.setXY(e, x, EY + 2); return e; };
@@ -4984,9 +5121,9 @@ const PVModules = {
         cubes.forEach((b, i)=>{ leave(b); flights.push(K.wait(200 + i * 60).then(()=> K.glide(b, L.cube(i), 700, true))); });
         await Promise.all(flights); K.knock();
         if(u >= 10){
-          const L2 = G.layout(t + 1, u - 10), dst = L2.rod(t), ten = cubes.slice(0, 10), unit = G.cs * K.CUBE.pitch;
+          const L2 = G.layout(t + 1, u - 10), dst = L2.rod(t), ten = cubes.slice(0, 10);
           await K.wait(250);
-          await Promise.all(ten.map((c, j)=> K.glide(c, { x: dst.x, y: dst.y + (9 - j) * unit }, 520, false)));
+          await Promise.all(ten.map((c, j)=> K.wait(j * 40).then(()=> K.intoRod(c, dst.x, dst.y, BH, G.cs * K.CUBE.ar, 520))));   // (never stacked touching - SME review)
           const r = K.block(sc, "t", dst.x, dst.y, BH); K.newTen(r); K.pop(r);
           ten.forEach(c =>{ c.classList.add("pv-gone"); setTimeout(()=> c.remove(), 400); });
           rods.forEach((b, j)=> K.glide(b, L2.rod(j), 420, false));
@@ -5045,11 +5182,11 @@ const PVModules = {
       const cA = K.numCard(sc, d.a, L.cxL, L.numY, L.numH), cB = K.numCard(sc, d.b, L.cxR, L.numY, L.numH);
       const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
       const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
-      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o, grow: 40 });   // (wider: room for the blocks - SME review)
       const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:54px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, L.cx, 84, [cA], [cB]), L.tableY + TA.H / 2 - 34);
-      /* the sum table comes only once both numbers are built (user 2026-10-15), so the + buttons always stand at the
-         screen's centre under the tables; auto: the two number tables stand from the start */
-      (d.auto ? [TS] : [TA, TB, TS]).forEach(T => T.el.classList.add("pv-hide"));
+      /* the tables come one at a time (SME review): the first number's at the start, the second's once the first is
+         built, the sum table once both numbers are built (user 2026-10-15) - the same in auto */
+      [TA, TB, TS].forEach(T => T.el.classList.add("pv-hide"));
       plus.classList.add("pv-hide");   // the + comes with the second number (auto: with the sum table - user 2026-10-15)
       const showT = T =>{ if(T.el.classList.contains("pv-hide")) K.showTable(T); };
       async function build(T, card, n, who, key){
@@ -5058,10 +5195,10 @@ const PVModules = {
         await C.cue(key + "_digits", [[0.04, ()=>{ K.lightDigit(card, "t"); T.lightHead("t"); }],
                                       [0.5, ()=>{ K.lightDigit(card, "t", false); T.lightHead("t", false); K.lightDigit(card, "o"); T.lightHead("o"); }]]);
         await C.wait(250); K.lightDigit(card, "o", false); T.lightHead("o", false);
-        const src = K.sources(sc, T, T.y + T.H + 12, L.cx);              // at the screen's centre (review 2026-10-14), where the sum table comes later
+        const src = K.sources(sc, T, L.srcY, L.cx);                      // at the bottom centre of the screen (SME review), where the sum table comes later
         src.show();
         if(who === "swifty"){
-          src.t.classList.add("demo"); src.o.classList.add("demo");
+          src.t.classList.add("demo", "off"); src.o.classList.add("demo", "off");   // (each lit only on its turn, as the child's)
           const H = K.hand(sc);
           if(p.t) await Promise.all([C.say(key + "_tens"), C.wait(650).then(()=> K.demoAdd(C, H, src.t, T, p.t, "t"))]);
           if(p.o) await Promise.all([C.say(key + "_ones"), C.wait(650).then(()=> K.demoAdd(C, H, src.o, T, p.o, "o"))]);
@@ -5091,7 +5228,7 @@ const PVModules = {
         await C.cue("ones_sum", [[0.02, ()=> K.sweep(TS.cubes)]]);
         if(carry){
           await C.cue("know", [[0.3, ()=> K.ring(TS, true)]]);
-          const btn = K.makeBtn(sc, TS.x + TS.W + 36, TS.y + TS.head + TS.inH / 2 - 10, true); K.show(btn);
+          const btn = K.makeBtnSide(sc, TS); K.show(btn);
           if(d.auto){ const H = K.hand(sc); await Promise.all([C.say("make"), C.wait(700).then(()=> H.tap(K.centre(btn, sc)))]);
             H.off(); await C.wait(200); H.el.remove(); }
           else await Promise.all([C.say("make"), pvTapOnce(C, btn)]);
@@ -5111,35 +5248,33 @@ const PVModules = {
         await across("t"); C.guard();
         await C.cue("tens_sum", [[0.02, ()=> K.sweep(TS.rods, 160)]]);
         GameBus.emit("pv_merge_done", { slide_id: slide.id });
-        const eqS = K.add(sc, "div", "pv-op pv-sym pv-hide", "font-size:50px"); eqS.textContent = "=";
-        const midY = TS.y + TS.head + TS.inH / 2 + TS.pad;
-        K.setXY(eqS, TS.x + TS.W + 34, midY - 32);
         // the total's box is the SAME size as the two numbers' boxes (user 2026-10-15: "why is the 35 box bigger")
-        const tot = K.numCard(sc, sum, TS.x + TS.W + 110, midY - L.numH / 2, L.numH); tot.classList.add("pv-hide", "pv-total", "pv-sumcard");
-        TS.extra.push(eqS, tot);
-        await C.cue("total", [[0.02, ()=> K.sweep(TS.rods, 90)], [0.3, ()=> K.sweep(TS.cubes, 70)],   // (no column digits under the table)
-                              [0.78, ()=>{ K.show(eqS); K.show(tot); }]]);
-        /* the whole sum stays on screen - "23 + 12 ... 35" is what the VO says - in ONE row: [23] + [12] = [35], each table
-           under its number, so the bottom centre is free for the next button (user 2026-10-15; before: the two number
-           tables faded and the sum table rose into their place) */
+        const tot = K.numCard(sc, sum, TS.x + TS.W / 2, L.numY, L.numH); tot.classList.add("pv-hide", "pv-total", "pv-sumcard");
+        const eqS = K.add(sc, "div", "pv-op pv-sym pv-hide", "font-size:54px"); eqS.textContent = "=";
+        /* the whole sum stays on screen in ONE row: [23] + [12] = [35], each table under its number, so the bottom centre is
+           free for the next button (user 2026-10-15). The row forms FIRST, then the total line: "a और b को जोड़ने पर c
+           मिलता है" - the "=" and the total's box come in as c is said (user 2026-10-22; data.sum_at = c's start in the
+           clip, measured from the VO; the SME's "no = before 35" was the old layout's = beside the sum table) */
         { const AV = 1060, sumW = TA.W + TB.W + TS.W, GAP = Math.max(40, Math.min(62, (AV - sumW) / 2)), tw = sumW + 2 * GAP;   // (the card is ~1130 wide)
           const x0 = L.cx - tw / 2, ms = 700, s = Math.min(1, AV / tw);
           /* the row stands in the middle of the free space, between the title (~200) and the next button (~565) - user
              2026-10-15 "the tables at the centre of the screen"; DY: how far down from the build's own height */
           const rowH = (L.tableY + Math.max(TA.H, TB.H, TS.H)) - (L.numY - 10), DY = Math.round(382 - (L.numY - 10) - rowH * s / 2);
+          const dA = x0 - TA.x, dB = x0 + TA.W + GAP - TB.x, dSx = x0 + TA.W + TB.W + 2 * GAP - TS.x, dSy = L.tableY + DY - TS.y;
+          const opY = L.tableY + DY + TA.H / 2 - 34, mv = (e, x, y)=> K.shift(e, x - e._x, y - e._y, ms);
+          K.setXY(eqS, x0 + TA.W + TB.W + GAP * 1.5, opY); K.setXY(tot, TS.x + dSx + TS.W / 2, L.numY + DY);   // (both wait hidden in their places)
           /* a row wider than the card (a big sum: 86 = 8 rods) is scaled down round its top centre to fit, as it moves */
           if(tw > AV){ const wrap = K.add(sc, "div", "pv-row", "position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;transform-origin:" + L.cx + "px " + (L.numY - 10 + DY) + "px");
             [...TA.all(), ...TA.ghosts, ...TB.all(), ...TB.ghosts, ...TS.all(), cA, cB, plus, eqS, tot].forEach(e =>{ if(e && e.parentNode === sc) wrap.appendChild(e); });
             wrap.animate([{ scale: "1" }, { scale: s.toFixed(3) }], { duration: ms, easing: "ease-in-out", fill: "forwards" }); }
-          const dA = x0 - TA.x, dB = x0 + TA.W + GAP - TB.x, dSx = x0 + TA.W + TB.W + 2 * GAP - TS.x, dSy = L.tableY + DY - TS.y;
-          const opY = L.tableY + DY + TA.H / 2 - 34, mv = (e, x, y)=> K.shift(e, x - e._x, y - e._y, ms);
-          const sx = TS.x + dSx + TS.W / 2; TS.extra = TS.extra.filter(e => e !== eqS && e !== tot);   // (= and the total move on their own)
           await Promise.all([TA.move(dA, DY, ms), ...TA.ghosts.map(e => K.shift(e, dA, DY, ms)), K.shift(cA, dA, DY, ms),
             TB.move(dB, DY, ms), ...TB.ghosts.map(e => K.shift(e, dB, DY, ms)), K.shift(cB, dB, DY, ms),
-            TS.move(dSx, dSy, ms).then(()=>{}), mv(plus, x0 + TA.W + GAP / 2, opY), mv(eqS, x0 + TA.W + TB.W + GAP * 1.5, opY),
-            mv(tot, sx, L.numY + DY)]); C.guard(); }
-        sfxCorrect(); try{ confettiCannon(); }catch(e){} setSwMood("happy");
+            TS.move(dSx, dSy, ms).then(()=>{}), mv(plus, x0 + TA.W + GAP / 2, opY)]); C.guard(); }
+        await C.cue("total", [[0.02, ()=> K.sweep(TS.rods, 90)], [0.3, ()=> K.sweep(TS.cubes, 70)],   // (no column digits under the table)
+                              [d.sum_at || .75, ()=>{ K.show(eqS); K.show(tot); }]]);
+        sfxCorrect(); setSwMood("happy");
         await C.say("done");
+        try{ confettiCannon(); }catch(e){}                                // (the confetti last, after the closing line - user 2026-10-22)
         setNavActive(true);
       });
     }
@@ -5205,7 +5340,9 @@ const PVModules = {
       const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
       TS.el.classList.add("pv-hide");
       const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:56px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, L.cx), L.tableY + TA.H / 2 - 36);
-      const btn = carry ? K.makeBtn(sc, TS.x + TS.W + 44, TS.y + TS.head + TS.inH / 2 - 10, true) : null;
+      const btn = carry ? K.makeBtnSide(sc, TS) : null;
+      /* a very wide sum table (many tens) steps left so the button keeps its place with a clear 24px gap */
+      if(btn){ const dx = Math.min(0, btn._x - 24 - (TS.x + TS.W)); if(dx){ TS.x += dx; TS.all().forEach(e => K.setXY(e, e._x + dx, e._y)); } }
       K.run(C, async ()=>{
         await Promise.all([TA.fill(d.a), TB.fill(d.b)]); await C.wait(250);
         await C.cue("prompt", [[0.3, ()=>{ K.showTable(TS); if(btn){ K.show(btn); btn.classList.add("off"); } }]]);
@@ -5215,7 +5352,7 @@ const PVModules = {
         await C.say("great");
         [TA, TB].forEach(T => T.fade()); plus.classList.add("pv-gone");
         await TS.move(0, L.tableY - TS.y, 700); C.guard();
-        await K.mcq(C, { options: d.options, answer: sum, y: L.tableY + TS.H + 40, reask: "ask",
+        await K.mcq(C, { options: d.options, answer: sum, y: L.tableY + TS.H + 40, reask: "ask", eq: E,
           onReady: M =>{ M.open(); C.say("ask").then(()=> M.ready(), ()=>{}); },
           onRight: o => K.flyToQ(C, o, E),
           ladder: async (n, M)=>{
@@ -5239,7 +5376,7 @@ const PVModules = {
       /* user 2026-10-15: the tables to the left and closer together (the equation centred over them), the 3 x 4 pad on
          the right, and the child types straight into the "?" */
       const d = slide.data, K = PVK, sc = K.scene(host), C = K.ctx(slide, sc),
-            L = Object.assign({}, PV_LAY.main, { eqY: 150, eqH: 104, tableY: 296, cxL: 236, cxR: 630, cx: 433, qx: 1100, cube: 30, blk: 27, pad: 12 });
+            L = Object.assign({}, PV_LAY.main, { eqY: 162, eqH: 104, tableY: 296, cxL: 236, cxR: 630, cx: 433, qx: 1100, cube: 30, blk: 27, pad: 12 });
       /* the user's layout (2026-10-15 mock-up): each number's card stands over its own table, the + between them; the = and
          the answer box on the right, the 3 x 4 pad straight under the box - the child types into that box */
       state.ownsAudio = true; state.locked = false; setNavActive(false); $("navBtn").style.display = "none"; setSwMood("point"); pvReplay(C);
@@ -5247,11 +5384,16 @@ const PVModules = {
       const sym = (t, x)=>{ const e = K.add(sc, "div", "pv-op pv-sym", "font-size:76px"); e.textContent = t; K.setXY(e, x, L.eqY + L.eqH / 2 - 36); return e; };   // (level with the cards' middle)
       const E = { a: K.numCard(sc, d.a, L.cxL, L.eqY, L.eqH), plus: sym("+", L.cx), b: K.numCard(sc, d.b, L.cxR, L.eqY, L.eqH),
                   eq: sym("=", 885), q: K.numCard(sc, null, L.qx, L.eqY, L.eqH, "pv-q") };
-      E.fill = n =>{ E.q.innerHTML = K.numHTML(n); E.q.classList.add("filled"); K.pop(E.q); };
-      const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
-      const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
-      const PADY = 286, PADH = 370;                                           // the pad: its top, its height (3 x 4 keys)
-      { const GAP = 44, tw = TA.W + GAP + TB.W, x0 = Math.max(40, 470 - tw / 2);            // the two side by side, an even gap, centred left of the pad
+      E.fill = n =>{ E.q.innerHTML = K.numHTML(n); E.q.classList.add("filled"); K.pop(E.q); K.settle(E.q); };
+      const PADY = 286, PADH = 370, PADX = L.qx - 166, GAP = 44;               // the pad: its top, its height (3 x 4 keys), its left edge
+      /* the two tables must fit LEFT of the pad (user 2026-10-22: the wider many-tens tables ran under it): from 40 to the
+         pad's edge less 30; if they do not, they are drawn smaller - same proportions - until they do */
+      const mkAB = k =>[K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube * k, blk: L.blk * k, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 }),
+                        K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube * k, blk: L.blk * k, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 })];
+      let [TA, TB] = mkAB(1);
+      { const room = PADX - 30 - 40, need = TA.W + GAP + TB.W;
+        if(need > room){ TA.el.remove(); TB.el.remove(); [TA, TB] = mkAB(Math.max(.7, (room - GAP) / (need - GAP) * .98)); } }
+      { const tw = TA.W + GAP + TB.W, x0 = Math.max(40, Math.min(PADX - 30 - tw, 470 - tw / 2));   // the two side by side, an even gap, centred left of the pad
         /* ...and level with the pad's middle (user 2026-10-15) */
         const dy = Math.round(PADY + PADH / 2 - TA.H / 2 - L.tableY); L.tableY += dy;
         [[TA, x0], [TB, x0 + TA.W + GAP]].forEach(([T, x])=>{ const dx = x - T.x; T.x += dx; T.y += dy; T.all().forEach(e => K.setXY(e, e._x + dx, e._y + dy)); });
@@ -5264,7 +5406,6 @@ const PVModules = {
       /* the help's sum table comes where the pad stands (the pad steps aside for it), then takes the tables' place */
       const TS = K.table(sc, { cx: L.qx, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
       TS.el.classList.add("pv-hide");
-      K.pair(TA, TB, L.cx);
       const plus = { classList: { add(){} } };                                // (the + is the cards' own, between them)
       let merged = false;
       K.run(C, async ()=>{
@@ -5272,7 +5413,7 @@ const PVModules = {
         /* the old format (user 2026-10-15 "bring the old format: the box in the bottom centre and the calculator below
            that"): the answer box under the tables; a tap on it opens the pad under it (the deck: "an answer counter below
            with a hand nudge. On tap, open the number pad"); the right answer flies up into the "?" */
-        await K.numpad(C, { answer: sum, x: L.cx, y: L.tableY + TA.H + 18, reask: "prompt", target: E.q, cols: 3, padAt: { x: L.qx - 166, y: PADY },
+        await K.numpad(C, { answer: sum, eq: E, x: L.cx, y: L.tableY + TA.H + 18, reask: "prompt", target: E.q, cols: 3, padAt: { x: L.qx - 166, y: PADY },
           onReady: P =>{ P.hide(true); C.cue("prompt", [[0.6, ()=>{ P.hide(false); P.open(); E.q.classList.remove("pulse"); }]]).then(()=> P.ready(), ()=>{}); },
           onRight: ()=>{ E.fill(sum); },
           ladder: async (n, P)=>{
@@ -5313,34 +5454,38 @@ const PVModules = {
       const d = slide.data, K = PVK, sc = K.scene(host), C = K.ctx(slide, sc), L = PV_LAY.main;
       state.ownsAudio = true; state.locked = false; setNavActive(false); $("navBtn").style.display = "none"; setSwMood("point"); pvReplay(C);
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), tMax = Math.max(A.t, B.t, 3);
-      const PP = PVPlay.mount(sc, slide);                                     // [pv play] the answer's blocks as the reward
+      const PP = null;                                                        // (no practice castle - user 2026-10-23 "remove these castles"; was PVPlay.mount(sc, slide))
       const E = K.equation(sc, d.a, d.b, L.cx, 170, L.eqH); E.el.classList.add("big");   // (higher: the castle stands under the answers; 178 -> 170 and the answers 330 -> 300 on 2026-10-19 for bigger castle cubes)
       let TA = null, TB = null, TS = null, plus = null, merged = false;
-      const optTop = { solo: 300, tables: 600 };
+      const optTop = { solo: 345 };                                           // (SME review: the answers a little lower)
+      /* with the help tables: question, tables and answers one even GAP apart (user 2026-10-23 - the answers used to drop to
+         the bottom edge): the tables GAP under the equation, the answers GAP under the tables (or the sum table) */
+      const GAP = 36, TY = L.eqY + L.eqH + GAP;
       async function tables(M){
         if(TA) return;
         if(PP) await PP.hide(true);                                           // (the castle steps aside for the help tables)
-        E.el.classList.remove("big"); M.moveTo(optTop.tables);
+        E.el.classList.remove("big");
         await K.glide(E.el, { x: L.cx, y: L.eqY }, 500, false);
-        TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
-        TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
-        plus = K.add(sc, "div", "pv-op pv-sym", "font-size:56px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, L.cx), L.tableY + TA.H / 2 - 36);
+        TA = K.table(sc, { cx: L.cxL, y: TY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
+        TB = K.table(sc, { cx: L.cxR, y: TY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
+        plus = K.add(sc, "div", "pv-op pv-sym", "font-size:56px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, L.cx), TY + TA.H / 2 - 36);
+        M.moveTo(TY + Math.max(TA.H, TB.H) + GAP);
         K.showTable(TA); K.showTable(TB); K.pop(plus);
         await C.wait(250); await Promise.all([TA.fill(d.a, 150), TB.fill(d.b, 150)]); C.guard();
       }
       async function merge(M){
         if(merged) return; merged = true;
         M.hide(true); await tables(M);
-        TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+        TS = K.table(sc, { cx: L.cx, y: TY + Math.max(TA.H, TB.H) + 22, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
         K.showTable(TS); await C.wait(500);
         await K.autoMerge(C, [TA, TB], TS);
         [TA, TB].forEach(T => T.fade()); plus.classList.add("pv-gone");
-        await TS.move(0, L.tableY - TS.y, 700); C.guard();
-        M.moveTo(L.tableY + TS.H + 40); M.hide(false);
+        await TS.move(0, TY - TS.y, 700); C.guard();
+        M.moveTo(TY + TS.H + GAP); M.hide(false);
       }
       K.run(C, async ()=>{
         await C.wait(300);
-        await K.mcq(C, { options: d.options, answer: sum, y: optTop.solo, reask: "prompt", confetti: !PP,   // (the confetti comes once - when the castle is complete - not on the tap too: user 2026-10-19)
+        await K.mcq(C, { options: d.options, answer: sum, y: optTop.solo, reask: "prompt", eq: E,   // (the confetti once, at the very end - after the castle and the equation's VO: user 2026-10-22)
           onReady: M =>{ M.open(); C.say("prompt").then(()=> M.ready(), ()=>{}); },
           onRight: async o =>{ await K.flyToQ(C, o, E); if(PP) await PP.right({ C, E, sum, TA, TB, plus, TS }); },
           onPick: (v, card)=>{ if(PP) PP.wrong(v, card); },
@@ -5787,7 +5932,7 @@ function afterConfetti(fn){
   /* ===== FLN ANIMATION KIT: confetti (advance gate) END ===== */
 }
 /* onscreen headline per gate (display only; distinct from any narration). Eligibility = phase IN this map. */
-const PHASE_GATE_TITLE = { tutorial:"चलिए, शुरू करते हैं!", guided:"चलिए, साथ में करें!", practice:"अब आपकी बारी!" };   // QA checklist 2026-10-05: the headlines are exactly the lines Swiftie speaks (each VO is now that line alone), so the text appears only as she says it
+const PHASE_GATE_TITLE = { tutorial:"चलिए, शुरू करें!",   /* user 2026-10-23: the line + its clip (vo_pt_tutorial.wav) taken from MTG2A04_L02_S01 */ guided:"चलिए, साथ में करें!", practice:"अब आपकी बारी!" };   // QA checklist 2026-10-05: the headlines are exactly the lines Swiftie speaks (each VO is now that line alone), so the text appears only as she says it
 const PHASE_GATE_VO    = { tutorial:"vo_pt_tutorial", guided:"vo_pt_guided", practice:"vo_pt_practice" };
 /* [peek-2] The clip's own length, and the CSS duck-down that follows it. Both are contracts
    with assets/gif/peeking.webp and @keyframes pgDuck — if either is re-cut, change it here too. */
@@ -6172,6 +6317,7 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_pt_guided.ogg": 7736,
   "assets/voiceover/vo_pt_practice.ogg": 7611,
   "assets/voiceover/vo_pt_tutorial.ogg": 7759,
+  "assets/voiceover/vo_pt_tutorial.wav": 88364,
   "assets/voiceover/vo_t1_count_intro.ogg": 15089,
   "assets/voiceover/vo_t1_know.ogg": 19833,
   "assets/voiceover/vo_t1_made.ogg": 19237,
