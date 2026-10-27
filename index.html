@@ -1590,10 +1590,14 @@ body.is-start .sg-sky{
    translateX(-50%) centring so the pop scales about the headline's own centre. Under the reduced-motion kill the
    animation is dropped and the end state stays, so the headline still appears on cue. */
 .phase-gate .pg-title{opacity:0;}
-.phase-gate.talking .pg-title{opacity:1;animation:pgTitleIn .38s cubic-bezier(.34,1.5,.6,1) both;}
-.phase-gate.talking.leaving .pg-title{animation:pgTitleOut .3s ease-in both;}
-@keyframes pgTitleIn{from{opacity:0;transform:translateX(-50%) scale(.6);}to{opacity:1;transform:translateX(-50%) scale(1);}}
-@keyframes pgTitleOut{to{opacity:0;transform:translateX(-50%) scale(.92);}}
+/* review 2026-10-08 ("for transition screens with chaliye shuru karein, aaiye sath karein etc., use the same animation for
+   the pink text on top of swiftee as this file" - hindi-game-gender-identify.vercel.app, HI02H11_L03_S02): its headline
+   is WRITTEN ON left to right as the words are said - pgWipe, a clip-path that opens from the left over .9s
+   (cubic-bezier(.25,.6,.3,1)), its insets 24px wide so the white outline is never cut - and it stays while Swiftie
+   ducks, gone with the gate (no exit fade). Ours starts .28s in: each gate line is its headline, after the clip's
+   0.28s lead. Was a .38s scale pop on the VO's first tick and a .3s fade out. */
+.phase-gate.talking .pg-title{opacity:1;animation:pgWipe .9s cubic-bezier(.25,.6,.3,1) .28s both;}
+@keyframes pgWipe{from{clip-path:inset(-24px 100% -24px -24px);}to{clip-path:inset(-24px -24px -24px -24px);}}
 
 /* [10] WRONG card: the shake never played. A wrong tap carries BOTH .crossed and .wg-wrong, and
    `.opt-cell.crossed{animation:none}` (same specificity, later) beat `.opt-cell.wg-wrong{animation:wgNo}`.
@@ -1659,7 +1663,7 @@ body.is-start .sg-sky{
    filter surface shared with the card FX (dust canvas / flare / lamp) at reduced resampling quality:
    measured 87% of the sharpest Chrome can draw this 560px frame; with it 97%, also after a resize. */
 .sg-mascot{width:208px;height:auto;left:-24px;bottom:-12px;animation:none;will-change:transform;}
-.sg-vo{left:96px;bottom:-16px;}
+.sg-vo{left:90px;bottom:-22px;width:70px;height:70px;}   /* QA checklist 2026-10-27: the standard 70px speaker (was 58px), as MTG2A04 - its centre unchanged */
 
 /* [04] SPEAKING = white text-stroke outline while that word's VO plays (the tutorial prompt while
    the prompt is spoken, the big running numeral while its number is spoken - app.js toggles
@@ -1742,7 +1746,9 @@ body.is-start .sg-sky{
 .nav-btn.active:active{animation:none;}
 @keyframes navReadyPulse{0%,100%{scale:1;}30%{scale:1.08;}58%{scale:.985;}}
 /* the title screen's speaker button is DISABLED while the greeting speaks, enabled again after it */
-/* (the title screen's speaker is never disabled - review 2026-10-05; .sg-vo.is-disabled removed) */
+/* [speaker grey] QA checklist 2026-10-27 (MTG2A04's QA 2026-10-23 BUG_01, replacing review 2026-10-05's "never disabled"): every
+   speaker - title screen, header, tutorial card - greyed out and untappable while a voiceover plays (app.js speakersBusy) */
+body.vo-speaking .sg-vo,body.vo-speaking .audio-chip,body.vo-speaking .tut-audio{filter:grayscale(1) opacity(.5);pointer-events:none;cursor:default;}
 /* the third feedback layer on a 3-option question: the right card keeps a soft green ring while the hand points at it;
    the wrong ones are locked (.locked: faded, untappable) */
 .mq-opt.hint-on{border-color:#00B132;box-shadow:0 4px 0 #D9D9D9,0 0 0 6px rgba(0,177,50,.28);}
@@ -2106,6 +2112,11 @@ body.is-start .sg-sky{
    pushed it past the table's edges. A rod gets the same effects, sized to fit: at most 1.04 (~6px each way). */
 @keyframes pvRodPop{0%{opacity:0;scale:.82;}70%{opacity:1;scale:1.04;}100%{opacity:1;scale:1;}}
 .pv-rod.pv-pop{animation:pvRodPop .42s cubic-bezier(.3,.9,.4,1) both;}
+/* a NEW block (a + tap, a table filling up): it grows in where it will stay with one even ease-out - no spring, no
+   overshoot - so a quick run of them reads as one smooth flow (user 2026-10-27: "they should appear in a smooth uniform
+   way"; was the springy pv-pop above, the cubes overshooting to 105% while their neighbours slid) */
+.pv-blk.pv-in{animation:pvBlkIn .3s cubic-bezier(.22,.75,.3,1) both;}
+@keyframes pvBlkIn{0%{opacity:0;scale:.6;}100%{opacity:1;scale:1;}}
 @keyframes pvRodPulse{0%,100%{scale:1;filter:brightness(1) drop-shadow(0 2px 2px rgba(12,46,92,.28));}
   50%{scale:1.04;filter:brightness(1.22) saturate(1.06) drop-shadow(0 2px 2px rgba(12,46,92,.28));}}
 .pv-rod.pulse{animation:pvRodPulse 1.1s ease-in-out infinite;}
@@ -2367,6 +2378,9 @@ body.is-start .sg-sky{
 .pv-src-bar .pv-src img{display:block;filter:drop-shadow(0 2px 1px rgba(12,46,92,.18));}
 .pv-src-bar .pv-plus{width:44px;height:44px;font-size:36px;line-height:44px;}
 .pv-src-div{flex:none;width:2px;margin:16px 0;border-radius:2px;background:#D3E6FA;}
+/* review 2026-10-27: the source box and the answer cards the same size as the subtraction lesson's (MTG2A01_L04) */
+.pv-src-bar .pv-plus{width:56px;height:56px;font-size:46px;line-height:56px;}
+.mq-opt{width:224px;min-width:224px;height:104px;font-size:58px;border-radius:20px;}
 /* the answer's box after its green moment (settle): a plain number box like the others, the green rim fading away */
 .pv-q.filled.settled{border:2.69px solid #D5D8DF;background:#fff;box-shadow:0 4px 0 #D9D9D9;color:#012F76;transition:border-color .5s,background-color .5s,box-shadow .5s;}
 </style>
@@ -2599,8 +2613,8 @@ body.is-start .sg-sky{
    "vo_p3_h_tables": "assets/voiceover/vo_p3_h_tables.ogg",
    "vo_p3_prompt": "assets/voiceover/vo_p3_prompt.ogg",
    "vo_p4_correct": "assets/voiceover/vo_p4_correct.ogg",
-   "vo_pt_guided": "assets/voiceover/vo_pt_guided.ogg",
-   "vo_pt_practice": "assets/voiceover/vo_pt_practice.ogg",
+   "vo_pt_guided": "assets/voiceover/vo_pt_guided.wav",
+   "vo_pt_practice": "assets/voiceover/vo_pt_practice.wav",
    "vo_pt_tutorial": "assets/voiceover/vo_pt_tutorial.wav",
    "vo_t1_count_intro": "assets/voiceover/vo_t1_count_intro.ogg",
    "vo_t1_know": "assets/voiceover/vo_t1_know.ogg",
@@ -2773,6 +2787,7 @@ body.is-start .sg-sky{
    },
    "data": {
     "mode": "sum",
+    "sum_at": 0.68,
     "a": 27,
     "b": 15,
     "people": [
@@ -2885,6 +2900,7 @@ body.is-start .sg-sky{
    },
    "data": {
     "mode": "sum",
+    "sum_at": 0.69,
     "a": 36,
     "b": 25,
     "people": [
@@ -3398,6 +3414,20 @@ const GameBus = window.GameBus = {
 
 /* ---------- 3. AUDIO ---------- */
 let isPlaying=false, currentAudio=null;
+/* [speaker grey] QA checklist 2026-10-27 ("the speaker button remains disabled when the VO is spoken ... in a slightly
+   greyish tone"; MTG2A04's QA 2026-10-23 BUG_01): while a voiceover clip (vo_*) plays, every speaker is greyed out and
+   untappable (body.vo-speaking), live again once it is over. Sound effects leave them alone. The release waits
+   SPK_HOLD_MS, so a run of lines (a count एक, दो ...) keeps them grey across the short gaps instead of flickering. */
+const SPK_HOLD_MS = 300;
+let _spkT = 0;
+function isVoClip(src){ return /(^|\/)vo_[^\/]*$/.test(String(src || "").split("?")[0]); }
+function speakersBusy(on){
+  clearTimeout(_spkT);
+  const set = v =>{ document.body.classList.toggle("vo-speaking", v);
+    document.querySelectorAll(".audio-chip, .tut-audio, .sg-vo").forEach(c => c.setAttribute("aria-disabled", v ? "true" : "false")); };
+  if(on) set(true);
+  else if(document.body.classList.contains("vo-speaking")) _spkT = setTimeout(()=> set(false), SPK_HOLD_MS);
+}
 function setPlaying(on){
   // the dynamic Swiftie sits header-left; the audio chips pulse to signal playback. r4/F1: share the
   // .playing toggle across the header chip AND the tut-card replay chip (the header is hidden in the
@@ -3409,6 +3439,7 @@ function setPlaying(on){
   const src = on && currentAudio ? srcOf(currentAudio) : null;
   const from = on ? chipFor(src) : null;
   document.querySelectorAll(".audio-chip, .tut-audio, .sg-vo").forEach(c => c.classList.toggle("playing", c === from));
+  speakersBusy(isVoClip(src));   // [speaker grey] every speaker greyed while a voiceover plays
   swApplyPose();   // freeze/unfreeze Swiftie's mouth: animate only while a clip is sounding
 }
 /* [QA 15] ONE reusable VO element, not a new Audio() per clip. Every clip used to get its own
@@ -3523,6 +3554,31 @@ function playSfxFile(name, vol, fallback){
 }
 const sfxCorrect   = ()=> playSfxFile("sfx_correct", 0.8, ()=> _tone([660, 880, 1180], "sine", 0.42, 0.13));
 const sfxWrongSoft = ()=> playSfxFile("sfx_wrong", 0.6, ()=> _tone([300, 235], "triangle", 0.20, 0.08));   // gentle, never harsh
+/* QA checklist 2026-10-27 ("options ... come one by one accompanied with some SFX" - MTG2A04's): each answer card pops in
+   with a bubbly "bloop" - a sine that springs up to its note, a glassy overtone and a soft woody tick as it lands - one
+   step higher per card (C-major pentatonic), a sparkle on the last. Procedural (WebAudio), well under the VO; silent
+   until the audio context is unlocked. (MTG2A04's sfxCubePop, as is) */
+const CUBE_NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66];
+function sfxCubePop(i, last, when){
+  const c = _ac(); if(!c || c.state !== "running") return;
+  const t0 = when != null ? Math.max(when, c.currentTime) : c.currentTime, f = CUBE_NOTES[Math.min(i, CUBE_NOTES.length - 1)], out = c.createGain();
+  out.gain.value = 0.9; out.connect(c.destination);
+  const o = c.createOscillator(), g = c.createGain(); o.type = "sine";
+  o.frequency.setValueAtTime(f * 0.55, t0); o.frequency.exponentialRampToValueAtTime(f, t0 + 0.07);   // the spring up
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.26);
+  o.connect(g).connect(out); o.start(t0); o.stop(t0 + 0.28);
+  const h = c.createOscillator(), hg = c.createGain(); h.type = "triangle"; h.frequency.value = f * 2;   // a bright glassy overtone
+  hg.gain.setValueAtTime(0.0001, t0 + 0.05); hg.gain.exponentialRampToValueAtTime(0.045, t0 + 0.065); hg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+  h.connect(hg).connect(out); h.start(t0 + 0.05); h.stop(t0 + 0.24);
+  const tl = t0 + 0.16, k = c.createOscillator(), kg = c.createGain(); k.type = "triangle";      // the woody tick as it sits down
+  k.frequency.setValueAtTime(260, tl); k.frequency.exponentialRampToValueAtTime(120, tl + 0.05);
+  kg.gain.setValueAtTime(0.0001, tl); kg.gain.exponentialRampToValueAtTime(0.11, tl + 0.004); kg.gain.exponentialRampToValueAtTime(0.0001, tl + 0.07);
+  k.connect(kg).connect(out); k.start(tl); k.stop(tl + 0.08);
+  if(last) [1567.98, 2093, 2637].forEach((sf, j)=>{                                            // the sparkle on the last card
+    const ts = t0 + 0.22 + j * 0.06, so = c.createOscillator(), sg = c.createGain(); so.type = "sine"; so.frequency.value = sf;
+    sg.gain.setValueAtTime(0.0001, ts); sg.gain.exponentialRampToValueAtTime(0.05, ts + 0.01); sg.gain.exponentialRampToValueAtTime(0.0001, ts + 0.3);
+    so.connect(sg).connect(out); so.start(ts); so.stop(ts + 0.32); });
+}
 /* 2026-10-07: the team's Standard SFX pack (correct / incorrect / confetti / play / next). Its confetti is mastered
    ~8dB hotter than the kit's and lands on top of sfx_correct + the VO, so it plays lower to sit under them. */
 const sfxConfetti  = ()=> playSfxFile("sfx_confetti", 0.45);
@@ -4092,6 +4148,11 @@ const PVK = (function(){
     const end = ev =>{ if(!/^pv(Btn|Rod)?Pop$/.test(ev.animationName)) return; e.removeEventListener("animationend", end); e.classList.remove("pv-pop"); };
     e.addEventListener("animationend", end); };
   const show = (e, on)=>{ if(!e) return; e.classList.toggle("pv-hide", on === false); if(on !== false) pop(e); };
+  /* a new block's entrance (.pv-in), its class gone when it is over - as pop's */
+  const enter = e =>{ e.classList.add("pv-in"); const end = ev =>{ if(ev.animationName !== "pvBlkIn") return;
+    e.removeEventListener("animationend", end); e.classList.remove("pv-in"); }; e.addEventListener("animationend", end); };
+  /* the beat new blocks arrive on: + taps quicker than this wait their turn (childAdd), and page 1's cubes fill at it */
+  const ADD_STEP = 120;
   /* the lateral buzz of the FLN kit (recipes 11/20): +-9px decaying, .4s, on `translate` */
   /* the decks' idle cue ("if idle, pulsate again"): the pulse restarts from its start, with the nudge chime - no hand
      (user 2026-10-15: match the decks; their hand nudges are only the answer counter's and the ghost drags) */
@@ -4163,8 +4224,30 @@ const PVK = (function(){
     setXY(e, x, y); return e;
   }
   /* move an element (a block, a card, the hand) along a gentle arc or straight; resolves when it is there */
+  /* ---- the blocks' re-centring (T.relayout): each block eases to its place frame by frame - a critically damped spring,
+     smooth and never past its place. A new place while it is still moving only moves its goal: it bends its path with
+     no stop and no jump, its speed kept (user 2026-10-27: + tapped quickly re-centres the row on every tap - the blocks
+     used to finish the old move, stop, and set off again). ms: about how long a move takes. glide() takes a block over. ---- */
+  const FOL = new Set(); let folRaf = 0, folT = 0;
+  const damp = (e, k, dt)=>{ const f = e._fol, om = 2 / f.st, x = om * dt, ex = 1 / (1 + x + .48 * x * x + .235 * x * x * x);
+    const c = e["_" + k] - f[k], tmp = (f["v" + k] + om * c) * dt;
+    f["v" + k] = (f["v" + k] - om * tmp) * ex; return f[k] + (c + tmp) * ex; };
+  const folStep = now =>{ const dt = Math.min(.05, Math.max(.001, (now - folT) / 1000)); folT = now;
+    FOL.forEach(e =>{ const f = e._fol; if(!f || !e.isConnected){ FOL.delete(e); return; }
+      const nx = damp(e, "x", dt), ny = damp(e, "y", dt);
+      if(Math.abs(nx - f.x) < .05 && Math.abs(ny - f.y) < .05 && Math.abs(f.vx) + Math.abs(f.vy) < 2){ unfollow(e); setXY(e, f.x, f.y); }
+      else setXY(e, nx, ny); });
+    folRaf = FOL.size ? requestAnimationFrame(folStep) : 0; };
+  function follow(e, to, ms){
+    if(reduce() || ms <= 0){ unfollow(e); setXY(e, to.x, to.y); return; }
+    if(!e._fol){ if(Math.abs(e._x - to.x) < .5 && Math.abs(e._y - to.y) < .5){ setXY(e, to.x, to.y); return; }
+      e._fol = { vx: 0, vy: 0 }; FOL.add(e); e.classList.add("moving"); }
+    Object.assign(e._fol, { x: to.x, y: to.y, st: Math.max(.03, ms / 3000) });   // (~98% there after ms)
+    if(!folRaf){ folT = performance.now(); folRaf = requestAnimationFrame(folStep); } }
+  function unfollow(e){ if(!e._fol) return; FOL.delete(e); e._fol = null; e.classList.remove("moving"); }
   function glide(e, to, ms, arc){
     return new Promise(res =>{
+      unfollow(e);                                                     // (it carries on from where it is now)
       const from = xy(e), dx = to.x - from.x, dy = to.y - from.y;
       if(e._gl){ const old = e._gl; e._gl = null; old.cancel(); }
       if(reduce() || ms <= 0 || (Math.abs(dx) < .5 && Math.abs(dy) < .5)){ setXY(e, to.x, to.y); res(); return; }
@@ -4177,7 +4260,7 @@ const PVK = (function(){
       a.onfinish = done; a.oncancel = done;
     });
   }
-  const shift = (e, dx, dy, ms)=> glide(e, { x: e._x + dx, y: e._y + dy }, ms, false);
+  const shift = (e, dx, dy, ms)=>{ const b = e._fol || xy(e); return glide(e, { x: b.x + dx, y: b.y + dy }, ms, false); };   // (from where a re-centring block is going)
 
   /* ---- the demonstrating hand (the engine's nudge-hand art; its fingertip is NH.TIP_X / TIP_Y of its 86x108 box) ---- */
   function hand(sc){
@@ -4246,13 +4329,13 @@ const PVK = (function(){
     setXY(e, cx, y); return e;
   }
 
-  return { reduce, px, wait, ROD, CUBE, FIT, dashBox, kNow, add, setXY, xy, knock, pop, show, shake, repulse, softGlow, scene, ctx, run, block, glide, shift,
+  return { reduce, px, wait, ROD, CUBE, FIT, dashBox, kNow, add, setXY, xy, knock, pop, enter, ADD_STEP, show, shake, repulse, softGlow, scene, ctx, run, block, glide, follow, shift,
            hand, centre, numHTML, numCard, lightDigit, equation, settle, person };
 })();
 
 /* ---- [pv kit] the place-value table, block groups, moving blocks between tables, making a ten ---- */
 Object.assign(PVK, (function(){
-  const K = PVK, { px, add, setXY, glide, wait, pop, ROD, CUBE } = K;
+  const K = PVK, { px, add, setXY, glide, follow, wait, pop, enter, ROD, CUBE } = K;
   /* a दहाई | इकाई table. o: { cx, y, cube (a cube's side - a rod is ten of them, as wide as one), tensMax (rod places the column is wide for),
      tensFinal (the rods it will hold - they stand centred in their column), onesMax (cube places: rows of 5, the
      first two rows a ten-frame) }. Blocks are NOT children of the table: they are scene elements standing on its
@@ -4309,16 +4392,19 @@ Object.assign(PVK, (function(){
     T.laneRod = null;
     T.slot = (kind, i, n)=> kind === "t" ? T.tensXY(i, n) : T.onesXY(i, n);
     /* glide every block not in flight to its centred place (one in flight re-settles when it lands) */
-    T.relayout = (ms, skip, settling)=>{ ms = ms == null ? 320 : ms; const go = (b, p)=>{ if(b !== skip && !b._gl) glide(b, p, ms, false); };
+    /* (user 2026-10-27) the blocks ease to their new places with follow(): one still moving from the last change is
+       re-aimed on the way (it used to be skipped, land on its old place and set off again - the stop-and-go when + was
+       tapped quickly). One on a glide of its own (flying across, being made into a ten) is left to land. */
+    T.relayout = (ms, skip, settling)=>{ ms = ms == null ? 320 : ms; const go = (b, p)=>{ if(b !== skip && !b._gl) follow(b, p, ms); };
       T.rods.forEach((b, j)=> go(b, T.tensXY(j))); T.cubes.forEach((b, i)=> go(b, T.onesXY(i)));
       if(T.laneRod){ const q = T.onesBox(T.cubes.length, true); go(T.laneRod, { x: q.rx, y: q.ry }); }
       /* blocks added quickly one after another were in flight just now: once things are still, settle them all */
       if(!settling){ clearTimeout(T._settle); T._settle = setTimeout(function again(){ if(!T.el.isConnected) return;
         if([...T.rods, ...T.cubes].some(b => b._gl)){ T._settle = setTimeout(again, 120); return; } T.relayout(220, null, true); }, ms + 80); } };
     T.list = kind => kind === "t" ? T.rods : T.cubes;
-    /* a new block on the next place of its column, popping in */
+    /* a new block on the next place of its column, growing in (enter) while the others slide to make room */
     T.addBlock = kind =>{ const list = T.list(kind), p = T.slot(kind, list.length, list.length + 1);
-      const b = K.block(sc, kind, p.x, p.y, kind === "t" ? rH : G); list.push(b); pop(b); T.relayout(260, b); return b; };
+      const b = K.block(sc, kind, p.x, p.y, kind === "t" ? rH : G); list.push(b); enter(b); T.relayout(260, b); return b; };
     /* the number built "one by one" (deck: "Show the PV tables with the numbers built using blocks one by one") */
     T.fill = async (n, step)=>{ const t = Math.floor(n / 10), u = n % 10;
       for(let j = 0; j < t; j++){ T.addBlock("t"); await wait(step == null ? 110 : step); }
@@ -4368,30 +4454,47 @@ Object.assign(PVK, (function(){
     T._ring.classList.toggle("pv-hide", on === false); if(on !== false) pop(T._ring);
     return T._ring;
   }
-  /* MAKE A TEN: the first ten cubes of table S fly into the new rod's place in their इकाई column - left of the cubes left
-     over, the two centred together - shrinking and fading as they go (they never stand touching - SME review: the yellow
-     blocks always apart), and become ONE rod (a "new ten", glowing); the cubes left over move up to the first places.
-     Resolves with that rod - not yet in S.rods: it waits in the lane until it is put in the tens column. */
+  /* MAKE A TEN: the first ten cubes of table S become ONE rod (a "new ten", glowing - formTen) in their इकाई column, left of
+     the cubes left over, the two centred together; the cubes left over move up to the first places. Resolves with that
+     rod - not yet in S.rods: it waits in the lane until it is put in the tens column. */
   async function makeTen(S){
     const ten = S.cubes.slice(0, 10), rest = S.cubes.slice(10);
     S.cubes = rest; S.laneRod = ten[9];                               // (a stand-in until the rod is made: the layout leaves its place)
     const q = S.onesBox(rest.length, true), rx = q.rx, ry = q.ry, sc = S.sc;
     rest.forEach((c, i)=> glide(c, S.onesXY(i), 560, false));
     ring(S, false);
-    await Promise.all(ten.map((c, j)=> wait(j * 45).then(()=> intoRod(c, rx, ry, S.rH, S.cH, 560))));
-    const rod = K.block(sc, "t", rx, ry, S.rH); newTen(rod); pop(rod);
-    ten.forEach(c =>{ c.classList.add("pv-gone"); setTimeout(()=> c.remove(), 400); });
+    const rod = await formTen(sc, ten, rx, ry, S.rH); newTen(rod);
     try{ playSfxFile("sfx_correct", 0.5); }catch(e){}
     S.laneRod = rod;
     await wait(420);
     return rod;
   }
-  /* a cube flying into the place of the rod it becomes part of (top-left x, y; rod height rH; cube height cH): it ends
-     at the rod's middle, shrinking and fading on the way, so the ten never stand touching (SME review) */
-  function intoRod(c, x, y, rH, cH, ms){
-    c.style.zIndex = 30;
-    if(!K.reduce()) c.animate([{ opacity: 1, scale: 1 }, { opacity: .7, scale: .8, offset: .35 }, { opacity: 0, scale: .5, offset: .65 }, { opacity: 0, scale: .45 }], { duration: ms, fill: "forwards" });   // (gone before they meet)
-    return glide(c, { x, y: y + rH / 2 - cH / 2 }, ms, true);
+  /* TEN CUBES BECOME ONE ROD (user 2026-10-27: "the transition of cubes into the दहाई is not clean" - the cubes faded out
+     in mid-air and the rod popped in from nothing ~.4s after the last had gone). Now the rod builds up where it will stand:
+     the cubes fly in one after another, the nearest first, each to its own place in a stack of ten (ten cubes at
+     CUBE.pitch ARE the rod - the art's own proportion), and as each lands the green rod is uncovered from the bottom up to
+     that cube's top while the cube fades into it - ten yellow cubes turning into one green ten, a step at a time. A yellow
+     cube shows only until its own step is green, so no two ever stand stacked (SME review: the yellow blocks always apart).
+     x, y: the rod's top-left; rH: its height (its width is a cube's). Resolves with the rod once it is whole. */
+  async function formTen(sc, cubes, x, y, rH){
+    const rod = K.block(sc, "t", x, y, rH), w = rH / ROD.ar, cH = w * CUBE.ar, step = w * CUBE.pitch;
+    const top = k => Math.max(0, rH - cH - k * step);                 // cube k's top in the rod (k 0: the bottom one)
+    if(K.reduce()){ cubes.forEach(c => c.remove()); return rod; }
+    const cut = t => "inset(" + px(t) + " -6px -6px -6px)";           // (the sides and foot open: its drop shadow is never cut)
+    /* straight in (an arc took them up over the table's head), one landing every 90ms and each gone in 90ms - so only one
+       yellow cube is ever on the rod; each flight as long as its way (a near cube does not hang in the air beside the
+       rod - on a story page they start right next to it), timed to land on its beat */
+    rod.style.clipPath = cut(rH); rod.style.transition = "clip-path .09s ease-out";
+    const far = c => Math.hypot(c._x - x, c._y - (y + rH));
+    await Promise.all(cubes.slice().sort((a, b)=> far(a) - far(b)).map((c, k)=>{
+      const to = { x, y: y + top(k) }, ms = Math.max(260, Math.min(480, 220 + Math.hypot(to.x - c._x, to.y - c._y) * .9));
+      return wait(480 - ms + k * 90).then(()=>{ c.style.zIndex = 30;
+      return glide(c, to, ms, false).then(()=>{
+        rod.style.clipPath = cut(top(k));
+        c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 90, fill: "forwards" });
+        return wait(100).then(()=> c.remove()); }); }); }));
+    rod.style.clipPath = ""; rod.style.transition = "";
+    return rod;
   }
   /* a person's blocks on a story page: the rods side by side, then the cubes in columns of five, bottom-aligned.
      g.add(blocks) re-lays a set of blocks (another group's, flying in) into this group's places */
@@ -4422,7 +4525,7 @@ Object.assign(PVK, (function(){
       (extra || []).forEach(e =>{ if(e) setXY(e, e._x + dx, e._y); }); });
     return x0 + TA.W + g / 2;                                               // where the + goes
   }
-  return { table, showTable, transfer, newTen, sweep, ring, makeTen, intoRod, group, pair };
+  return { table, showTable, transfer, newTen, sweep, ring, makeTen, formTen, group, pair };
 })());
 
 /* ---- [pv kit] what the child does: add blocks with the + buttons, tap blocks across into the sum table, make a
@@ -4436,9 +4539,11 @@ Object.assign(PVK, (function(){
      y = the line its bottom stands on (SME review: bottom centre, aligned, evenly spaced). Each half is its own button
      (its pulse / off / demo states): its block on the left - upright as in the table and in the table's exact ratio, a
      rod ten cubes tall (SME review) - the rod drawn smaller and the cube a little bigger (user 2026-10-22), so the box
-     stays control-sized - and the + on the right. The two halves the same width, a thin line between them */
+     stays control-sized - and the + on the right. The two halves the same width, a thin line between them.
+     B: the block it is drawn from - 28, the subtraction lesson's (MTG2A01_L04), not this table's, so the box is the same
+     size in both lessons (review 2026-10-27) */
   function sources(sc, T, y, mid){
-    const G = Math.round(T.G * .45), rodL = G * K.ROD.ar, GC = Math.round(T.G * .72), H = Math.round(rodL + 24);   // G: the rod's width, GC: the cube's
+    const B = 28, G = Math.round(B * .45), rodL = G * K.ROD.ar, GC = Math.round(B * .72), H = Math.round(rodL + 24);   // G: the rod's width, GC: the cube's
     const bar = add(sc, "div", "pv-src-bar pv-hide", "height:" + px(H));
     const mk = kind =>{ const b = add(bar, "button", "pv-src"); b.type = "button";
       b.innerHTML = '<span class="pv-src-blk"><img alt="" src="' + (kind === "t" ? K.ROD.src : K.CUBE.src) + '" style="width:' + px(kind === "t" ? G : GC) + ';height:' +
@@ -4452,19 +4557,28 @@ Object.assign(PVK, (function(){
     return S;
   }
   /* the child adds n blocks of one kind with its + button: it pulses, each tap adds one, it switches off at n.
-     Idle 7s: it pulses again (the decks: "if idle after 1 tap, pulsate again"). */
+     Idle 7s: it pulses again (the decks: "if idle after 1 tap, pulsate again") - no SFX (review 2026-10-27).
+     The blocks come in on an even beat (K.ADD_STEP, each with its knock): a tap quicker than that waits its turn, so
+     however fast the + is tapped they arrive one by one in the same smooth rhythm (user 2026-10-27; they used to land
+     the instant of each tap, piling onto blocks still sliding). */
   function childAdd(C, btn, T, n, kind){
     return new Promise(res =>{
       if(!n) return res();
-      let got = 0, idleT = 0;
+      let got = 0, shown = 0, idleT = 0, beatT = 0, last = -1e9;
       btn.classList.remove("off"); btn.classList.add("pulse");
-      const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || got >= n) return; K.repulse(btn); arm(); }, idleMs()); };
+      const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || got >= n) return; K.repulse(btn, true); arm(); }, idleMs()); };
+      const beat = ()=>{ beatT = 0; if(!C.alive() || shown >= got) return;
+        const due = last + K.ADD_STEP - performance.now();
+        if(due > 0){ beatT = setTimeout(beat, due); return; }
+        last = performance.now(); shown++; T.addBlock(kind); K.knock();
+        if(shown < got) beatT = setTimeout(beat, K.ADD_STEP); else if(shown >= n) setTimeout(res, 380); };
       btn.onclick = ()=>{
         if(!C.alive() || got >= n) return;
-        stopNudge(); got++; T.addBlock(kind); K.knock();
+        stopNudge(); got++;
         GameBus.emit("pv_block_added", { slide_id: C.slide.id, kind, count: got });
-        if(got >= n){ clearTimeout(idleT); btn.onclick = null; btn.classList.remove("pulse"); btn.classList.add("off"); setTimeout(res, 380); }
+        if(got >= n){ clearTimeout(idleT); btn.onclick = null; btn.classList.remove("pulse"); btn.classList.add("off"); }
         else arm();
+        if(!beatT) beat();
       };
       arm();
     });
@@ -4487,7 +4601,7 @@ Object.assign(PVK, (function(){
       let flying = 0, idleT = 0, fin = false;
       const done = ()=>{ if(fin || pool().length || flying) return; fin = true; clearTimeout(idleT); res(); };
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || fin) return;
-        pool().forEach(b => K.repulse(b)); arm(); }, idleMs()); };   // the decks: "pulsate the blocks until all are tapped"
+        pool().forEach(b => K.repulse(b, true)); arm(); }, idleMs()); };   // the decks: "pulsate the blocks until all are tapped" - no SFX (review 2026-10-27)
       from.forEach(T => [...T.rods, ...T.cubes].forEach(b =>{
         if(kind && b._kind !== kind) return;
         b.classList.add("pv-tap");
@@ -4536,8 +4650,9 @@ Object.assign(PVK, (function(){
   /* x = the button's centre, or its LEFT edge when left (beside a table: it then never reaches back over it) */
   function makeBtn(sc, x, y, left){ const b = add(sc, "button", "pv-make pv-hide" + (left ? " pv-make-l" : "")); b.type = "button"; b.textContent = "दहाई बनाओ"; setXY(b, x, y); return b; }
   /* the same button beside a sum table: ONE place on every page (user 2026-10-23 "position should be consistent") - its
-     right edge 40px in from the stage's right edge, level with the middle of the table's body */
-  function makeBtnSide(sc, T){ const b = makeBtn(sc, 0, 0, true); setXY(b, 1333 - 40 - b.offsetWidth, T.y + T.head + T.inH / 2 + T.pad - b.offsetHeight / 2); return b; }
+     right edge 40px in from the stage's right edge (right: the edge to stand in from instead - a tutorial card's, whose
+     inside ends well before the stage's), level with the middle of the table's body */
+  function makeBtnSide(sc, T, right){ const b = makeBtn(sc, 0, 0, true); setXY(b, (right || 1333) - 40 - b.offsetWidth, T.y + T.head + T.inH / 2 + T.pad - b.offsetHeight / 2); return b; }
 
   /* the child puts the new ten into the tens column: it pulses beside the table; drag it ANYWHERE onto the table's
      दहाई side (no target box - review 2026-10-14) and it settles on its place there (drag only - a tap shows the ghost drag). cfg: { demo: the ghost drag once at the start, idle: ms before the ghost drag
@@ -4657,12 +4772,18 @@ Object.assign(PVK, (function(){
       const right = els.find(o => o._v === cfg.answer);
       let wrong = 0, busy = true, idleT = 0, layer3 = false, over = false, reasking = false;
       const M = { box, els, right,
-        open(){ box.classList.add("in"); },
+        /* the cards pop in one by one (.12s apart, CSS .mq-opts.in .mq-opt), each with its bloop; resolves once the last
+           has landed, so the question is said after them, not over them (QA checklist 2026-10-27; MTG2A04's BUG_08) */
+        open(){ box.classList.add("in"); const c = _ac(); if(c) els.forEach((o, k)=> sfxCubePop(k, k === els.length - 1, c.currentTime + k * .12));
+          return K.wait(els.length * 120 + 450); },
         hide(on){ box.classList.toggle("pv-hide", on !== false); },
         moveTo(y){ box.style.top = px(y); },
         ready(){ busy = false; arm(); },
         lock(){ layer3 = true; els.forEach(x =>{ if(x !== right){ x.classList.add("faded", "locked"); x.disabled = true; } });
-          right.classList.add("hint-on"); K.softGlow(right); } };   // highlighted + the others faded (the decks' WA3) - no hand
+          right.classList.add("hint-on"); K.softGlow(right);   // highlighted + the others faded (the decks' WA3)
+          /* + the hand on it (review 2026-10-27: "on the third incorrect attempt, add a hand nudge"), once the cards stand
+             still (.mq-opts glides .5s when the help has moved it) */
+          setTimeout(()=>{ if(C.alive() && !over) placeNudge(right); }, 600); } };
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{
         if(!C.alive() || busy || over) return;
         /* the idle reminder never locks the cards: a tap while it speaks cuts it short and counts (it used to set busy -
@@ -4832,7 +4953,7 @@ const pvSplit = n =>({ t: Math.floor(n / 10), o: n % 10 });
 function pvReplay(C){ state.replayAudio = ()=>{ if(!isPlaying && C.cur && C.alive()) C.say(C.cur).catch(()=>{}); }; }
 function pvTapOnce(C, btn){
   return new Promise(res =>{ let idleT = 0;
-    const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(C.alive() && btn.onclick){ PVK.repulse(btn); arm(); } }, IDLE_MS); };   // the decks: the button pulsates
+    const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(C.alive() && btn.onclick){ PVK.repulse(btn, true); arm(); } }, IDLE_MS); };   // the decks: the button pulsates (no SFX - review 2026-10-27)
     btn.classList.remove("off"); btn.classList.add("pulse");
     btn.onclick = ()=>{ if(!C.alive()) return; btn.onclick = null; clearTimeout(idleT); stopNudge(); btn.classList.remove("pulse"); res(); };
     arm(); });
@@ -5097,15 +5218,21 @@ const PVModules = {
       /* the columns spread so no two groups of blocks touch (SME review T6: 86's rods ran into 52's grey blocks): each
          pair of neighbours at least MIN apart edge to edge (the + / = stand in that gap), else the default spacing; the
          row stays centred. Both pages of a sum (ask and answered) get the same columns. */
+      let XP, XE, XQ;                                                     // the +, the = and the third card's centres
       { const pA = pvSplit(d.a), pB = pvSplit(d.b), pS = pvSplit(sum), w = (n, t, u)=> K.group(sc, n, 0, BOT, BH).width(t, u), MIN = 90;
         const wA = w(d.a, pA.t, pA.o), wB = w(d.b, pB.t, pB.o), wS = Math.max(w(sum, pA.t + pB.t, pA.o + pB.o), w(sum, pS.t, pS.o));
         const dAB = Math.max(COL[1] - COL[0], (wA + wB) / 2 + MIN), dBS = Math.max(COL[2] - COL[1], (wB + wS) / 2 + MIN);
-        COL[0] = COL[1] - (dAB + dBS) / 2; COL[1] = COL[0] + dAB; COL[2] = COL[1] + dBS; }
+        COL[0] = COL[1] - (dAB + dBS) / 2; COL[1] = COL[0] + dAB; COL[2] = COL[1] + dBS;
+        /* review 2026-10-27 (T6: "shift the = and the 86 card slightly left, aligned with their blocks"): the + and the =
+           stand in the middle of the gap between the blocks either side (the = stood against 86's rods), and the sum's card
+           centres on its rods and FIRST column of ones - a second column (6-9 ones) no longer pulls it right */
+        const l = COL[2] - w(sum, pS.t, pS.o) / 2;                          // the sum's blocks' left edge, as they end
+        XP = (COL[0] + wA / 2 + COL[1] - wB / 2) / 2; XE = (COL[1] + wB / 2 + l) / 2; XQ = l + w(sum, pS.t, Math.min(pS.o, 5)) / 2; }
       const pA = K.person(sc, P0.who, P0.name, COL[0], AVY, AV), pB = K.person(sc, P1.who, P1.name, COL[1], AVY, AV);
       const gA = K.group(sc, d.a, COL[0], BOT, BH).make(), gB = K.group(sc, d.b, COL[1], BOT, BH).make();
       const op = (t, x)=>{ const e = K.add(sc, "div", "pv-op pv-sym", "font-size:52px"); e.textContent = t; K.setXY(e, x, EY + 2); return e; };
-      const cA = K.numCard(sc, d.a, COL[0], EY, EH), plus = op("+", (COL[0] + COL[1]) / 2), cB = K.numCard(sc, d.b, COL[1], EY, EH), eqs = op("=", (COL[1] + COL[2]) / 2),
-            cQ = K.numCard(sc, null, COL[2], EY, EH, "pv-q");
+      const cA = K.numCard(sc, d.a, COL[0], EY, EH), plus = op("+", XP), cB = K.numCard(sc, d.b, COL[1], EY, EH), eqs = op("=", XE),
+            cQ = K.numCard(sc, null, XQ, EY, EH, "pv-q");
       const asking = d.mode !== "sum";
       const hideAll = list => list.forEach(e => e.classList.add("pv-hide"));
       const showGroup = (p, g)=>{ K.show(p); g.all().forEach((b, i)=> setTimeout(()=> K.show(b), 120 + i * 55)); };
@@ -5123,9 +5250,7 @@ const PVModules = {
         if(u >= 10){
           const L2 = G.layout(t + 1, u - 10), dst = L2.rod(t), ten = cubes.slice(0, 10);
           await K.wait(250);
-          await Promise.all(ten.map((c, j)=> K.wait(j * 40).then(()=> K.intoRod(c, dst.x, dst.y, BH, G.cs * K.CUBE.ar, 520))));   // (never stacked touching - SME review)
-          const r = K.block(sc, "t", dst.x, dst.y, BH); K.newTen(r); K.pop(r);
-          ten.forEach(c =>{ c.classList.add("pv-gone"); setTimeout(()=> c.remove(), 400); });
+          const r = await K.formTen(sc, ten, dst.x, dst.y, BH); K.newTen(r);   // the ten build up into the rod (formTen - user 2026-10-27)
           rods.forEach((b, j)=> K.glide(b, L2.rod(j), 420, false));
           cubes.slice(10).forEach((b, i)=> K.glide(b, L2.cube(i), 420, false));
           rods.push(r); cubes.splice(0, 10);
@@ -5152,7 +5277,10 @@ const PVModules = {
           let moving = null;
           /* each number's blocks glow as it is said, with its box's pop (user 2026-10-15) */
           const sg = d.signs, cues = [[0, ()=>{ K.pop(cA); K.sweep(gA.all(), 0); }], [0.28, ()=>{ K.pop(cB); K.sweep(gB.all(), 0); }], [0.4, ()=>{ moving = together(); }],
-                             [0.88, ()=>{ K.show(cQ); cQ.innerHTML = K.numHTML(sum); cQ.classList.add("filled"); K.pop(cQ); }]];
+                             [d.sum_at || .88, ()=>{ K.show(cQ); cQ.innerHTML = K.numHTML(sum); cQ.classList.add("filled"); K.pop(cQ); }]];
+          /* d.sum_at (user 2026-10-27, T3: "number 35 is coming late and not matching with the VO"): where the sum's own word
+             starts in the "eq" clip, measured from its loudness - "पैंतीस" at 1.90s of 2.84s, after the pause that follows "बराबर".
+             It was a flat .88 for every page: ~0.6s late, at or past the word's end. */
           if(sg) cues.push([sg.plus[1], ()=> K.show(plus)], [sg.eq[1], ()=>{ K.show(eqs); K.show(cQ); }]);
           await C.cue("eq", cues);
           if(moving) await moving; C.guard();
@@ -5179,10 +5307,19 @@ const PVModules = {
       state.ownsAudio = true; setNavActive(false); setSwMood("teach"); pvReplay(C);
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), carry = A.o + B.o >= 10;
       const tMax = Math.max(A.t, B.t, 3);
-      const cA = K.numCard(sc, d.a, L.cxL, L.numY, L.numH), cB = K.numCard(sc, d.b, L.cxR, L.numY, L.numH);
+      /* the two number cards (and the total's, in line with them) 9px lower than L.numY: they sat 6px under the card's
+         outline, 24px over their tables - now 15px from each (user 2026-10-27 "too close to the outline"); nothing else moves */
+      const NY = L.numY + 9;
+      const cA = K.numCard(sc, d.a, L.cxL, NY, L.numH), cB = K.numCard(sc, d.b, L.cxR, NY, L.numH);
       const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
       const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
-      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o, grow: 40 });   // (wider: room for the blocks - SME review)
+      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o, grow: carry ? 0 : 40 });   // (wider: room for the blocks - SME review; not with a ten to make: the button needs that room)
+      /* the दहाई बनाओ button stands INSIDE the card, 40px in from its right edge (40px in from the stage's put it past the
+         card - user 2026-10-27); a sum table too wide for it steps left, a clear 24px gap kept (as on the guided pages) -
+         the table without its extra width, so it still clears Swiftie in the card's corner */
+      const card = host.closest(".tut-card"), cardR = card ? (card.getBoundingClientRect().right - sc.getBoundingClientRect().left) / K.kNow() - card.clientLeft : 1333;
+      const makeB = carry ? K.makeBtnSide(sc, TS, cardR) : null;
+      if(makeB){ const dx = Math.min(0, makeB._x - 24 - (TS.x + TS.W)); if(dx){ TS.x += dx; TS.all().forEach(e => K.setXY(e, e._x + dx, e._y)); } }
       const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:54px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, L.cx, 84, [cA], [cB]), L.tableY + TA.H / 2 - 34);
       /* the tables come one at a time (SME review): the first number's at the start, the second's once the first is
          built, the sum table once both numbers are built (user 2026-10-15) - the same in auto */
@@ -5216,10 +5353,10 @@ const PVModules = {
         if(C.has("head")) await C.say("head");
         if(C.has("intro")) await C.say("intro");
         await build(TA, cA, d.a, d.build[0], "a");
-        /* (the + comes with the merge line's "जोड़ते" - user 2026-10-15; no longer after the second number) */
+        /* (the + comes with the merge line - no longer after the second number) */
         await build(TB, cB, d.b, d.build[1], "b");
         GameBus.emit("pv_build_done", { slide_id: slide.id });
-        await C.cue("merge", [[0.44, ()=> showT(TS)], [0.78, ()=> K.show(plus)]]);   // the sum table on "अब दोनों...", the + on "जोड़ते" (3.27s of 4.19s)
+        await C.cue("merge", [[0.44, ()=> K.show(plus)], [0.78, ()=> showT(TS)]]);   // the + BEFORE the sum table (review 2026-10-27): the + on "अब दोनों...", the sum table on "जोड़ते" (3.27s of 4.19s)
         const across = async kind =>{
           if(!d.auto) return K.tapAcross(C, [TA, TB], TS, kind);
           const H = K.hand(sc); await K.demoAcross(C, H, [TA, TB], TS, kind); H.off(); await C.wait(250); H.el.remove(); };
@@ -5228,7 +5365,7 @@ const PVModules = {
         await C.cue("ones_sum", [[0.02, ()=> K.sweep(TS.cubes)]]);
         if(carry){
           await C.cue("know", [[0.3, ()=> K.ring(TS, true)]]);
-          const btn = K.makeBtnSide(sc, TS); K.show(btn);
+          const btn = makeB; K.show(btn);
           if(d.auto){ const H = K.hand(sc); await Promise.all([C.say("make"), C.wait(700).then(()=> H.tap(K.centre(btn, sc)))]);
             H.off(); await C.wait(200); H.el.remove(); }
           else await Promise.all([C.say("make"), pvTapOnce(C, btn)]);
@@ -5249,12 +5386,12 @@ const PVModules = {
         await C.cue("tens_sum", [[0.02, ()=> K.sweep(TS.rods, 160)]]);
         GameBus.emit("pv_merge_done", { slide_id: slide.id });
         // the total's box is the SAME size as the two numbers' boxes (user 2026-10-15: "why is the 35 box bigger")
-        const tot = K.numCard(sc, sum, TS.x + TS.W / 2, L.numY, L.numH); tot.classList.add("pv-hide", "pv-total", "pv-sumcard");
+        const tot = K.numCard(sc, sum, TS.x + TS.W / 2, NY, L.numH); tot.classList.add("pv-hide", "pv-total", "pv-sumcard");
         const eqS = K.add(sc, "div", "pv-op pv-sym pv-hide", "font-size:54px"); eqS.textContent = "=";
         /* the whole sum stays on screen in ONE row: [23] + [12] = [35], each table under its number, so the bottom centre is
-           free for the next button (user 2026-10-15). The row forms FIRST, then the total line: "a और b को जोड़ने पर c
-           मिलता है" - the "=" and the total's box come in as c is said (user 2026-10-22; data.sum_at = c's start in the
-           clip, measured from the VO; the SME's "no = before 35" was the old layout's = beside the sum table) */
+           free for the next button (user 2026-10-15). The row forms FIRST - the "=" comes as soon as the sum table stands
+           in it (review 2026-10-27) - then the total line: "a और b को जोड़ने पर c मिलता है" - the total's box comes in as c
+           is said (user 2026-10-22; data.sum_at = c's start in the clip, measured from the VO) */
         { const AV = 1060, sumW = TA.W + TB.W + TS.W, GAP = Math.max(40, Math.min(62, (AV - sumW) / 2)), tw = sumW + 2 * GAP;   // (the card is ~1130 wide)
           const x0 = L.cx - tw / 2, ms = 700, s = Math.min(1, AV / tw);
           /* the row stands in the middle of the free space, between the title (~200) and the next button (~565) - user
@@ -5262,7 +5399,7 @@ const PVModules = {
           const rowH = (L.tableY + Math.max(TA.H, TB.H, TS.H)) - (L.numY - 10), DY = Math.round(382 - (L.numY - 10) - rowH * s / 2);
           const dA = x0 - TA.x, dB = x0 + TA.W + GAP - TB.x, dSx = x0 + TA.W + TB.W + 2 * GAP - TS.x, dSy = L.tableY + DY - TS.y;
           const opY = L.tableY + DY + TA.H / 2 - 34, mv = (e, x, y)=> K.shift(e, x - e._x, y - e._y, ms);
-          K.setXY(eqS, x0 + TA.W + TB.W + GAP * 1.5, opY); K.setXY(tot, TS.x + dSx + TS.W / 2, L.numY + DY);   // (both wait hidden in their places)
+          K.setXY(eqS, x0 + TA.W + TB.W + GAP * 1.5, opY); K.setXY(tot, TS.x + dSx + TS.W / 2, NY + DY);   // (both wait hidden in their places)
           /* a row wider than the card (a big sum: 86 = 8 rods) is scaled down round its top centre to fit, as it moves */
           if(tw > AV){ const wrap = K.add(sc, "div", "pv-row", "position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;transform-origin:" + L.cx + "px " + (L.numY - 10 + DY) + "px");
             [...TA.all(), ...TA.ghosts, ...TB.all(), ...TB.ghosts, ...TS.all(), cA, cB, plus, eqS, tot].forEach(e =>{ if(e && e.parentNode === sc) wrap.appendChild(e); });
@@ -5270,8 +5407,9 @@ const PVModules = {
           await Promise.all([TA.move(dA, DY, ms), ...TA.ghosts.map(e => K.shift(e, dA, DY, ms)), K.shift(cA, dA, DY, ms),
             TB.move(dB, DY, ms), ...TB.ghosts.map(e => K.shift(e, dB, DY, ms)), K.shift(cB, dB, DY, ms),
             TS.move(dSx, dSy, ms).then(()=>{}), mv(plus, x0 + TA.W + GAP / 2, opY)]); C.guard(); }
+        K.show(eqS);
         await C.cue("total", [[0.02, ()=> K.sweep(TS.rods, 90)], [0.3, ()=> K.sweep(TS.cubes, 70)],   // (no column digits under the table)
-                              [d.sum_at || .75, ()=>{ K.show(eqS); K.show(tot); }]]);
+                              [d.sum_at || .75, ()=> K.show(tot)]]);
         sfxCorrect(); setSwMood("happy");
         await C.say("done");
         try{ confettiCannon(); }catch(e){}                                // (the confetti last, after the closing line - user 2026-10-22)
@@ -5291,7 +5429,7 @@ const PVModules = {
       const T = K.table(sc, { cx: 640, y: 234, cube: 34, blk: 26, tensMax: 3, tensFinal: P.t, onesMax: N });
       const btn = K.makeBtn(sc, 640, T.y + T.H + 18);
       K.run(C, async ()=>{
-        for(let i = 0; i < N; i++){ T.addBlock("o"); await C.wait(70); }    // N loose cubes (not "1 ten + 3": the ten is what the child makes)
+        for(let i = 0; i < N; i++){ T.addBlock("o"); await C.wait(K.ADD_STEP); }    // N loose cubes (not "1 ten + 3": the ten is what the child makes) - on the + taps' beat (was 70ms: user 2026-10-27 "smooth uniform")
         await C.wait(300);
         await C.say("count_intro");
         for(let i = 1; i <= 10; i++){ const c = T.cubes[i - 1]; c.classList.add("pv-on"); K.pop(c); await C.sayNum(i); }
@@ -5353,12 +5491,12 @@ const PVModules = {
         [TA, TB].forEach(T => T.fade()); plus.classList.add("pv-gone");
         await TS.move(0, L.tableY - TS.y, 700); C.guard();
         await K.mcq(C, { options: d.options, answer: sum, y: L.tableY + TS.H + 40, reask: "ask", eq: E,
-          onReady: M =>{ M.open(); C.say("ask").then(()=> M.ready(), ()=>{}); },
+          onReady: M =>{ M.open().then(()=>{ C.guard(); return C.say("ask"); }).then(()=> M.ready(), ()=>{}); },
           onRight: o => K.flyToQ(C, o, E),
           ladder: async (n, M)=>{
             if(n === 1) await C.say("try_again");
             else if(n === 2){ await C.cue("hint_a", [[0.35, ()=> K.sweep(TS.rods, 120)]]); await C.cue("hint_b", [[0.1, ()=> K.sweep(TS.cubes, 90)]]); }
-            else M.lock();   // the decks' WA3: highlight the right one, fade the others (no hand, no line)
+            else M.lock();   // the decks' WA3: highlight the right one, fade the others, the hand on it (no line)
           } });
       });
     }
@@ -5455,9 +5593,9 @@ const PVModules = {
       state.ownsAudio = true; state.locked = false; setNavActive(false); $("navBtn").style.display = "none"; setSwMood("point"); pvReplay(C);
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), tMax = Math.max(A.t, B.t, 3);
       const PP = null;                                                        // (no practice castle - user 2026-10-23 "remove these castles"; was PVPlay.mount(sc, slide))
-      const E = K.equation(sc, d.a, d.b, L.cx, 170, L.eqH); E.el.classList.add("big");   // (higher: the castle stands under the answers; 178 -> 170 and the answers 330 -> 300 on 2026-10-19 for bigger castle cubes)
+      const E = K.equation(sc, d.a, d.b, L.cx, 282, L.eqH); E.el.classList.add("big");   // (where the subtraction lesson's (MTG2A01_L04) MENTAL_SUB has it - user 2026-10-27; was 170 to leave room for the castle)
       let TA = null, TB = null, TS = null, plus = null, merged = false;
-      const optTop = { solo: 345 };                                           // (SME review: the answers a little lower)
+      const optTop = { solo: 452 };                                           // (as MTG2A01_L04's MENTAL_SUB, its Y0 - user 2026-10-27; was 345)
       /* with the help tables: question, tables and answers one even GAP apart (user 2026-10-23 - the answers used to drop to
          the bottom edge): the tables GAP under the equation, the answers GAP under the tables (or the sum table) */
       const GAP = 36, TY = L.eqY + L.eqH + GAP;
@@ -5486,7 +5624,7 @@ const PVModules = {
       K.run(C, async ()=>{
         await C.wait(300);
         await K.mcq(C, { options: d.options, answer: sum, y: optTop.solo, reask: "prompt", eq: E,   // (the confetti once, at the very end - after the castle and the equation's VO: user 2026-10-22)
-          onReady: M =>{ M.open(); C.say("prompt").then(()=> M.ready(), ()=>{}); },
+          onReady: M =>{ M.open().then(()=>{ C.guard(); return C.say("prompt"); }).then(()=> M.ready(), ()=>{}); },
           onRight: async o =>{ await K.flyToQ(C, o, E); if(PP) await PP.right({ C, E, sum, TA, TB, plus, TS }); },
           onPick: (v, card)=>{ if(PP) PP.wrong(v, card); },
           ladder: async (n, M)=>{
@@ -5932,12 +6070,36 @@ function afterConfetti(fn){
   /* ===== FLN ANIMATION KIT: confetti (advance gate) END ===== */
 }
 /* onscreen headline per gate (display only; distinct from any narration). Eligibility = phase IN this map. */
-const PHASE_GATE_TITLE = { tutorial:"चलिए, शुरू करें!",   /* user 2026-10-23: the line + its clip (vo_pt_tutorial.wav) taken from MTG2A04_L02_S01 */ guided:"चलिए, साथ में करें!", practice:"अब आपकी बारी!" };   // QA checklist 2026-10-05: the headlines are exactly the lines Swiftie speaks (each VO is now that line alone), so the text appears only as she says it
+const PHASE_GATE_TITLE = { tutorial:"चलिए, शुरू करें!",   /* MTG2A04's QA BUG_02 (2026-10-27, as MTG2A03 / MTG2A04): the line is now "ध्यान से देखिए और मेरे साथ जानिए। चलिए, शुरू करें!" - the headline is its closing words, on screen as she says them (PHASE_GATE_TITLE_AT) */ guided:"चलिए, साथ में करें!", practice:"अब आपकी बारी!" };   // QA checklist 2026-10-05: the headlines are exactly the lines Swiftie speaks (each VO is now that line alone), so the text appears only as she says it
 const PHASE_GATE_VO    = { tutorial:"vo_pt_tutorial", guided:"vo_pt_guided", practice:"vo_pt_practice" };
+/* where the headline's own words start in a gate's line, ms (the headline goes on .28s before them - CSS pgWipe's delay).
+   A gate not listed: its line IS its headline, on from the line's start. tutorial (BUG_02): "ध्यान से देखिए और मेरे साथ
+   जानिए।" comes first, "चलिए, शुरू करें!" at 3.10s (as HI02H11_L02_S02's CARD.gate.title_cue_ms, 3075). guided: "बहुत
+   बढ़िया!" first, "चलिए, साथ में करें!" at 1.355s; practice: "वाह!" first, "अब आपकी बारी!" at 0.935s (that game: 925). */
+const PHASE_GATE_TITLE_AT = { tutorial: 3100, guided: 1355, practice: 935 };
 /* [peek-2] The clip's own length, and the CSS duck-down that follows it. Both are contracts
    with assets/gif/peeking.webp and @keyframes pgDuck — if either is re-cut, change it here too. */
-const ANIM_ASSETS = ["loader.webp", "new_landing_swiftee_anim.webp", "peeking.webp", "sw_head_celebrate_anim.webp", "sw_head_hint_anim.webp", "sw_head_tryagain_anim.webp"];
+const ANIM_ASSETS = ["loader.webp", "new_landing_swiftee_anim.webp", "peeking.webp", "peeking_tutorial.webp", "peeking_guided.webp", "peeking_practice.webp", "sw_head_celebrate_anim.webp", "sw_head_hint_anim.webp", "sw_head_tryagain_anim.webp", "sw_lg_celebrating_anim.webp"];
 const PG_CLIP_MS = 8304;  // peeking.webp: hands arrive, peek, blink, come out, talk with blinks, duck back; 8.30s, plays once (9.72s before 2026-10-05).
+/* [lip-sync] QA 2026-10-23 (BUG_02) + the user, 2026-10-26 ("take the VO from" HI02H11_L02_S02; "make sure swifty lip is
+   opening and closing smoothly throughout the VO"): the first gate's line is now that game's vo_pt_tutorial - "ध्यान से देखिए
+   और मेरे साथ जानिए। चलिए, शुरू करें!", 4.3s. peeking.webp's talking part flaps on a beat of its own (7 opens in 4.4s, holds
+   up to .36s) - open in a pause, shut mid-word. peeking_tutorial.webp is the same clip with its talking part re-cut to THIS
+   line: frames 0-57 are peeking.webp's own bytes (the rise - the line still starts on frame 58, PG_TALK_MS); from there the
+   beak opens on each syllable (the line's loudness, 30ms ahead of the sound) and is shut in every pause, a half-way frame
+   softens each open / close, only frames within 3 of the clip's own pose at that moment are used (no head jumps - the
+   largest pose step is the original's own), and her two blinks fall in the pause after "देखिए" and as she finishes.
+   sync: true - the gate drives that clip by the line's own clock (PeekPlayer, opts.clock): a slow decode, a late start or
+   a held voice never lets the beak and the words drift apart.
+   The user, 2026-10-26 ("in the 2nd transition screen also take bahut badiya line from it ... if possible copy the 3rd
+   transition screen vo to mine also"): guided - that game's "बहुत बढ़िया!" + its "चलिए, साथ में करें!" (its line's own
+   middle sentence left out; cut in silence, its own 0.44s pause between), 2.78s; practice - its line as it is, "वाह! अब
+   आपकी बारी!", 1.87s. Each has its own clip, cut the same way. A line this short keeps the clip's own pace (no squeeze) and
+   its clip ends 1.3s after the line - she ducks ~1s after it (PG_TAIL_MS + pgDuck). peeking.webp stays the default. */
+const PG_CLIPS = { tutorial: { src: "assets/gif/peeking_tutorial.webp", ms: 8634, sync: true },
+                   guided:   { src: "assets/gif/peeking_guided.webp",   ms: 6814, sync: true },
+                   practice: { src: "assets/gif/peeking_practice.webp", ms: 5904, sync: true } };
+const pgClip = phase => PG_CLIPS[phase] || { src: "assets/gif/peeking.webp", ms: PG_CLIP_MS, sync: false };
 const PG_EXIT_MS = 520;    // .phase-gate.leaving / @keyframes pgDuck - a FALLBACK bound only; animationend is what actually closes the gate
 /* [peek-5] review 2026-09-30: the headline and VO came up the instant the gate opened, while
    Swiftie was still peeking over the ledge - she "spoke" 4s before her mouth moved. They now
@@ -5963,9 +6125,9 @@ const PG_LOAD_CAP_MS = 2500;   // never wait longer than this for the clip to de
 let _peekUrl = "";
 /* [loading] the clip is the loader's GATE file (Assets): fetched once as a Blob, right after the landing's own files -
    the gate's <img> no longer pulls it with the page, ahead of them. Each gate: a fresh blob: URL of it. */
-function restartPeek(img){
+function restartPeek(img, src){
   const old = _peekUrl;
-  img.src = _peekUrl = Assets.fresh("assets/gif/peeking.webp");
+  img.src = _peekUrl = Assets.fresh(src || "assets/gif/peeking.webp");
   if(old && old.indexOf("blob:") === 0) URL.revokeObjectURL(old);
 }
 /* [peek-7] review 2026-10-05: "swifty gif in the transition screen is glitching a lot". The clip itself is clean
@@ -5979,8 +6141,13 @@ const PeekPlayer = (()=>{
   const SRC = "assets/gif/peeking.webp", TYPE = "image/webp";
   let run = 0;
   function stop(){ run++; }
-  function play(cv, img){
-    const my = ++run, blob = Assets.blob(SRC);
+  /* opts.src: the clip (default peeking.webp). opts.clock(ms) ([lip-sync]): the clip's own time, ms, at ms of wall time
+     since its first frame was drawn - each frame is drawn when that clock reaches it, the clip waits while the clock
+     stands still, and a frame whose time is already over is decoded but not drawn, so the clip catches the clock up.
+     No clock: each frame for its own duration, as before. */
+  function play(cv, img, opts){
+    const o = opts || {}, src = o.src || SRC, clock = o.clock;
+    const my = ++run, blob = Assets.blob(src);
     if(!cv || !blob || typeof ImageDecoder === "undefined") return Promise.resolve(false);
     if(img) img.style.display = "none";
     cv.style.display = "";
@@ -5998,6 +6165,25 @@ const PeekPlayer = (()=>{
       const first = count > 0 ? (await dec.decode({ frameIndex: 0 })).image : null;
       if(!first || my !== run){ if(first) first.close(); dec.close(); return false; }
       draw(first);
+      if(clock){                                                    // [lip-sync] frames on the clip's clock
+        const t0 = performance.now(), at = ()=> clock(performance.now() - t0);
+        let i = 0, cur = first, end = (cur.duration || 90000) / 1000;   // the clip's ms where the frame on show ends
+        let next = count > 1 ? dec.decode({ frameIndex: 1 }) : null;
+        (async ()=>{
+          while(next){
+            let n; try { n = (await next).image; } catch(e){ break; }
+            let left;
+            while(my === run && (left = end - at()) > 1) await new Promise(res => setTimeout(res, Math.min(left, 40)));
+            if(my !== run){ n.close(); break; }
+            const nEnd = end + (n.duration || 90000) / 1000;
+            if(!(i + 2 < count && at() >= nEnd)) draw(n);           // its time already over (and not the last): not drawn
+            cur.close(); cur = n; i++; end = nEnd;
+            next = i + 1 < count ? dec.decode({ frameIndex: i + 1 }) : null;
+          }
+          cur.close(); dec.close();
+        })();
+        return true;
+      }
       let i = 0, cur = first, due = performance.now() + (cur.duration || 90000) / 1000;   // VideoFrame.duration: us
       let next = count > 1 ? dec.decode({ frameIndex: 1 }) : null;
       (async ()=>{
@@ -6034,6 +6220,17 @@ function phaseBlurTransition(cb, toPhase){
   // VO only if the card actually ships it; else a silent beat — the clip floor keeps the peek visible.
   const voId = PHASE_GATE_VO[toPhase];
   const voSrc = (voId && CARD.assets && CARD.assets.audio && CARD.assets.audio[voId]) || null;
+  const clip = pgClip(toPhase);
+  /* [lip-sync] a lip-synced clip runs on her line's clock: up to frame 58 (PG_TALK_MS) on the wall clock, then held there
+     until the line really sounds; while it sounds, PG_TALK_MS + the line's own position; after it, on at the wall clock's
+     pace from where it ended (afterVo) */
+  let voEndClip = -1, voEndMs = -1;
+  const lineMs = ()=> (currentAudio === voEl && srcOf(voEl) === voSrc) ? voEl.currentTime * 1000 : -1;   // -1: her line is not on
+  const clipClock = ms =>{
+    if(voEndClip >= 0){ if(voEndMs < 0) voEndMs = ms; return voEndClip + ms - voEndMs; }
+    const v = lineMs();
+    return v > 0 ? PG_TALK_MS + v : Math.min(ms, PG_TALK_MS);
+  };
   /* The clip's clock starts when it can actually paint, NOT when the gate opens: decoding a
      fresh 1500px clip (or downloading it, on the ?r= fallback) takes a moment, and timing from
      the open would put the VO ahead of her mouth by however long that took. */
@@ -6049,24 +6246,34 @@ function phaseBlurTransition(cb, toPhase){
     if(cv) cv.style.display = "none";
     if(!img){ startClock(); return; }
     img.style.display = "";
-    restartPeek(img);                 // from frame 0, every gate
+    restartPeek(img, clip.src);       // from frame 0, every gate
     if(img.decode) img.decode().then(startClock, startClock); else startClock();
   };
-  PeekPlayer.play(cv, img).then(ok =>{ if(tok !== _gateToken) return; if(ok) startClock(); else useImg(); }, useImg);
+  PeekPlayer.play(cv, img, { src: clip.src, clock: clip.sync ? clipClock : null }).then(ok =>{ if(tok !== _gateToken) return; if(ok) startClock(); else useImg(); }, useImg);
   setTimeout(startClock, PG_LOAD_CAP_MS);   // a stalled download never strands the gate
   function talk(){
     if(tok !== _gateToken) return;          // a newer gate superseded us
-    gate.classList.add("talking");          // headline pops in (CSS) on the same tick the VO starts
+    const titleAt = PHASE_GATE_TITLE_AT[toPhase];
+    if(titleAt == null) gate.classList.add("talking");   // headline pops in (CSS) on the same tick the VO starts
     play(voSrc, afterVo);
+    if(titleAt != null){                    // ...or on its own words, later in the line (its .28s CSS delay included)
+      const t0 = Date.now();
+      (function cue(){
+        if(tok !== _gateToken || !gate.classList.contains("show") || gate.classList.contains("talking")) return;
+        const v = lineMs();
+        if((v >= 0 ? v : Date.now() - t0) >= titleAt - 280) gate.classList.add("talking"); else requestAnimationFrame(cue);
+      })();
+    }
   }
   function afterVo(){
     if(tok !== _gateToken){ closeGate(); return; }               // a newer gate superseded us
+    voEndClip = PG_TALK_MS + (voSrc ? (voEl.currentTime || 0) * 1000 : 0);   // [lip-sync] the clip runs on from where her line ended
     /* peeking.webp plays ONCE: rise, talk, then park on her smile (PG_CLIP_MS).
        A line that outlasts the clip still governs - she holds the parked smile until
        it ends, then ducks at once. A line that ends while she is still talking (the
        2.3s practice line against 4.4s of mouth) ducks her PG_TAIL_MS after it, so her
        beak is not flapping in silence. With no VO at all the whole clip plays out. */
-    const clipLeft = Math.max(0, PG_CLIP_MS - (Date.now() - clipAt));
+    const clipLeft = Math.max(0, clip.ms - (clip.sync ? voEndClip : Date.now() - clipAt));
     const hold = voSrc ? Math.min(clipLeft, PG_TAIL_MS) : clipLeft;
     const finish = ()=>{
       PeekPlayer.stop();
@@ -6240,6 +6447,9 @@ const ASSET_SIZES = {
   "assets/gif/loader.webp": 137428,
   "assets/gif/new_landing_swiftee_anim.webp": 641710,
   "assets/gif/peeking.webp": 1252974,
+  "assets/gif/peeking_guided.webp": 1633490,
+  "assets/gif/peeking_practice.webp": 1243122,
+  "assets/gif/peeking_tutorial.webp": 1879852,
   "assets/gif/sw_head_celebrate_anim.webp": 293618,
   "assets/gif/sw_head_hint_anim.webp": 316076,
   "assets/gif/sw_head_tryagain_anim.webp": 313414,
@@ -6314,10 +6524,9 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_p3_h_tables.ogg": 17219,
   "assets/voiceover/vo_p3_prompt.ogg": 6401,
   "assets/voiceover/vo_p4_correct.ogg": 16575,
-  "assets/voiceover/vo_pt_guided.ogg": 7736,
-  "assets/voiceover/vo_pt_practice.ogg": 7611,
-  "assets/voiceover/vo_pt_tutorial.ogg": 7759,
-  "assets/voiceover/vo_pt_tutorial.wav": 88364,
+  "assets/voiceover/vo_pt_guided.wav": 133596,
+  "assets/voiceover/vo_pt_practice.wav": 89980,
+  "assets/voiceover/vo_pt_tutorial.wav": 207518,
   "assets/voiceover/vo_t1_count_intro.ogg": 15089,
   "assets/voiceover/vo_t1_know.ogg": 19833,
   "assets/voiceover/vo_t1_made.ogg": 19237,
@@ -6666,13 +6875,14 @@ function boot(){
   setStartBtnReady(false);   // grey + disabled from first paint, until the greeting has been heard
   /* [landing intro] the gold pop waits for the whole intro too (title words -> cubes -> lines, "sg-intro-done"),
      so the button is the LAST thing to arrive (review 2026-09-29). The 18s watchdog still forces it - never stranded. */
-  let _releasePending = false;
-  const releaseStart = (force)=>{ if(!force && !window.__sgIntroDone){ _releasePending = true; return; }
-    clearTimeout(_startWatchT); _releasePending = false; if(onLandingNow()) setStartBtnReady(true); };
+  /* QA checklist 2026-10-27 ("the Play button appears only when the VO is complete" / "pulsates immediately after the VO is
+     complete"; MTG2A04's QA 2026-10-23 BUG_01): it pops the moment the greeting ends - never before (S02's 10s greeting
+     outlasts the title animation: the button used to come 1.4s before her last word) and no longer after the animation
+     (S01's ran 2.6s past the greeting). The 18s watchdog still forces it - never stranded. */
+  const releaseStart = ()=>{ clearTimeout(_startWatchT); if(onLandingNow()) setStartBtnReady(true); };
   /* user 2026-10-15 ("play button is coming really late after the animation is complete"): the greeting (6.8s / 10s)
      outlasts the first screen's build (~4s), so the button no longer waits for its end - it pops as the build is done,
      once the greeting is audibly playing (a blocked greeting: still released by its end / the first tap / the watchdog) */
-  document.addEventListener("sg-intro-done", ()=>{ if(_releasePending || (!voEl.paused && voEl.currentTime > 0)) releaseStart(); });
   const playLanding = ()=>{
     if(!onLandingNow()) return;
     document.dispatchEvent(new Event("sg-greeting-start"));                  // (the cube row's watchdog counts from here)
@@ -7584,7 +7794,9 @@ function buildDevNav(){
   const leaveStart = ()=>{ const sg = $("startGate"); if(sg) sg.classList.add("hidden"); document.body.classList.remove("is-start"); document.body.classList.add("loaded"); const bl = $("bootLoader"); if(bl) bl.remove(); };
   const sync = ()=>{ const i = cur(); const s = CARD.slides[i]; if(document.activeElement !== sel) sel.value = i;
     lbl.textContent = (i+1) + "/" + CARD.slides.length + (s ? " · " + s.id : ""); };
-  const go = (i)=>{ i = Math.max(0, Math.min(i, CARD.slides.length - 1)); leaveStart(); mountSlide(i); sync(); };
+  /* the background music starts here too (user 2026-10-27 "add background game music"): a jump from the landing never
+     passes the play tap that starts it, so a review through this picker was silent */
+  const go = (i)=>{ i = Math.max(0, Math.min(i, CARD.slides.length - 1)); leaveStart(); bgmStart(); mountSlide(i); sync(); };
   land.onclick = ()=>{ const sg = $("startGate"); if(sg){ sg.classList.remove("hidden"); document.body.classList.add("is-start"); } };
   first.onclick = ()=> go(0); prev.onclick = ()=> go(cur() - 1); next.onclick = ()=> go(cur() + 1); last.onclick = ()=> go(CARD.slides.length - 1);
   sel.onchange = ()=> go(parseInt(sel.value, 10));

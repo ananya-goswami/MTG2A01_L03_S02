@@ -91,8 +91,8 @@
    "vo_p3_h_tables": "assets/voiceover/vo_p3_h_tables.ogg",
    "vo_p3_prompt": "assets/voiceover/vo_p3_prompt.ogg",
    "vo_p4_correct": "assets/voiceover/vo_p4_correct.ogg",
-   "vo_pt_guided": "assets/voiceover/vo_pt_guided.ogg",
-   "vo_pt_practice": "assets/voiceover/vo_pt_practice.ogg",
+   "vo_pt_guided": "assets/voiceover/vo_pt_guided.wav",
+   "vo_pt_practice": "assets/voiceover/vo_pt_practice.wav",
    "vo_pt_tutorial": "assets/voiceover/vo_pt_tutorial.wav",
    "vo_t1_count_intro": "assets/voiceover/vo_t1_count_intro.ogg",
    "vo_t1_know": "assets/voiceover/vo_t1_know.ogg",
@@ -265,6 +265,7 @@
    },
    "data": {
     "mode": "sum",
+    "sum_at": 0.68,
     "a": 27,
     "b": 15,
     "people": [
@@ -377,6 +378,7 @@
    },
    "data": {
     "mode": "sum",
+    "sum_at": 0.69,
     "a": 36,
     "b": 25,
     "people": [
