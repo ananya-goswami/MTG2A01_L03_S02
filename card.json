@@ -18,7 +18,7 @@
    "pari"
   ],
   "build": "house",
-  "start_at": 4.0
+  "start_at": 3.5
  },
  "skill_description_hi": "दो अंकों वाली दो संख्याओं को हासिल (नई दहाई बनाकर) के साथ क्षैतिज रूप में जोड़ता है।",
  "phase_distribution": {
@@ -54,17 +54,17 @@
    "vo_g1_ask": "assets/voiceover/vo_g1_ask.ogg",
    "vo_g1_correct": "assets/voiceover/vo_g1_correct.ogg",
    "vo_g1_great": "assets/voiceover/vo_g1_great.ogg",
+   "vo_g1_hint_CA": "assets/voiceover/vo_g1_hint_CA.ogg",
    "vo_g1_hint_a": "assets/voiceover/vo_g1_hint_a.ogg",
-   "vo_g1_hint_b": "assets/voiceover/vo_g1_hint_b.ogg",
    "vo_g1_prompt": "assets/voiceover/vo_g1_prompt.ogg",
    "vo_g1_try_again": "assets/voiceover/vo_g1_try_again.ogg",
    "vo_g2_correct": "assets/voiceover/vo_g2_correct.ogg",
+   "vo_g2_hint_CA": "assets/voiceover/vo_g2_hint_CA.ogg",
    "vo_g2_hint_a": "assets/voiceover/vo_g2_hint_a.ogg",
-   "vo_g2_hint_b": "assets/voiceover/vo_g2_hint_b.ogg",
    "vo_g2_prompt": "assets/voiceover/vo_g2_prompt.ogg",
    "vo_g3_correct": "assets/voiceover/vo_g3_correct.ogg",
+   "vo_g3_hint_CA": "assets/voiceover/vo_g3_hint_CA.ogg",
    "vo_g3_hint_a": "assets/voiceover/vo_g3_hint_a.ogg",
-   "vo_g3_hint_b": "assets/voiceover/vo_g3_hint_b.ogg",
    "vo_g3_prompt": "assets/voiceover/vo_g3_prompt.ogg",
    "vo_hint_dd_1": "assets/voiceover/vo_hint_dd_1.ogg",
    "vo_landing": "assets/voiceover/vo_landing.ogg",
@@ -79,18 +79,20 @@
    "vo_num_8": "assets/voiceover/vo_num_8.ogg",
    "vo_num_9": "assets/voiceover/vo_num_9.ogg",
    "vo_p1_correct": "assets/voiceover/vo_p1_correct.ogg",
+   "vo_p1_hint_CA": "assets/voiceover/vo_p1_hint_CA.ogg",
    "vo_p1_hint_a": "assets/voiceover/vo_p1_hint_a.ogg",
-   "vo_p1_hint_b": "assets/voiceover/vo_p1_hint_b.ogg",
    "vo_p1_prompt": "assets/voiceover/vo_p1_prompt.ogg",
    "vo_p1_try_again": "assets/voiceover/vo_p1_try_again.ogg",
    "vo_p2_correct": "assets/voiceover/vo_p2_correct.ogg",
+   "vo_p2_hint_CA": "assets/voiceover/vo_p2_hint_CA.ogg",
    "vo_p2_hint_a": "assets/voiceover/vo_p2_hint_a.ogg",
-   "vo_p2_hint_b": "assets/voiceover/vo_p2_hint_b.ogg",
    "vo_p2_prompt": "assets/voiceover/vo_p2_prompt.ogg",
    "vo_p3_correct": "assets/voiceover/vo_p3_correct.ogg",
+   "vo_p3_h_CA": "assets/voiceover/vo_p3_h_CA.ogg",
    "vo_p3_h_tables": "assets/voiceover/vo_p3_h_tables.ogg",
    "vo_p3_prompt": "assets/voiceover/vo_p3_prompt.ogg",
    "vo_p4_correct": "assets/voiceover/vo_p4_correct.ogg",
+   "vo_p4_h_CA": "assets/voiceover/vo_p4_h_CA.ogg",
    "vo_pt_guided": "assets/voiceover/vo_pt_guided.wav",
    "vo_pt_practice": "assets/voiceover/vo_pt_practice.wav",
    "vo_pt_tutorial": "assets/voiceover/vo_pt_tutorial.wav",
@@ -101,9 +103,7 @@
    "vo_t1_move": "assets/voiceover/vo_t1_move.ogg",
    "vo_t1_rest_intro": "assets/voiceover/vo_t1_rest_intro.ogg",
    "vo_t1_total": "assets/voiceover/vo_t1_total.ogg",
-   "vo_t2_a": "assets/voiceover/vo_t2_a.ogg",
    "vo_t2_ask": "assets/voiceover/vo_t2_ask.ogg",
-   "vo_t2_b": "assets/voiceover/vo_t2_b.ogg",
    "vo_t2_intro": "assets/voiceover/vo_t2_intro.ogg",
    "vo_t3_a_digits": "assets/voiceover/vo_t3_a_digits.ogg",
    "vo_t3_a_ones": "assets/voiceover/vo_t3_a_ones.ogg",
@@ -112,7 +112,6 @@
    "vo_t3_b_ones": "assets/voiceover/vo_t3_b_ones.ogg",
    "vo_t3_b_tens": "assets/voiceover/vo_t3_b_tens.ogg",
    "vo_t3_done": "assets/voiceover/vo_t3_done.ogg",
-   "vo_t3_head": "assets/voiceover/vo_t3_head.ogg",
    "vo_t3_intro": "assets/voiceover/vo_t3_intro.ogg",
    "vo_t3_know": "assets/voiceover/vo_t3_know.ogg",
    "vo_t3_make": "assets/voiceover/vo_t3_make.ogg",
@@ -127,7 +126,6 @@
    "vo_t4_total": "assets/voiceover/vo_t4_total.ogg",
    "vo_t5_a": "assets/voiceover/vo_t5_a.ogg",
    "vo_t5_ask": "assets/voiceover/vo_t5_ask.ogg",
-   "vo_t5_b": "assets/voiceover/vo_t5_b.ogg",
    "vo_t5_head": "assets/voiceover/vo_t5_head.ogg",
    "vo_t6_a_build": "assets/voiceover/vo_t6_a_build.ogg",
    "vo_t6_a_digits": "assets/voiceover/vo_t6_a_digits.ogg",
@@ -187,8 +185,6 @@
    "prompt_hi": "कुल कितने ब्लॉक्स?",
    "audio": {
     "intro": "vo_t2_intro",
-    "a": "vo_t2_a",
-    "b": "vo_t2_b",
     "ask": "vo_t2_ask"
    },
    "data": {
@@ -206,11 +202,25 @@
     "signs": {
      "plus": [
       "ask",
-      0.51
+      0.54
      ],
      "eq": [
       "ask",
-      0.66
+      0.67
+     ]
+    },
+    "at": {
+     "pB": [
+      "intro",
+      0.12
+     ],
+     "a": [
+      "intro",
+      0.55
+     ],
+     "b": [
+      "intro",
+      0.84
      ]
     }
    }
@@ -222,7 +232,6 @@
    "type": "PV_DEMO",
    "prompt_hi": "आइए, 27 और 15 को जोड़ते हैं।",
    "audio": {
-    "head": "vo_t3_head",
     "intro": "vo_t3_intro",
     "a_digits": "vo_t3_a_digits",
     "a_tens": "vo_t3_a_tens",
@@ -250,7 +259,11 @@
      "swifty"
     ],
     "auto": true,
-    "sum_at": 0.738
+    "sum_at": 0.819,
+    "num_at": [
+     0.065,
+     0.293
+    ]
    }
   },
   {
@@ -265,7 +278,7 @@
    },
    "data": {
     "mode": "sum",
-    "sum_at": 0.68,
+    "sum_at": 0.771,
     "a": 27,
     "b": 15,
     "people": [
@@ -285,13 +298,14 @@
     "signs": {
      "plus": [
       "eq",
-      0.302
+      0.321
      ],
      "eq": [
       "eq",
-      0.524
+      0.602
      ]
-    }
+    },
+    "b_at": 0.431
    }
   },
   {
@@ -303,7 +317,6 @@
    "audio": {
     "head": "vo_t5_head",
     "a": "vo_t5_a",
-    "b": "vo_t5_b",
     "ask": "vo_t5_ask"
    },
    "data": {
@@ -321,11 +334,25 @@
     "signs": {
      "plus": [
       "ask",
-      0.654
+      0.64
      ],
      "eq": [
       "ask",
-      0.7
+      0.67
+     ]
+    },
+    "at": {
+     "pB": [
+      "a",
+      0.507
+     ],
+     "a": [
+      "a",
+      0.213
+     ],
+     "b": [
+      "a",
+      0.696
      ]
     }
    }
@@ -363,7 +390,11 @@
     ],
     "ghost_auto": false,
     "ghost_idle": 5000,
-    "sum_at": 0.771
+    "sum_at": 0.846,
+    "num_at": [
+     0.065,
+     0.067
+    ]
    }
   },
   {
@@ -378,7 +409,7 @@
    },
    "data": {
     "mode": "sum",
-    "sum_at": 0.69,
+    "sum_at": 0.839,
     "a": 36,
     "b": 25,
     "people": [
@@ -395,13 +426,14 @@
     "signs": {
      "plus": [
       "eq",
-      0.304
+      0.262
      ],
      "eq": [
       "eq",
-      0.556
+      0.632
      ]
-    }
+    },
+    "b_at": 0.434
    }
   },
   {
@@ -417,8 +449,8 @@
     "correct": "vo_g1_correct",
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g1_hint_a",
-    "hint_b": "vo_g1_hint_b",
-    "dd_try": "vo_hint_dd_1"
+    "dd_try": "vo_hint_dd_1",
+    "hint_ca": "vo_g1_hint_CA"
    },
    "data": {
     "a": 28,
@@ -429,11 +461,11 @@
      43
     ],
     "eq_at": [
-     0.363,
-     0.511,
-     0.605,
-     0.709,
-     0.836
+     0.295,
+     0.456,
+     0.53,
+     0.65,
+     0.801
     ]
    }
   },
@@ -450,8 +482,8 @@
     "correct": "vo_g2_correct",
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g2_hint_a",
-    "hint_b": "vo_g2_hint_b",
-    "dd_try": "vo_hint_dd_1"
+    "dd_try": "vo_hint_dd_1",
+    "hint_ca": "vo_g2_hint_CA"
    },
    "data": {
     "a": 46,
@@ -462,11 +494,11 @@
      60
     ],
     "eq_at": [
-     0.384,
-     0.525,
-     0.613,
-     0.712,
-     0.831
+     0.264,
+     0.439,
+     0.562,
+     0.721,
+     0.855
     ]
    }
   },
@@ -483,8 +515,8 @@
     "correct": "vo_g3_correct",
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g3_hint_a",
-    "hint_b": "vo_g3_hint_b",
-    "dd_try": "vo_hint_dd_1"
+    "dd_try": "vo_hint_dd_1",
+    "hint_ca": "vo_g3_hint_CA"
    },
    "data": {
     "a": 58,
@@ -495,11 +527,11 @@
      81
     ],
     "eq_at": [
-     0.361,
-     0.51,
-     0.603,
-     0.708,
-     0.835
+     0.295,
+     0.407,
+     0.522,
+     0.63,
+     0.783
     ]
    }
   },
@@ -514,17 +546,17 @@
     "correct": "vo_p1_correct",
     "try_again": "vo_p1_try_again",
     "hint_a": "vo_p1_hint_a",
-    "hint_b": "vo_p1_hint_b"
+    "hint_ca": "vo_p1_hint_CA"
    },
    "data": {
     "a": 24,
     "b": 46,
     "eq_at": [
-     0.385,
-     0.524,
-     0.612,
-     0.71,
-     0.829
+     0.302,
+     0.459,
+     0.538,
+     0.717,
+     0.833
     ]
    }
   },
@@ -539,17 +571,17 @@
     "correct": "vo_p2_correct",
     "try_again": "vo_p1_try_again",
     "hint_a": "vo_p2_hint_a",
-    "hint_b": "vo_p2_hint_b"
+    "hint_ca": "vo_p2_hint_CA"
    },
    "data": {
     "a": 39,
     "b": 26,
     "eq_at": [
-     0.377,
-     0.522,
-     0.613,
-     0.715,
-     0.839
+     0.28,
+     0.454,
+     0.539,
+     0.695,
+     0.834
     ]
    }
   },
@@ -563,15 +595,16 @@
     "prompt": "vo_p3_prompt",
     "correct": "vo_p3_correct",
     "h_tables": "vo_p3_h_tables",
-    "h_merge": "vo_g1_try_again"
+    "h_merge": "vo_g1_try_again",
+    "hint_ca": "vo_p3_h_CA"
    },
    "data": {
     "a": 37,
-    "b": 9,
+    "b": 5,
     "options": [
-     316,
-     46,
-     36
+     312,
+     42,
+     32
     ],
     "hints": [
      "tables",
@@ -579,11 +612,11 @@
      "reveal"
     ],
     "eq_at": [
-     0.386,
-     0.526,
-     0.614,
-     0.713,
-     0.832
+     0.248,
+     0.417,
+     0.559,
+     0.679,
+     0.821
     ]
    }
   },
@@ -597,7 +630,8 @@
     "prompt": "vo_p3_prompt",
     "correct": "vo_p4_correct",
     "h_tables": "vo_p3_h_tables",
-    "h_merge": "vo_g1_try_again"
+    "h_merge": "vo_g1_try_again",
+    "hint_ca": "vo_p4_h_CA"
    },
    "data": {
     "a": 18,
@@ -613,11 +647,11 @@
      "reveal"
     ],
     "eq_at": [
-     0.376,
-     0.52,
-     0.61,
-     0.711,
-     0.833
+     0.315,
+     0.47,
+     0.547,
+     0.691,
+     0.836
     ]
    }
   },
