@@ -66,7 +66,6 @@
    "vo_g3_hint_CA": "assets/voiceover/vo_g3_hint_CA.ogg",
    "vo_g3_hint_a": "assets/voiceover/vo_g3_hint_a.ogg",
    "vo_g3_prompt": "assets/voiceover/vo_g3_prompt.ogg",
-   "vo_hint_dd_1": "assets/voiceover/vo_hint_dd_1.ogg",
    "vo_landing": "assets/voiceover/vo_landing.ogg",
    "vo_num_1": "assets/voiceover/vo_num_1.ogg",
    "vo_num_10": "assets/voiceover/vo_num_10.ogg",
@@ -245,7 +244,6 @@
     "know": "vo_t3_know",
     "make": "vo_t3_make",
     "place": "vo_t3_place",
-    "dd_try": "vo_hint_dd_1",
     "tens": "vo_t3_tens",
     "tens_sum": "vo_t3_tens_sum",
     "total": "vo_t3_total",
@@ -260,9 +258,21 @@
     ],
     "auto": true,
     "sum_at": 0.819,
-    "num_at": [
-     0.065,
-     0.293
+    "intro_at": [
+     0.577,
+     0.682
+    ],
+    "digits_at": [
+     [
+      0.093,
+      0.38,
+      0.736
+     ],
+     [
+      0.298,
+      0.467,
+      0.762
+     ]
     ]
    }
   },
@@ -278,7 +288,6 @@
    },
    "data": {
     "mode": "sum",
-    "sum_at": 0.771,
     "a": 27,
     "b": 15,
     "people": [
@@ -295,17 +304,13 @@
       "aaru"
      ]
     },
-    "signs": {
-     "plus": [
-      "eq",
-      0.321
-     ],
-     "eq": [
-      "eq",
-      0.602
-     ]
-    },
-    "b_at": 0.431
+    "eq_at": [
+     0.1,
+     0.321,
+     0.431,
+     0.602,
+     0.771
+    ]
    }
   },
   {
@@ -375,7 +380,6 @@
     "know": "vo_t6_know",
     "make": "vo_t6_make",
     "place": "vo_t6_place",
-    "dd_try": "vo_hint_dd_1",
     "tens": "vo_t6_tens",
     "tens_sum": "vo_t6_tens_sum",
     "total": "vo_t6_total",
@@ -391,9 +395,21 @@
     "ghost_auto": false,
     "ghost_idle": 5000,
     "sum_at": 0.846,
-    "num_at": [
-     0.065,
-     0.067
+    "intro_at": [
+     0.52,
+     0.598
+    ],
+    "digits_at": [
+     [
+      0.065,
+      0.373,
+      0.708
+     ],
+     [
+      0.067,
+      0.353,
+      0.707
+     ]
     ]
    }
   },
@@ -409,7 +425,6 @@
    },
    "data": {
     "mode": "sum",
-    "sum_at": 0.839,
     "a": 36,
     "b": 25,
     "people": [
@@ -423,17 +438,13 @@
     "total": {
      "who": "pari"
     },
-    "signs": {
-     "plus": [
-      "eq",
-      0.262
-     ],
-     "eq": [
-      "eq",
-      0.632
-     ]
-    },
-    "b_at": 0.434
+    "eq_at": [
+     0.054,
+     0.262,
+     0.434,
+     0.632,
+     0.839
+    ]
    }
   },
   {
@@ -449,7 +460,6 @@
     "correct": "vo_g1_correct",
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g1_hint_a",
-    "dd_try": "vo_hint_dd_1",
     "hint_ca": "vo_g1_hint_CA"
    },
    "data": {
@@ -482,7 +492,6 @@
     "correct": "vo_g2_correct",
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g2_hint_a",
-    "dd_try": "vo_hint_dd_1",
     "hint_ca": "vo_g2_hint_CA"
    },
    "data": {
@@ -515,7 +524,6 @@
     "correct": "vo_g3_correct",
     "try_again": "vo_g1_try_again",
     "hint_a": "vo_g3_hint_a",
-    "dd_try": "vo_hint_dd_1",
     "hint_ca": "vo_g3_hint_CA"
    },
    "data": {
