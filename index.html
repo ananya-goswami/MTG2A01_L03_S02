@@ -1,7 +1,8 @@
 <!doctype html>
-<html lang="hi">
+<html lang="hi" translate="no" class="notranslate">
 <head>
 <meta charset="utf-8">
+<meta name="google" content="notranslate">   <!-- user 2026-11-05 ("ye translation ka pop up kisi bhi file me nahi aana chahiye"), as MTG2A03 / MTG2A04 (QA 2026-10-22): no browser translate popup -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">   <!-- [responsive] the page fills the whole screen (notch, home bar); app.js fits the stage inside the safe area -->
 <title>SwiftPAL · MTG2A01_L03_S02 · संख्या जोड़, नई दहाई बनाकर</title>
 <link rel="icon" href="data:,">   <!-- [QA 15] no favicon request: the browser's automatic /favicon.ico 404 was the last console error -->
@@ -412,7 +413,10 @@ body.is-end .stage-inner{visibility:hidden;}
    the card; the full standing Swiftie straddles the bottom-left corner with a shoulder audio chip. */
 .stage.tut{background:#FFFFFF;}
 body.tut-page{background:#FFFFFF;}
-.stage.tut .header-row{display:none;}          /* header avatar off — the tut-mascot is the only Swiftie */
+.stage.tut .header-row{display:none;}
+/* (user 2026-11-05, G1-G3: "remove the instruction panel") data.no_head: no header band, Swiftie or speaker - the instruction is
+   the VO; hidden, its space kept, so nothing else on the stage moves */
+.stage.no-head .header-row,.stage.no-head #swBuddy{visibility:hidden !important;pointer-events:none !important;}          /* header avatar off — the tut-mascot is the only Swiftie */
 .stage.tut .slide-stage{padding:64px 100px 22px;}
 .tut-card{flex:1;min-height:0;position:relative;border:10px solid #50AAF2;border-radius:34px;
   background-color:#F2F7FA;
@@ -1827,7 +1831,7 @@ body.vo-lock .dev-nav{z-index:150001;}
 .pv-hide{opacity:0 !important;pointer-events:none !important;}
 .pv-gone{opacity:0 !important;pointer-events:none !important;transition:opacity .45s ease-out !important;}
 .pv-pop{animation:pvPop .45s cubic-bezier(.3,1.6,.5,1) both;}
-@keyframes pvPop{0%{opacity:0;scale:.55;}100%{opacity:1;scale:1;}}
+@keyframes pvPop{0%{opacity:0;scale:calc(.55 * var(--ps,1));}100%{opacity:1;scale:var(--ps,1);}}   /* (--ps: a box grown on PV_DEMO's sum row pops to its own size - user 2026-11-05) */
 
 /* the table */
 .pv-table{box-sizing:border-box;background:#fff;border:3px solid #B7DCFB;border-radius:18px;overflow:hidden;pointer-events:none !important;z-index:1;
@@ -1957,6 +1961,34 @@ body.vo-lock .dev-nav{z-index:150001;}
   font-family:var(--font-hi);font-weight:800;font-size:46px;line-height:1;color:#012F76;}
 .pv-slot.on{border-style:solid;border-color:#1987FC;animation:pvSlot 1s ease-in-out infinite;}
 @keyframes pvSlot{0%,100%{box-shadow:0 0 0 0 rgba(25,135,252,0);}50%{box-shadow:0 0 0 5px rgba(25,135,252,.22);}}
+/* [place boxes] (user 2026-11-05, the number pad pages: "two equal boxes inside the answer box ... for the ones and tens place") the
+   answer card holds a दहाई box and an इकाई box, tinted and tagged like the tables' columns; the box being typed into glows blue with
+   the cursor, a filled one shows its digit */
+.pv-q.pv-split{display:flex;align-items:stretch;gap:10px;padding:8px 10px !important;min-width:0 !important;border:3px solid #CFE0F5;
+  background:#fff;box-shadow:0 4px 0 #D9D9D9;color:#012F76;}
+.pv-pl{position:relative;flex:1 1 0;min-width:0;box-sizing:border-box;border-radius:14px;border:3px dashed;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;transition:border-color .2s,box-shadow .2s,background-color .2s;}
+.pv-pl-t{background:#F1FAEA;border-color:#9BD27A;}
+.pv-pl-o{background:#FFF5E6;border-color:#F3BE73;}
+.pv-pl-tag{position:absolute;top:5px;left:0;right:0;text-align:center;font:800 15px/1 var(--font-hi);letter-spacing:.2px;}
+.pv-pl-t .pv-pl-tag{color:#1E6400;} .pv-pl-o .pv-pl-tag{color:#9A4300;}
+.pv-pl-d{min-height:58px;display:flex;align-items:center;justify-content:center;font-size:58px;font-weight:800;line-height:1;color:#012F76;}
+.pv-pl.done{border-style:solid;}
+.pv-pl.on{border-style:solid;border-color:#1987FC;cursor:pointer;animation:pvSlot 1s ease-in-out infinite;}
+.pv-pl.hint-on{border-style:solid;border-color:#FFC21A;box-shadow:0 0 0 5px rgba(255,194,26,.38);}
+/* [place boxes: aha] (user 2026-11-05: "after the correct number it should become one box - a better animation, an aha effect") right:
+   each box lights green, the ones then the tens; then their borders and tints melt, the gap closes and the two digits slide together
+   into one number; the card becomes a single answer card */
+.pv-pl{transition:border-color .25s,box-shadow .25s,background-color .25s,flex-basis .4s cubic-bezier(.5,0,.3,1),flex-grow .4s;}
+.pv-pl.okc{border-style:solid;border-color:#00B132;background:#EFFBF2;box-shadow:0 0 0 5px rgba(0,177,50,.22);}
+.pv-q.pv-split{transition:gap .4s cubic-bezier(.5,0,.3,1);justify-content:center;}
+.pv-q.pv-split.merge{gap:0;}
+.pv-q.pv-split.merge .pv-pl{flex:0 0 42px;border-color:transparent;background:transparent;box-shadow:none;}
+.pv-pl-d{transition:font-size .4s cubic-bezier(.5,0,.3,1);}
+.pv-q.pv-split.merge .pv-pl-d{font-size:73px;}   /* (the digits grow to the answer card's own size as they join - no jump at the end) */
+.pv-pad.pv-pad-digits .pv-back,.pv-pad.pv-pad-digits .pv-ok{visibility:hidden;pointer-events:none;}
+.pv-pad.pv-pad-digits{transition:opacity .22s;transform-origin:50% 50%;}   /* (no slide: it pops open from its own centre where it stands - user 2026-11-05 "not from the left side") */
+@media (prefers-reduced-motion:reduce){ .pv-pl.on{animation:none;} }
 /* review 2026-10-14 "make the calculator look better": a white panel, rounded-square keys with the game's raised edge,
    a backspace ARROW (amber) and a green tick that sends the answer (dim until a digit is in, pulsing once it is full) */
 .pv-pad{display:grid;grid-template-columns:repeat(3,58px);gap:10px;padding:14px;border-radius:24px;background:#fff;border:3px solid #CFE3F7;
@@ -2260,7 +2292,7 @@ body.vo-lock .dev-nav{z-index:150001;}
 .pv-tag-ico{height:1.15em;width:auto;display:block;filter:drop-shadow(0 1px 1px rgba(12,46,92,.25));}
 .pv-tag-t .pv-tag-ico{height:2.3em;rotate:90deg;margin:-.97em .97em;}   /* the rod on its side: it reads as a bar of ten cubes */
 .pv-th.hl{animation:none;}
-.pv-th.hl .pv-tag{animation:pvTagHl .9s ease-in-out infinite;}
+.pv-th.hl .pv-tag{animation:pvTagOn .4s cubic-bezier(.3,1.5,.5,1) forwards;}   /* (user 2026-11-05: "keep them popped out only - no popping out many times as the number of elements") one pop as it lights, then held until it goes off */
 .pv-th-t.hl .pv-tag{background:#C9EDB0;}
 .pv-th-o.hl .pv-tag{background:#FFD9A3;}
 @keyframes pvTagHl{0%,100%{scale:1;box-shadow:0 2px 0 rgba(0,0,0,.06);}50%{scale:1.1;box-shadow:0 0 0 5px rgba(255,255,255,.95),0 3px 8px rgba(12,46,92,.15);}}
@@ -2278,6 +2310,7 @@ body.vo-lock .dev-nav{z-index:150001;}
 .pv-tag-t{color:#176000;}
 .pv-tag-o{color:#A84300;}
 @keyframes pvTagHl{0%,100%{scale:1;text-shadow:none;}50%{scale:1.16;text-shadow:0 0 10px rgba(255,200,60,.9);}}
+@keyframes pvTagOn{0%{scale:1;text-shadow:none;}100%{scale:1.16;text-shadow:0 0 10px rgba(255,200,60,.9);}}
 /* the head strip in its own, deeper tint of its column's colour (user 2026-10-16 "the title box colour should be different
    from the table") - still soft, so the pair never reads as a flag; a firm line under it */
 .pv-th-t,.pv-th-t.hl{background:#D3EEBF !important;}
@@ -2308,6 +2341,12 @@ body.vo-lock .dev-nav{z-index:150001;}
 .pv-pad.pv-pad-3 .pv-key.pv-ok.hint-on{box-shadow:inset 0 0 0 2px rgba(200,255,215,.7),0 5px 0 #08702A,0 0 0 4px #FFB300,0 5px 0 4px #FFB300 !important;}
 @keyframes pvKeyHint{0%,100%{filter:drop-shadow(0 0 3px rgba(255,179,0,.55)) brightness(1);}50%{filter:drop-shadow(0 0 13px rgba(255,179,0,1)) brightness(1.1);}}
 @media (prefers-reduced-motion:reduce){ .pv-pad .pv-key.hint-on{animation:none;} }
+/* (user 2026-11-05: "the highlight on the 7 is not fitted correctly") the hinted key: one yellow ring that follows its own rounded edge
+   (an outline - it keeps the key's 3D lip as it is, and no glow animation replaces it), breathing in and out; the key itself stays put */
+.pv-pad.pv-pad-3 .pv-key.hint-on{animation:pvKeyRing 1.1s ease-in-out infinite;outline:4px solid #FFC531;outline-offset:3px;
+  box-shadow:inset 0 0 0 2px rgba(190,226,255,.75),0 5px 0 #0F55B5,0 8px 12px rgba(12,46,92,.18) !important;}
+@keyframes pvKeyRing{0%,100%{outline-offset:3px;outline-color:rgba(255,197,49,1);}50%{outline-offset:7px;outline-color:rgba(255,197,49,.55);}}
+@media (prefers-reduced-motion:reduce){ .pv-pad.pv-pad-3 .pv-key.hint-on{animation:none;} }
 /* SME review (S02 T1): a counted cube BRIGHTENS - richer, lighter, a warm glow round it (the inner white light read as dimmed) */
 .pv-blk.pv-on{filter:brightness(1.32) saturate(1.4) drop-shadow(0 0 9px rgba(255,190,30,1)) drop-shadow(0 2px 2px rgba(12,46,92,.28)) !important;}
 /* the source box (SME review + user 2026-10-22 "both in 1 box, separated by a line"): one white box at the bottom centre,
@@ -2720,9 +2759,10 @@ body.vo-lock .dev-nav{z-index:150001;}
     "b": 15,
     "build": [
      "swifty",
-     "swifty"
+     "child"
     ],
-    "auto": true,
+    "guide": true,
+    "across": { "o": "swifty", "t": "child" },
     "sum_at": 0.819,
     "intro_at": [
      0.577,
@@ -2905,11 +2945,11 @@ body.vo-lock .dev-nav{z-index:150001;}
      "who": "pari"
     },
     "eq_at": [
-     0.054,
-     0.262,
+     0.059,
+     0.264,
      0.434,
-     0.632,
-     0.839
+     0.625,
+     0.818
     ]
    }
   },
@@ -2929,6 +2969,7 @@ body.vo-lock .dev-nav{z-index:150001;}
     "hint_ca": "vo_g1_hint_CA"
    },
    "data": {
+    "no_head": true,
     "a": 28,
     "b": 15,
     "options": [
@@ -2961,6 +3002,7 @@ body.vo-lock .dev-nav{z-index:150001;}
     "hint_ca": "vo_g2_hint_CA"
    },
    "data": {
+    "no_head": true,
     "a": 46,
     "b": 24,
     "options": [
@@ -2993,6 +3035,7 @@ body.vo-lock .dev-nav{z-index:150001;}
     "hint_ca": "vo_g3_hint_CA"
    },
    "data": {
+    "no_head": true,
     "a": 58,
     "b": 36,
     "options": [
@@ -3717,12 +3760,18 @@ function autoPlayChain(slide, onDone){
 /* nav button: enable/disable the kit-style pill. When it becomes active (the
    activity is done) but the child doesn't tap आगे, the hand-nudge points at it. */
 function setNavActive(on){
-  const btn = $("navBtn");
-  btn.disabled = !on;
-  btn.classList.toggle("active", on);
-  if(on) holdTurn(false);                // [your turn] the Next button waits for the child
-  clearTimeout(state.navNudgeTimer);
-  if(on) state.navNudgeTimer = setTimeout(nudgeNavBtn, 4500);
+  /* (user 2026-11-05: "when I click on the next button it doesn't go to the next slide - it should only appear after the confetti has
+     fallen") a tap during the confetti was held until it landed (completeSlide waits for it), so it seemed dead: the button now
+     comes on only once the confetti is down. A later call (a new slide, off again) cancels a pending one */
+  const btn = $("navBtn"), tok = state.navTok = (state.navTok || 0) + 1;
+  const apply = ()=>{ if(state.navTok !== tok) return;
+    btn.disabled = !on;
+    btn.classList.toggle("active", on);
+    if(on) holdTurn(false);                // [your turn] the Next button waits for the child
+    clearTimeout(state.navNudgeTimer);
+    if(on) state.navNudgeTimer = setTimeout(nudgeNavBtn, 4500); };
+  if(on){ btn.disabled = true; btn.classList.remove("active"); clearTimeout(state.navNudgeTimer); afterConfetti(apply); }
+  else apply();
 }
 function nudgeNavBtn(){
   /* [04] QA CHECKLIST: "Nudge hand only ever points at interactive tiles/objects
@@ -3805,7 +3854,7 @@ function stopNudge(){
    would still overlap any button other than its own target it is not shown at all.
    References .slide-stage (the nudge's positioning context), not .stage (~140px header off). */
 const NH = { W:86, H:108, TIP_X:34.2, TIP_Y:15.8, GAP:8 };
-function placeNudge(el){
+function placeNudge(el, quiet){   // quiet: the hand without its chime - a guided hand moving on to its next step (user 2026-11-05: no unwanted SFX)
   const nh = $("nudgeHand"), host = document.querySelector(".slide-stage");
   if(!el || !nh || !host || !el.getBoundingClientRect) return false;
   const r = el.getBoundingClientRect(), sw = host.getBoundingClientRect();
@@ -3845,7 +3894,7 @@ function placeNudge(el){
     /* only the BOTTOM is cut: the tap ripple (kit recipe 4) spreads up to ~55px above and around the box */
     nh.style.clipPath = "inset(-60px -60px " + Math.max(0, NH.H - keep).toFixed(1) + "px -60px)";
   }
-  if(!nh.classList.contains("show")) sfxNudge();   // QA checklist 2026-10-05: an encouraging SFX with every nudge
+  if(!quiet && !nh.classList.contains("show")) sfxNudge();   // QA checklist 2026-10-05: an encouraging SFX with every nudge
   nh.classList.add("show");
   return true;
 }
@@ -4052,6 +4101,40 @@ function centerInkGlyph(span){
   const dy = (boxCenter - inkCenter) / scale;           // css px to move glyph down
   span.style.transform = `translateY(${dy}px)`;
 }
+/* (user 2026-11-05: "these symbols should be at the centre on the x axis and the y axis with respect to the boxes beside them") every
+   + and = (.pv-op) sits with its INK's middle on the middle of the number box beside it - the glyph's own box has room for the
+   font's ascent and descent, so the sign stood ~5px high on the story pages. Measured off the drawn glyph (canvas actualBoundingBox)
+   and its baseline in the DOM, as centerInkGlyph; set with `translate` (its own property: the left/top and the translateX(-50%) of the
+   sign stay as they are). Re-run as the page settles and once the fonts are in. */
+function centerSigns(root){
+  const run = ()=>{ if(!root || !root.isConnected) return;
+    const nums = [...root.querySelectorAll(".pv-num")].filter(n => n.offsetParent);
+    root.querySelectorAll(".pv-op").forEach(o =>{
+      const glyph = (o.textContent || "").trim(); if(!glyph || !o.offsetParent) return;
+      const prev = o.style.transition; o.style.transition = "none"; o.style.translate = "";
+      const r = o.getBoundingClientRect(); if(!r.height) { o.style.transition = prev; return; }
+      const cy = (r.top + r.bottom) / 2, cx = (r.left + r.right) / 2;
+      let box = nums.map(n => n.getBoundingClientRect()).filter(q => q.height > 5 && q.top < cy + q.height && q.bottom > cy - q.height)
+        .sort((a, b)=> Math.abs((a.left + a.right) / 2 - cx) - Math.abs((b.left + b.right) / 2 - cx))[0];
+      /* (user 2026-11-05, the + between two place-value tables: "the plus sign should be in between the length of the table") no
+         number box beside it: a sign standing between two tables is centred on their height */
+      if(!box) box = [...root.querySelectorAll(".pv-table")].map(t => t.getBoundingClientRect()).filter(q => q.height > 5 && q.top < cy && q.bottom > cy)
+        .sort((a, b)=> Math.min(Math.abs(a.left - cx), Math.abs(a.right - cx)) - Math.min(Math.abs(b.left - cx), Math.abs(b.right - cx)))[0];
+      if(!box){ o.style.transition = prev; return; }
+      const cs = getComputedStyle(o), fpx = parseFloat(cs.fontSize);
+      _inkCtx = _inkCtx || document.createElement("canvas").getContext("2d");
+      _inkCtx.font = cs.fontWeight + " " + fpx + "px " + cs.fontFamily;
+      const m = _inkCtx.measureText(glyph), a = m.actualBoundingBoxAscent, d = m.actualBoundingBoxDescent;
+      if(!isFinite(a) || !isFinite(d)){ o.style.transition = prev; return; }
+      const probe = document.createElement("span"); probe.style.cssText = "display:inline-block;width:0;height:0;vertical-align:baseline;";
+      o.appendChild(probe); const base = probe.getBoundingClientRect().top; o.removeChild(probe);
+      const k = r.height / (o.offsetHeight || r.height) || 1;              // (screen px per css px of the sign, scale included)
+      const ink = base + (d - a) / 2 * k, dy = ((box.top + box.bottom) / 2 - ink) / k;
+      o.style.translate = "0 " + dy.toFixed(2) + "px"; void o.offsetWidth; o.style.transition = prev; });
+  };
+  requestAnimationFrame(run); setTimeout(run, 350); setTimeout(run, 1200);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(run);
+}
 function centerAllGlyphs(root){
   (root || document).querySelectorAll(".ink-glyph").forEach(centerInkGlyph);
 }
@@ -4085,9 +4168,9 @@ function centerAllGlyphs(root){
    box it read as pointing at nothing, and its tap ripple broke out beside the target. Same hand, same clamping into
    the stage; the fingertip now lands on the target's lower part, where a finger would press it. */
 placeNudge = (function(base){
-  return function(el){
+  return function(el, quiet){                                          // (quiet: no chime - see the base placeNudge)
     const nh = $("nudgeHand"), host = document.querySelector(".slide-stage");
-    if(!el || !nh || !host || !el.getBoundingClientRect) return base(el);
+    if(!el || !nh || !host || !el.getBoundingClientRect) return base(el, quiet);
     const r = el.getBoundingClientRect(), sw = host.getBoundingClientRect();
     const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale")) || 1;
     const w = r.width / scale, h = r.height / scale, cx = (r.left - sw.left) / scale + w / 2;
@@ -4096,7 +4179,7 @@ placeNudge = (function(base){
     nh.style.left = Math.max(0, Math.min(stageW - NH.W, cx - NH.TIP_X)) + "px";
     nh.style.top = Math.max(0, Math.min(stageH - NH.H, tipY - NH.TIP_Y)) + "px";
     nh.style.clipPath = "";
-    if(!nh.classList.contains("show")) sfxNudge();
+    if(!quiet && !nh.classList.contains("show")) sfxNudge();
     nh.classList.add("show");
     return true;
   };
@@ -4157,7 +4240,43 @@ const PVK = (function(){
   function add(parent, tag, cls, css){ const e = document.createElement(tag); if(cls) e.className = cls; if(css) e.style.cssText = css; parent.appendChild(e); return e; }
   const setXY = (e, x, y)=>{ e._x = x; e._y = y; e.style.left = px(x); e.style.top = px(y); };
   const xy = e => ({ x: e._x, y: e._y });
-  const knock = ()=> _tone([392, 311], "sine", 0.14, 0.09);      // a soft wooden set-down
+  /* (user 2026-11-05: "cubes tapping sfx can be more hearable and ear pleasing" - then "I didn't like it, it's not ear pleasing": the
+     mallet's bright 4th partial read as metallic, the same note every time) a block set down: a soft round "bloop" - a sine that
+     slides up into its note, a quiet octave above it, through a gentle low-pass - and each block landing in a run plays the next
+     note up a C-major pentatonic (C D E G A C), like a xylophone run; the run starts over after a pause. Rods an octave lower. */
+  /* (user 2026-11-05, after several rejected tones: "cubes and दहाई sfx should be the same ... animated cartoon style ... take inspiration
+     from children's games" - then "what do you think is best, apply that overall") a block set down plays sfx_block: a candy-match
+     style pop - a juicy pop, a rising bloop and a little sparkle (made for these games - not any game's own sound). The same for
+     cubes, rods and the number keys; each block landing in a run a step higher (C-major pentatonic: 1, 9/8, 5/4, 3/2, 5/3, 2), the run
+     starting over after a pause. Played from one decoded buffer (instant, any pitch); the old procedural bloop if it cannot load. */
+  let _kn = 0, _knT = 0, _kBuf = null, _kLoad = null;
+  const kLoad = ()=>{ const c = typeof _ac === "function" && _ac(); if(!c || _kLoad) return _kLoad;
+    _kLoad = fetch(SFX_DIR + "sfx_block." + AUDIO_EXT).then(r => r.arrayBuffer()).then(b => new Promise((ok, no)=> c.decodeAudioData(b, ok, no))).then(buf => _kBuf = buf).catch(()=>{ _kBuf = null; });
+    return _kLoad; };
+  const kSynth = f =>{ const c = _ac(), t = c.currentTime, lp = c.createBiquadFilter(), out = c.createGain();
+    lp.type = "lowpass"; lp.frequency.value = 2400; lp.Q.value = .4; out.gain.value = .3; lp.connect(out).connect(c.destination);
+    [[1, .5, .26], [2, .08, .12]].forEach(([m, v, d])=>{ const o = c.createOscillator(), gn = c.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(f * m * .82, t); o.frequency.exponentialRampToValueAtTime(f * m, t + .045);
+      gn.gain.setValueAtTime(.0001, t); gn.gain.exponentialRampToValueAtTime(v, t + .012); gn.gain.exponentialRampToValueAtTime(.0001, t + d);
+      o.connect(gn).connect(lp); o.start(t); o.stop(t + d + .03); }); };
+  const knock = ()=>{ const c = typeof _ac === "function" && _ac(); if(!c) return;
+    const now = performance.now(); if(now - _knT > 1100) _kn = 0; _knT = now;
+    const STEP = [1, 1.125, 1.25, 1.5, 1.667, 2], r = STEP[_kn++ % STEP.length];
+    if(!_kBuf){ kLoad(); kSynth(523.25 * r); return; }
+    const src = c.createBufferSource(), g = c.createGain(); src.buffer = _kBuf; src.playbackRate.value = r; g.gain.value = .7;
+    src.connect(g).connect(c.destination); src.start(); };
+  setTimeout(()=>{ try{ kLoad(); tLoad(); }catch(e){} }, 1500);        // (decoded early, so the first block already has it)
+  /* (user 2026-11-05: "I want an sfx for the tables appearing on the screen" ... "no need for a bubble sfx, any relatable table-appearing
+     sfx will be fine") a table slides into view with the game's own soft whoosh (sfx_whoosh - the landing's), never like a block's pop.
+     Once per appearance: two tables together sound once */
+  let _tBuf = null, _tLoad = null, _tAt = 0;
+  const tLoad = ()=>{ const c = typeof _ac === "function" && _ac(); if(!c || _tLoad) return _tLoad;
+    _tLoad = fetch(SFX_DIR + "sfx_whoosh." + AUDIO_EXT).then(r => r.arrayBuffer()).then(b => new Promise((ok, no)=> c.decodeAudioData(b, ok, no))).then(buf => _tBuf = buf).catch(()=>{ _tBuf = null; });
+    return _tLoad; };
+  const tableSfx = ()=>{ const now = performance.now(); if(now - _tAt < 250) return; _tAt = now;
+    const c = typeof _ac === "function" && _ac(); if(!c) return;
+    if(!_tBuf){ tLoad(); return; }
+    const src = c.createBufferSource(), gn = c.createGain(); src.buffer = _tBuf; gn.gain.value = .6; src.connect(gn).connect(c.destination); src.start(); };
   /* the pop-in plays once and its class goes: left on, any later animation on the element (a pulse, a highlight)
      would replace it and, when that one ends, bring the pop back - replayed from nothing */
   const pop = e =>{ if(!e) return; e.classList.remove("pv-pop"); void e.offsetWidth; e.classList.add("pv-pop");
@@ -4345,7 +4464,7 @@ const PVK = (function(){
     setXY(e, cx, y); return e;
   }
 
-  return { reduce, px, wait, ROD, CUBE, FIT, dashBox, kNow, add, setXY, xy, knock, pop, enter, ADD_STEP, show, shake, repulse, softGlow, scene, ctx, run, block, glide, follow, shift,
+  return { reduce, px, wait, ROD, CUBE, FIT, dashBox, kNow, add, setXY, xy, knock, tableSfx, pop, enter, ADD_STEP, show, shake, repulse, softGlow, scene, ctx, run, block, glide, follow, shift,
            hand, centre, numHTML, numCard, lightDigit, equation, settle, person };
 })();
 
@@ -4374,14 +4493,18 @@ Object.assign(PVK, (function(){
        column's edges (user 2026-10-22: "breathable space for the दहाई" - the sum tables, 5+ rods) */
     const tensNeed = tSlots * rW + (tSlots - 1) * rg + 2 * pad + ((o.tensFinal || 0) >= 4 ? 4 * rg : 0);
     const onesNeed = 5 * G + 4 * g + lane + 2 * pad, colW = Math.max(onesNeed, tensNeed) + (o.grow || 0);   // o.grow: extra room in each column (the sum table - SME review)
-    const onesW = colW, tensW = colW, onesIn = (colW - onesNeed) / 2;
+    /* o.split (user 2026-11-05, G1-G3's bigger blocks: "why are the tables going out of the screen" - 62's six rods made BOTH columns
+       354 wide): each column as wide as its own blocks need, at least 132 for its tag */
+    let onesW = o.split ? Math.max(onesNeed + 24 + (o.grow || 0), 132) : colW,   /* (+24: five cubes in a row not running up to its edges) */ tensW = o.split ? Math.max(tensNeed + (o.grow || 0), 132) : colW;
+    /* o.colW (user 2026-11-05, G1-G3: "shouldn't both sides of the table be the same length and width") both columns one given width */
+    if(o.colW) onesW = tensW = Math.max(o.colW, onesNeed, tensNeed);
     /* every row the same gap apart (user 2026-10-15 "spacing between each cube should be the same"; before: rows after
        the ten-frame stood 12px lower to clear its ring - the ring now runs in the gap itself, see ring()) */
     const TF = 0, rowsH = r => r ? r * cH + (r - 1) * g + (r > 2 ? TF : 0) : 0;
     /* a table that can make a ten: room above and below the cubes for the ten's ring (it stands half a gap out from them) -
        so the ring stays inside the table body, never over the head (user 2026-10-23) */
     const ringRoom = (o.onesMax || 9) >= 10 ? Math.max(0, g / 2 + 12 - pad) : 0;
-    const inH = Math.max(rH, rowsH(rows) + 2 * ringRoom), H = head + inH + 2 * pad, W = tensW + onesW;
+    const inH = Math.max(rH, rowsH(rows) + 2 * ringRoom), H = head + inH + 2 * pad; let W = tensW + onesW;
     const x = o.cx - W / 2, y = o.y, fs = Math.round(head * .64);   // (the दहाई / इकाई heads bigger, for reading - user 2026-10-15)
     /* soft trays with name tags (user 2026-10-16: the solid saffron / green bands "looked like Independence Day"): each
        column a pale tint of its own block's colour, its head a rounded tag with a little picture of its block (a rod for
@@ -4418,6 +4541,27 @@ Object.assign(PVK, (function(){
       if(!settling){ clearTimeout(T._settle); T._settle = setTimeout(function again(){ if(!T.el.isConnected) return;
         if([...T.rods, ...T.cubes].some(b => b._gl)){ T._settle = setTimeout(again, 120); return; } T.relayout(220, null, true); }, ms + 80); } };
     T.list = kind => kind === "t" ? T.rods : T.cubes;
+    /* (user 2026-11-05, PV_DEMO's "23 + 12 = 35" row only: "reduce the breadth of the tables, there is plenty of space" - and
+       "only when all 3 tables are in 1 row, not before") slimW: the column width the blocks it holds need - its ones row as wide
+       as `ones` cubes (up to five), its tens as `tens` rods, each column at least 132 for its tag (+ extra); never wider than now.
+       slimAt: the table at column width c, centred on cx, its top at y - its blocks, the grey copies left in it and its extras
+       keep their places in their columns (driven frame by frame by the row's own animation) */
+    /* (user 2026-11-05, T5 "34 + 52 = 86": "the same changes are not incorporated here?" - with both columns as wide as the 8 rods
+       need, the row was scaled to ~0.6) in the row each column is as wide as its OWN blocks: { t, o } */
+    T.slimW = (ones, tens, extra)=>{ const per = Math.max(1, Math.min(5, ones)), tN = Math.max(tens, 2);
+      return { t: Math.min(tensW, Math.max(tN * rW + (tN - 1) * rg + 2 * pad + (tens >= 4 ? 2 * rg : 0), 132) + (extra || 0)),
+               o: Math.min(onesW, Math.max(per * G + (per - 1) * g + 2 * pad, 132) + (extra || 0)) }; };
+    T.slimAt = (ct, co, cx, y)=>{
+      const x0 = T.x, y0 = T.y, t0 = tensW, o0 = onesW, cx0 = x0 + (t0 + o0) / 2;
+      const mid = (col, x, t, o)=> col ? x + t + o / 2 : x + t / 2;
+      T.ghosts.forEach(e =>{ if(e._gcol == null){ e._gcol = e._x >= x0 + t0 ? 1 : 0; e._goff = e._x - mid(e._gcol, x0, t0, o0); } });
+      tensW = ct; onesW = co; W = ct + co; T.W = W; T.tensW = ct; T.onesW = co; T.x = cx - W / 2; T.y = y;
+      setXY(el, T.x, T.y); el.style.width = px(W); el.style.setProperty("--tw", px(ct));
+      T.th.style.width = px(ct); T.oh.style.left = px(ct); const dv = el.querySelector(".pv-div"); if(dv) dv.style.left = px(ct - 1.5);
+      T.rods.forEach((b, j)=>{ if(b._gl){ const gl = b._gl; b._gl = null; gl.cancel(); } const q = T.tensXY(j); setXY(b, q.x, q.y); });
+      T.cubes.forEach((b, i)=>{ if(b._gl){ const gl = b._gl; b._gl = null; gl.cancel(); } const q = T.onesXY(i); setXY(b, q.x, q.y); });
+      T.ghosts.forEach(e => setXY(e, mid(e._gcol, T.x, ct, co) + e._goff, e._y + (y - y0)));
+      T.extra.forEach(e => setXY(e, e._x + (cx - cx0), e._y + (y - y0))); };
     /* a new block on the next place of its column, growing in (enter) while the others slide to make room */
     T.addBlock = kind =>{ const list = T.list(kind), p = T.slot(kind, list.length, list.length + 1);
       const b = K.block(sc, kind, p.x, p.y, kind === "t" ? rH : G); list.push(b); enter(b); T.relayout(260, b); return b; };
@@ -4438,7 +4582,7 @@ Object.assign(PVK, (function(){
     T.fade = ()=>{ [...T.all(), ...T.ghosts].forEach(e => e.classList.add("pv-gone")); };
     return T;
   }
-  const showTable = (T, on)=>{ T.el.classList.toggle("pv-hide", on === false); if(on !== false) pop(T.el); };
+  const showTable = (T, on)=>{ T.el.classList.toggle("pv-hide", on === false); if(on !== false){ pop(T.el); try{ K.tableSfx(); }catch(e){} } };
 
   /* a block flies from table A to the next place of its column in table S; a grey copy stays where it was
      (deck: "each tapped block moves to the sum card, leaving a greyed-out image behind") */
@@ -4449,7 +4593,8 @@ Object.assign(PVK, (function(){
     setXY(gh, b._x, b._y); A.sc.insertBefore(gh, b); A.ghosts.push(gh);
     const dest = S.list(b._kind), p = S.slot(b._kind, dest.length, dest.length + 1); dest.push(b);
     b.style.zIndex = 30; S.relayout(ms == null ? 620 : ms, b);
-    return glide(b, p, ms == null ? 620 : ms, true).then(()=>{ b.style.zIndex = ""; K.knock(); S.relayout(220); });
+    K.knock(b._kind);                                                   // (user 2026-11-05: the sound the moment it is tapped - not when it lands)
+    return glide(b, p, ms == null ? 620 : ms, true).then(()=>{ b.style.zIndex = ""; S.relayout(220); });
   }
   /* highlight a set one after another (the VO naming them) */
   /* a new ten blinks twice as it forms; .pv-new then goes, or the blink would play again whenever a later highlight
@@ -4577,23 +4722,27 @@ Object.assign(PVK, (function(){
      The blocks come in on an even beat (K.ADD_STEP, each with its knock): a tap quicker than that waits its turn, so
      however fast the + is tapped they arrive one by one in the same smooth rhythm (user 2026-10-27; they used to land
      the instant of each tap, piling onto blocks still sliding). */
-  function childAdd(C, btn, T, n, kind){
+  /* opt.guide (user 2026-11-05, as Game 1's T2: the child builds the second number "with the help of the hand nudge"): the hand on the
+     + at once, and back on it after each tap while more are due */
+  function childAdd(C, btn, T, n, kind, opt){
+    const guide = !!(opt && opt.guide), plusOf = ()=> btn.querySelector(".pv-plus") || btn;
     return new Promise(res =>{
       if(!n) return res();
+      if(guide) setTimeout(()=>{ if(C.alive() && !got) placeNudge(plusOf()); }, 350);
       let got = 0, shown = 0, idleT = 0, beatT = 0, last = -1e9;
       btn.classList.remove("off"); btn.classList.add("pulse");
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || got >= n) return; K.repulse(btn, true); placeNudge(btn.querySelector(".pv-plus") || btn); arm(); }, idleMs()); };   // + the hand on it (review 2026-10-28)
       const beat = ()=>{ beatT = 0; if(!C.alive() || shown >= got) return;
         const due = last + K.ADD_STEP - performance.now();
         if(due > 0){ beatT = setTimeout(beat, due); return; }
-        last = performance.now(); shown++; T.addBlock(kind); K.knock();
+        last = performance.now(); shown++; T.addBlock(kind); K.knock(kind);
         if(shown < got) beatT = setTimeout(beat, K.ADD_STEP); else if(shown >= n) setTimeout(res, 380); };
       btn.onclick = ()=>{
         if(!C.alive() || got >= n) return;
         stopNudge(); got++;
         GameBus.emit("pv_block_added", { slide_id: C.slide.id, kind, count: got });
         if(got >= n){ clearTimeout(idleT); btn.onclick = null; btn.classList.remove("pulse"); btn.classList.add("off"); }
-        else arm();
+        else { arm(); if(guide){ const at = got; setTimeout(()=>{ if(C.alive() && got === at && got < n) placeNudge(plusOf(), true); }, 650); } }
         if(!beatT) beat();
       };
       arm();
@@ -4604,17 +4753,20 @@ Object.assign(PVK, (function(){
     btn.classList.remove("off");                                       // its turn: lit (the other half stays grey - user 2026-10-22)
     for(let j = 0; j < n; j++){
       await H.tap(K.centre(btn.querySelector(".pv-plus"), C.sc)); C.guard();
-      T.addBlock(kind); K.knock(); await C.wait(260);
+      T.addBlock(kind); K.knock(kind); await C.wait(260);
     }
     btn.classList.add("off");
   }
   /* the child taps blocks of one kind (or any kind, kind null) in the addend tables: each flies to the sum table.
      Resolves when none are left. Other blocks are not tappable meanwhile. Idle 7s: they pulse + the hand on the first
      one left (review 2026-10-28: the pulse alone was no further hint). */
-  function tapAcross(C, from, S, kind){
+  function tapAcross(C, from, S, kind, opt){
+    const guide = !!(opt && opt.guide);                                 // (as childAdd's: the hand leads to each block in turn)
     return new Promise(res =>{
       const pool = ()=> from.flatMap(T => kind ? T.list(kind) : [...T.rods, ...T.cubes]);
       if(!pool().length) return res();
+      const lead = (ms, quiet)=> setTimeout(()=>{ if(!C.alive() || fin) return; const nx = pool().find(b => b.classList.contains("pv-tap")); if(nx) placeNudge(nx, quiet); }, ms);
+      if(guide) lead(350);
       let flying = 0, idleT = 0, fin = false;
       const done = ()=>{ if(fin || pool().length || flying) return; fin = true; clearTimeout(idleT); stopNudge(); res(); };
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || fin) return;
@@ -4625,10 +4777,10 @@ Object.assign(PVK, (function(){
         b.onclick = ()=>{
           if(!C.alive() || !b.classList.contains("pv-tap")) return;
           stopNudge(); b.onclick = null; flying++;
-          pool().forEach(x => x.classList.remove("pulse"));
+          b.classList.remove("pulse");                                  // (the rest keep pulsing until tapped - user 2026-11-05)
           const A = from.find(T => T.list(b._kind).includes(b));
           K.transfer(b, A, S).then(()=>{ flying--; GameBus.emit("pv_block_moved", { slide_id: C.slide.id, kind: b._kind }); done(); });
-          arm();
+          arm(); if(guide) lead(700, true);
         };
       }));
       from.forEach(T => T.list(kind || "t").forEach(b => b.classList.add("pulse")));
@@ -4661,7 +4813,7 @@ Object.assign(PVK, (function(){
   }
   /* the new ten goes into the tens column's next place */
   function putRod(S, rod){ const p = S.tensXY(S.rods.length, S.rods.length + 1); S.rods.push(rod); S.laneRod = null; rod.classList.remove("pv-grab", "pulse", "pv-new");
-    rod.style.zIndex = 30; S.relayout(620, rod); return glide(rod, p, 620, true).then(()=>{ rod.style.zIndex = ""; K.knock(); }); }
+    rod.style.zIndex = 30; S.relayout(620, rod); return glide(rod, p, 620, true).then(()=>{ rod.style.zIndex = ""; if(rod.isConnected) K.knock("t"); }); }
 
   /* the "दहाई बनाओ" button (gold, the game's button style); .off = not yet (fewer than ten ones) */
   /* x = the button's centre, or its LEFT edge when left (beside a table: it then never reaches back over it) */
@@ -4677,7 +4829,7 @@ Object.assign(PVK, (function(){
   function placeRod(C, rod, S, cfg){
     cfg = cfg || {};
     return new Promise(res =>{
-      const sc = C.sc, j = S.rods.length, p = S.tensXY(j, j + 1);
+      const sc = C.sc, j = S.rods.length, P = ()=> S.tensXY(S.rods.length, S.rods.length + 1);   // (its place, taken when it lands: rods may come in while it waits - user 2026-11-05)
       S.rods.forEach((b, k)=> glide(b, S.tensXY(k, j + 1), 420, false));   // the rods there make room: the new place keeps the group centred
       const home = { x: rod._x, y: rod._y }, H = K.hand(sc);
       rod.classList.add("pv-grab", "pulse");
@@ -4689,14 +4841,14 @@ Object.assign(PVK, (function(){
         const t = ++ghosting, g = rod.cloneNode(false); g.className = "pv-blk pv-rod pv-ghostdrag"; setXY(g, home.x, home.y); sc.appendChild(g);
         if(!cfg.noHand) H.on({ x: home.x + S.rW / 2, y: home.y + S.rH * .55 }); await wait(320);   // noHand: the ghost rod glides alone
         if(t === ghosting && !fin){ H.el.classList.add("press");
-          await Promise.all([glide(g, p, 1100, true), H.to({ x: p.x + S.rW / 2, y: p.y + S.rH * .55 }, 1100)]); await wait(250); }
+          const p = P(); await Promise.all([glide(g, p, 1100, true), H.to({ x: p.x + S.rW / 2, y: p.y + S.rH * .55 }, 1100)]); await wait(250); }
         g.remove(); H.off();
       }
       const arm = ()=>{ clearTimeout(idleT); if(!cfg.idle) return;
         idleT = setTimeout(()=>{ if(!C.alive() || fin || drag) return; ghost().then(arm); }, cfg.idle); };
       const finish = ()=>{ if(fin) return; fin = true; clearTimeout(idleT); ghosting++; H.off(); H.el.remove();
-        S.rods.push(rod); S.laneRod = null; S.relayout(420, rod); rod.classList.remove("pv-grab", "pulse", "pv-new"); rod.onpointerdown = null;
-        rod.style.zIndex = 30; glide(rod, p, 260, false).then(()=>{ rod.style.zIndex = ""; K.knock(); try{ sfxCorrect(); }catch(e){} setTimeout(res, 200); }); };
+        const p = P(); S.rods.push(rod); S.laneRod = null; S.relayout(420, rod); rod.classList.remove("pv-grab", "pulse", "pv-new"); rod.onpointerdown = null;
+        rod.style.zIndex = 30; glide(rod, p, 260, false).then(()=>{ rod.style.zIndex = ""; if(rod.isConnected) try{ sfxCorrect(); }catch(e){} setTimeout(res, 200); }); };   // (the correct chime alone - no block pop under it)
       const miss = async ()=>{ misses++; shake(rod, 7); try{ sfxWrongSoft(); }catch(e){}
         await glide(rod, home, 380, false);
         await ghost();   // (review 2026-11-04: "फिर से सोचिए और सही जगह चुनिए" played on a tap / short drag - "remove this VO and show only the ghost drag")
@@ -4723,7 +4875,9 @@ Object.assign(PVK, (function(){
      Done when every block is across, the ones are fewer than ten and no ten is waiting. Idle 7s - the visual hint
      that fits: the waiting ten's ghost drag, else the live button, else the blocks pulse (+ the hand). */
   function mergeChild(C, from, S, btn, opt){
-    opt = opt || {}; const point = el => K.repulse(el, true);   // the decks (pages 6-9): "if inactive for 7 seconds, pulsate" - no hand, no SFX (SME review)
+    /* (user 2026-11-05, G1: "the cubes and sticks can pulsate from the start, only after the VO is complete, then after 7 sec the hand
+       nudge can come") the blocks pulse from the moment this starts (the prompt line is over) until each is tapped; 7s idle: the hand */
+    opt = opt || {}; const point = el =>{ K.repulse(el, true); placeNudge(el); };
     return new Promise(res =>{
       const pool = ()=> from.flatMap(T => [...T.rods, ...T.cubes]);
       let flying = 0, pending = null, idleT = 0, fin = false, making = false;
@@ -4738,14 +4892,16 @@ Object.assign(PVK, (function(){
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || fin) return;
         if(pending){ arm(); return; }                                   // (placeRod runs its own idle ghost)
         if(ready() && !pool().length){ point(btn); arm(); return; }   // (blocks still to tap: those are pointed at first)
-        pool().forEach(b => point(b)); arm(); }, idleMs()); };
+        const left = pool(); left.forEach(b => K.repulse(b, true)); if(left[0]) placeNudge(left[0]); arm(); }, idleMs()); };
       pool().forEach(b =>{
-        b.classList.add("pv-tap");
+        b.classList.add("pv-tap", "pulse");
         b.onclick = ()=>{
           if(!C.alive() || fin || !b.classList.contains("pv-tap")) return;
-          if(pending || making){ shake(pending || b, 6); return; }
+          /* (user 2026-11-05: "it should be the user's choice to put the दहाई stick in the दहाई column or tap the blocks above into the 3rd
+             table") with a new ten waiting to be dragged the other blocks can still be tapped across - only while the ten is forming not */
+          if(making){ shake(b, 6); return; }
           stopNudge(); b.onclick = null; flying++; armed = true;
-          pool().forEach(x => x.classList.remove("pulse"));
+          b.classList.remove("pulse");                                  // (the rest keep pulsing until tapped)
           const A = from.find(T => T.list(b._kind).includes(b));
           K.transfer(b, A, S).then(()=>{ flying--; GameBus.emit("pv_block_moved", { slide_id: C.slide.id, kind: b._kind }); done(); });
           sync(); arm();
@@ -4896,40 +5052,68 @@ Object.assign(PVK, (function(){
         if(ICON[k]){ b.innerHTML = ICON[k]; b.setAttribute("aria-label", k === "⌫" ? "मिटाएँ" : "जाँचें"); } else b.textContent = k;
         b._k = k; keys[k] = b; });
       const ok = keys["✓"];
-      if(T){ T.classList.add("pv-typein"); if(cfg.padAt) setXY(pad, cfg.padAt.x, cfg.padAt.y); else setXY(pad, cfg.x - pad.offsetWidth / 2, cfg.y + 6); }
+      /* [place boxes] cfg.split with a target made by placeSlots: one digit per box, the ones first - the "|" and the hand on the इकाई box,
+         a tap brings the pad in beside it, a digit fills it and the pad goes; then the दहाई box the same; both in: checked */
+      const SPLIT = !!(cfg.split && T && T._slots && N === 2);
+      if(SPLIT) pad.classList.add("pv-pad-digits");
+      if(T && !SPLIT){ T.classList.add("pv-typein"); if(cfg.padAt) setXY(pad, cfg.padAt.x, cfg.padAt.y); else setXY(pad, cfg.x - pad.offsetWidth / 2, cfg.y + 6); }
       else setXY(pad, cfg.x - pad.offsetWidth / 2, cfg.y + ans.offsetHeight + 12);   // centred under the answer box
       let typed = [], wrong = 0, busy = false, open = false, over = false, idleT = 0, guide = null, reasking = false;
+      let place = "o", started = false, stepping = false; const vals = { t: null, o: null };
+      const cellOf = p => T._slots[p], digitFor = p => p === "o" ? digits[N - 1] : digits[N - 2];
       const hush = ()=>{ if(reasking){ reasking = false; stopAudio(); } };   // a tap during the idle reminder cuts it short and counts
       const P = { ans, pad,
         hide(on){ if(!T) ans.classList.toggle("pv-hide", on !== false); pad.classList.toggle("pv-hide", on !== false || !open); },
-        guideKeys(){ guide = 0; Object.values(keys).forEach(b => b.classList.add("locked")); lightKey(); } };
+        guideKeys(){ guide = 0; Object.values(keys).forEach(b => b.classList.add("locked")); if(SPLIT) lightSplit(); else lightKey(); } };
+      /* the third layer, split: the box to fill lights (the इकाई first), then - the pad open - only its right digit key, the hand on each */
+      const lightSplit = quiet =>{ Object.values(keys).forEach(b =>{ b.classList.remove("hint-on"); b.classList.add("locked"); });
+        ["t", "o"].forEach(p => cellOf(p).classList.remove("hint-on"));
+        if(guide == null || over) return;
+        if(!open){ const c = cellOf(place); c.classList.add("hint-on"); K.softGlow(c); placeNudge(c, quiet); }
+        else { const b = keys[digitFor(place)]; b.classList.remove("locked"); b.classList.add("hint-on"); placeNudge(b, true); } };
+      const padTo = p =>{ const c = K.centre(cellOf(p), sc), w = pad.offsetWidth || 332;
+        setXY(pad, Math.max(20, Math.min(1333 - 20 - w, c.x - w / 2)), cfg.padAt ? cfg.padAt.y : pad._y); };
+      const cuePlace = ()=>{ render(); const quiet = place === "t"; if(guide != null){ lightSplit(quiet); return; }   // (the chime only as an attempt starts, at the इकाई box)
+        setTimeout(()=>{ if(C.alive() && started && !open && !busy && !over && !stepping) placeNudge(cellOf(place), quiet); }, 450); };
       /* the third layer: the right digit keys light one after the other, then the tick */
       const lightKey = ()=>{ Object.values(keys).forEach(b =>{ b.classList.remove("hint-on"); if(guide != null) b.classList.add("locked"); });   // (a key already used locks again - SME review)
         if(guide == null || guide > N) return; const b = guide < N ? keys[digits[guide]] : ok; b.classList.remove("locked"); b.classList.add("hint-on");
-        K.softGlow(b); placeNudge(b); };   // the key lights (the decks' WA3 "highlight the correct digit buttons in sequence") + the hand on it (review 2026-11-04)
+        placeNudge(b); };   // the key lights (the decks' WA3 "highlight the correct digit buttons in sequence") + the hand on it (review 2026-11-04)
       /* the tick: dim until a digit is in, pulsing once the box holds the whole answer */
       const okState = ()=>{ ok.classList.toggle("off", !typed.length); ok.classList.toggle("pulse", typed.length >= N && !over && !busy); };
-      const render = ()=>{ const full = typed.length >= N || over;
+      const render = ()=>{
+        if(SPLIT){ ["t", "o"].forEach(p =>{ const c = cellOf(p), dEl = c.querySelector(".pv-pl-d"), act = started && !over && !busy && place === p && vals[p] == null;
+            dEl.innerHTML = vals[p] != null ? vals[p] : (act ? '<span class="pv-caret">|</span>' : "");
+            c.classList.toggle("on", act); c.classList.toggle("done", vals[p] != null); }); return; }
+        const full = typed.length >= N || over;
         if(T && !open && !typed.length){ if(ok) okState(); return; }          // (the "?" stays until the pad opens)
         slot.innerHTML = typed.map(d => '<span class="pv-ch">' + d + '</span>').join("") + (full ? "" : '<span class="pv-caret">|</span>');
         slot.classList.toggle("on", open && !full); if(ok) okState(); };
       render();                                                    // the cursor shows from the start
       const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || busy || over) return;
-        if(!open) placeNudge(ans); else if(guide != null){ lightKey(); arm(); return; } else if(typed.length >= N) K.repulse(ok);   // the answer counter's hand (the decks); the hand on the keys: no idle line
+        if(SPLIT){ if(guide != null){ lightSplit(true); arm(); return; } if(!open && started) placeNudge(cellOf(place)); }
+        else if(!open) placeNudge(ans); else if(guide != null){ lightKey(); arm(); return; } else if(typed.length >= N) K.repulse(ok);   // the answer counter's hand (the decks); the hand on the keys: no idle line
         reasking = true; C.say(cfg.reask || "prompt").then(()=>{ if(reasking){ reasking = false; arm(); } }, ()=>{}); }, IDLE_MS); };   // (never locks the pad)
       const openPad = ()=>{ if(open || over) return; open = true; stopNudge(); pad.classList.remove("pv-hide"); pop(pad); ans.classList.add("open"); render(); arm(); };
-      ans.onclick = ()=>{ if(!C.alive() || busy) return; hush(); openPad(); };
-      P.open = openPad;
+      if(!SPLIT){ ans.onclick = ()=>{ if(!C.alive() || busy) return; hush(); openPad(); }; P.open = openPad; }
+      else {
+        const openAt = p =>{ if(open || over) return; open = true; stopNudge(); padTo(p); pad.classList.remove("pv-hide"); pop(pad); render(); if(guide != null) lightSplit(true); arm(); };
+        ["t", "o"].forEach(p =>{ cellOf(p).onclick = ()=>{ if(!C.alive() || busy || over || !started || stepping || open || p !== place) return; hush(); openAt(p); }; });
+        P.open = ()=>{};   // (user 2026-11-05: "only after the VO is complete the screen should be enabled") nothing lights during the line
+      }
       async function check(){
         busy = true; clearTimeout(idleT); stopNudge(); okState(); holdTurn(true);   // [your turn] Swiftie's
-        const v = typed.join("");
+        const v = SPLIT ? (vals.t || "") + (vals.o || "") : typed.join("");
         if(v === String(cfg.answer)){
           over = true; state.locked = true; ans.classList.add("ok"); Object.values(keys).forEach(b => b.classList.add("locked")); okState();
           try{ XAPI.send("question_answered", { slide_id: slide.id, type: slide.type, phase: slide.phase }, { is_correct: true, attempt: wrong + 1, score: wrong === 0 ? 1 : 0, response: v }); }catch(e){}
           recordResult(slide, wrong === 0);
           GameBus.emit("numpad_correct", { slide_id: slide.id, phase: slide.phase, value: wrong === 0, first_try: wrong === 0, attempts: wrong + 1, latency_ms: Date.now() - state.slideStart });
-          sfxCorrect(); setSwMood("happy");
+          if(!SPLIT) sfxCorrect(); setSwMood("happy");                 // (split: the correct sound as the two digits become one - user 2026-11-05)
           pad.classList.add("pv-gone");   // the keypad goes as the answer goes up (review 2026-10-14)
+          if(SPLIT){ cellOf("o").classList.add("okc"); await K.wait(300); cellOf("t").classList.add("okc"); await K.wait(420);
+            const w = T.offsetWidth; T.style.width = w + "px"; T.classList.add("merge"); await K.wait(460);
+            T.classList.remove("pv-split", "merge"); T.innerHTML = K.numHTML(cfg.answer); sfxCorrect(); }   // [place boxes: aha] the two digits become one number - and only now the correct sound
           if(cfg.onRight) await cfg.onRight(ans);
           await sayEq(C, cfg.eq, guide != null);
           try{ confettiCannon(); }catch(e){} await C.wait(1200);   // (the confetti last - user 2026-10-22)
@@ -4939,21 +5123,28 @@ Object.assign(PVK, (function(){
         try{ XAPI.send("question_answered", { slide_id: slide.id, type: slide.type, phase: slide.phase }, { is_correct: false, attempt: wrong, score: 0, response: v }); }catch(e){}
         GameBus.emit("answer_wrong", { slide_id: slide.id, phase: slide.phase, attempts: wrong });
         sfxWrongSoft(); setSwMood("tryagain"); ans.classList.add("wrong"); shake(ans, 9);
-        await C.wait(800); ans.classList.remove("wrong"); typed = []; render();
+        await C.wait(800); ans.classList.remove("wrong"); typed = []; vals.t = vals.o = null; place = "o"; render();
         setSwMood("hint");
         await cfg.ladder(wrong, P);
-        if(C.alive() && !over){ busy = false; holdTurn(false); setSwMood("point"); render(); arm(); }
+        if(C.alive() && !over){ busy = false; holdTurn(false); setSwMood("point"); render(); if(SPLIT) cuePlace(); arm(); }
       }
       Object.values(keys).forEach(b => b.addEventListener("click", ()=>{
         if(!C.alive() || busy || over || !open || b.classList.contains("locked")) return;
         stopNudge(); hush(); arm();
+        if(SPLIT){ if(b._k === "⌫" || b._k === "✓" || stepping) return;
+          vals[place] = b._k; sfxTap(); stepping = true; render(); pop(cellOf(place).querySelector(".pv-pl-d"));
+          Object.values(keys).forEach(x => x.classList.remove("hint-on"));
+          setTimeout(()=>{ if(!C.alive() || over) return; open = false; pad.classList.add("pv-hide"); stopNudge();
+            if(place === "o"){ place = "t"; setTimeout(()=>{ stepping = false; if(C.alive() && !over) cuePlace(); }, 380); }
+            else setTimeout(()=>{ stepping = false; if(C.alive() && !over) check().catch(()=>{}); }, 380); }, 300);
+          return; }
         if(b._k === "⌫"){ typed.pop(); render(); return; }
-        if(b._k === "✓"){ if(!typed.length) return; K.knock(); check().catch(()=>{}); return; }   // the answer goes in on the tick only
+        if(b._k === "✓"){ if(!typed.length) return; sfxTap(); check().catch(()=>{}); return; }   // the answer goes in on the tick only
         if(typed.length >= N) return;
-        typed.push(b._k); K.knock(); render(); pop(slot.querySelectorAll(".pv-ch")[typed.length - 1]);
+        typed.push(b._k); sfxTap(); render();   // (a key: its soft tick - the block pop is for blocks) pop(slot.querySelectorAll(".pv-ch")[typed.length - 1]);
         if(guide != null){ guide++; lightKey(); }
       }));
-      P.ready = ()=>{ holdTurn(false); arm(); };   // [your turn] the answer box waits for the child   // the box pulses its cursor; the hand only after 7s idle (user 2026-10-15: "comes too early")
+      P.ready = ()=>{ holdTurn(false); if(SPLIT && !started && !over){ started = true; cuePlace(); } arm(); };   // (split: the "|" and the hand in the इकाई box only now, the VO over - user 2026-11-05)   // [your turn] the answer box waits for the child   // the box pulses its cursor; the hand only after 7s idle (user 2026-10-15: "comes too early")
       cfg.onReady && cfg.onReady(P);
     });
   }
@@ -4964,7 +5155,12 @@ Object.assign(PVK, (function(){
     ans.style.visibility = "hidden";    // the answer box goes up itself (review 2026-10-14)
     await glide(f, { x: b.x, y: b.y - f._h / 2 }, 620, true); f.remove(); E.fill(n);
   }
-  return { mcq, flyToQ, numpad, flyAnsToQ };
+  /* [place boxes] the equation's "?" card made into a दहाई box and an इकाई box (numpad's cfg.split) */
+  function placeSlots(q){ q.classList.add("pv-split"); q.style.minWidth = "0";
+    const cell = k => '<div class="pv-pl pv-pl-' + k + '"><span class="pv-pl-d"></span></div>';   // (no words in them - user 2026-11-05: the colours say which is which)
+    q.innerHTML = cell("t") + cell("o");
+    q._slots = { t: q.querySelector(".pv-pl-t"), o: q.querySelector(".pv-pl-o") }; return q._slots; }
+  return { mcq, flyToQ, numpad, flyAnsToQ, placeSlots };
 })());
 
 /* The two games' screens, one module per KIND of deck page (pattern: S01 and S02 are the same lesson - S02 adds the
@@ -4982,7 +5178,8 @@ function pvTapOnce(C, btn){
   return new Promise(res =>{ let idleT = 0;
     const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(C.alive() && btn.onclick){ PVK.repulse(btn, true); placeNudge(btn); arm(); } }, IDLE_MS); };   // the decks: the button pulsates (no SFX - review 2026-10-27) + the hand on it (review 2026-10-28)
     btn.classList.remove("off"); btn.classList.add("pulse");
-    placeNudge(btn);                                                    // the hand on it from the start, with its pulse (review 2026-11-04, T1: it came only after 7s idle)
+    /* (user 2026-11-05: "remove the hand nudge from the दहाई बनाओ button, only after 7 seconds show the hand nudge") it pulses from the
+       start; the hand comes with the 7s idle (arm) - no longer at once (review 2026-11-04, T1) */
     btn.onclick = ()=>{ if(!C.alive()) return; btn.onclick = null; clearTimeout(idleT); stopNudge(); btn.classList.remove("pulse"); holdTurn(true); res(); };
     arm(); });
 }
@@ -5019,6 +5216,11 @@ const PVModules = {
       const op = (t, x)=>{ const e = K.add(sc, "div", "pv-op pv-sym", "font-size:52px"); e.textContent = t; K.setXY(e, x, EY + 2); return e; };
       const cA = K.numCard(sc, d.a, COL[0], EY, EH), plus = op("+", XP), cB = K.numCard(sc, d.b, COL[1], EY, EH), eqs = op("=", XE),
             cQ = K.numCard(sc, null, XQ, EY, EH, "pv-q");
+      /* (user 2026-11-05: "the plus sign should be in between the two boxes of 23 and 12, same for the = sign") the + and the = stand
+         in the middle of the gap between the number boxes either side of them (they were centred on the gap between the blocks above,
+         which are wider than the boxes - so they sat off-centre between the boxes) */
+      { const mid = (L, R)=> (L._x + L.offsetWidth / 2 + R._x - R.offsetWidth / 2) / 2;
+        K.setXY(plus, mid(cA, cB), EY + 2); K.setXY(eqs, mid(cB, cQ), EY + 2); }
       const asking = d.mode !== "sum";
       const hideAll = list => list.forEach(e => e.classList.add("pv-hide"));
       const showGroup = (p, g)=>{ K.show(p); g.all().forEach((b, i)=> setTimeout(()=> K.show(b), 120 + i * 55)); };
@@ -5115,6 +5317,14 @@ const PVModules = {
       /* the two number cards (and the total's, in line with them) 9px lower than L.numY: they sat 6px under the card's
          outline, 24px over their tables - now 15px from each (user 2026-10-27 "too close to the outline"); nothing else moves */
       const NY = L.numY + 9;
+      /* (user 2026-11-05: "increase the box size of 23, 12 and the other number a little more ... the + and = should come to those
+         boxes, like 23 + 12 = 35, the same distance from both, centred on x and y ... reduce the breadth of the tables" - then "in this
+         position only": the build stays as it was) when the three tables form the one row, they narrow to their blocks (T.slim), the
+         number boxes grow 1.2x (CS) upwards from their bottom edge, and the + and the = stand on the boxes' row, halfway between the
+         boxes either side (centerSigns: on their ink) */
+      const CS = 1.2, signY = NY + L.numH - L.numH * CS / 2 - 27;   // (a 54px sign, line-height 1: its middle on the grown boxes' middle)
+      const between = (l, r, dl, dr)=> (l._x + (dl || 0) + l.offsetWidth * CS / 2 + r._x + (dr || 0) - r.offsetWidth * CS / 2) / 2;
+      const grow = e =>{ e.style.transformOrigin = "0 50%";   /* (x 0: a box is centred by translateX(-50%), which the scale also scales - its own left edge IS its middle) */ e.style.setProperty("--ps", CS); e.style.scale = CS; };   // (the total and its "?": they pop in from their own centre - user 2026-11-05 "it should appear from centre at the same position, not from any side")
       const cA = K.numCard(sc, d.a, L.cxL, NY, L.numH), cB = K.numCard(sc, d.b, L.cxR, NY, L.numH);
       const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
       const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
@@ -5151,17 +5361,25 @@ const PVModules = {
         await C.wait(250); lit(T, card, false, false, false);
         const src = K.sources(sc, T, L.srcY, L.cx);                      // at the bottom centre of the screen (SME review), where the sum table comes later
         src.show();
+        /* (user 2026-11-05: "when each दहाई and इकाई are getting taps, that individual number should be highlighted at that point every
+           time") while its blocks are tapped in, the digit being built stays lit - the tens digit (and the दहाई head) for the rods, the
+           ones digit (and the इकाई head) for the cubes; lit once, as its + is tapped, and held - no pop for every block that comes in
+           (user 2026-11-05: "keep them as pop up, not popping up again and again with the number of cubes or sticks incoming") */
+        const phase = async (kind, f)=>{ lit(T, card, false, kind === "t", kind === "o"); try{ await f(); } finally { lit(T, card, false, false, false); } };
         if(who === "swifty"){
           src.t.classList.add("demo", "off"); src.o.classList.add("demo", "off");   // (each lit only on its turn, as the child's)
           const H = K.hand(sc);
-          if(p.t) await Promise.all([C.say(key + "_tens"), C.wait(650).then(()=> K.demoAdd(C, H, src.t, T, p.t, "t"))]);
-          if(p.o) await Promise.all([C.say(key + "_ones"), C.wait(650).then(()=> K.demoAdd(C, H, src.o, T, p.o, "o"))]);
+          if(p.t) await Promise.all([C.say(key + "_tens"), C.wait(650).then(()=> phase("t", ()=> K.demoAdd(C, H, src.t, T, p.t, "t")))]);
+          if(p.o) await Promise.all([C.say(key + "_ones"), C.wait(650).then(()=> phase("o", ()=> K.demoAdd(C, H, src.o, T, p.o, "o")))]);
           H.off(); await C.wait(250); H.el.remove();
         } else {
           src.t.classList.add("off"); src.o.classList.add("off");
           if(C.has(key + "_build")) await C.say(key + "_build");
-          await K.childAdd(C, src.t, T, p.t, "t"); C.guard();
-          await K.childAdd(C, src.o, T, p.o, "o"); C.guard();
+          /* data.guide (T3, 2026-11-05 review: Swifty builds the first number, the child the second, with the hand): the tens line, the
+             child taps the tens +, the ones line, the child taps the ones + - the hand leading */
+          const g = d.guide ? { guide: true } : null;
+          if(p.t){ if(g && C.has(key + "_tens")) await C.say(key + "_tens"); await phase("t", ()=> K.childAdd(C, src.t, T, p.t, "t", g)); } C.guard();
+          if(p.o){ if(g && C.has(key + "_ones")) await C.say(key + "_ones"); await phase("o", ()=> K.childAdd(C, src.o, T, p.o, "o", g)); } C.guard();
         }
         await C.wait(250); src.remove();
       }
@@ -5179,8 +5397,11 @@ const PVModules = {
         await build(TB, cB, d.b, d.build[1], "b");
         GameBus.emit("pv_build_done", { slide_id: slide.id });
         await C.cue("merge", [[0.44, ()=> K.show(plus)], [0.78, ()=> showT(TS)]]);   // the + BEFORE the sum table (review 2026-10-27): the + on "अब दोनों...", the sum table on "जोड़ते" (3.27s of 4.19s)
+        /* data.across { o, t }: who takes each kind across (T3, 2026-11-05 review: "Swiftee will demonstrate adding the ones, and the user
+           will then add the tens" - the ones' new ten is made and put in by Swifty too); else all by Swifty (auto) or all by the child */
+        const by = k => (d.across && d.across[k]) || (d.auto ? "swifty" : "child");
         const across = async kind =>{
-          if(!d.auto) return K.tapAcross(C, [TA, TB], TS, kind);
+          if(by(kind) === "child") return K.tapAcross(C, [TA, TB], TS, kind, d.guide ? { guide: true } : null);
           const H = K.hand(sc); await K.demoAcross(C, H, [TA, TB], TS, kind); H.off(); await C.wait(250); H.el.remove(); };
         await C.say("ones");
         await across("o"); C.guard();
@@ -5188,14 +5409,14 @@ const PVModules = {
         if(carry){
           await C.cue("know", [[0.3, ()=> K.ring(TS, true)]]);
           const btn = makeB; K.show(btn);
-          if(d.auto){ const H = K.hand(sc); await Promise.all([C.say("make"), C.wait(700).then(()=> H.tap(K.centre(btn, sc)))]);
+          if(by("o") === "swifty"){ const H = K.hand(sc); await Promise.all([C.say("make"), C.wait(700).then(()=> H.tap(K.centre(btn, sc)))]);
             H.off(); await C.wait(200); H.el.remove(); }
           else await Promise.all([C.say("make"), pvTapOnce(C, btn)]);
           C.guard();
           btn.classList.add("pv-gone");
           const rod = await K.makeTen(TS); C.guard();
           GameBus.emit("pv_ten_made", { slide_id: slide.id });
-          if(d.auto){                                                     // Swifty's hand carries the new ten across
+          if(by("o") === "swifty"){                                       // Swifty's hand carries the new ten across
             const H = K.hand(sc), p = TS.tensXY(TS.rods.length, TS.rods.length + 1);
             await C.say("place"); H.on({ x: rod._x + TS.rW / 2, y: rod._y + TS.rH * .55 }); await C.wait(320); H.el.classList.add("press");
             await Promise.all([K.putRod(TS, rod), H.to({ x: p.x + TS.rW / 2, y: p.y + TS.rH * .55 }, 620)]);
@@ -5208,7 +5429,10 @@ const PVModules = {
         await C.cue("tens_sum", [[0.02, ()=> K.sweep(TS.rods, 160)]]);
         GameBus.emit("pv_merge_done", { slide_id: slide.id });
         // the total's box is the SAME size as the two numbers' boxes (user 2026-10-15: "why is the 35 box bigger")
-        const tot = K.numCard(sc, sum, TS.x + TS.W / 2, NY, L.numH); tot.classList.add("pv-hide", "pv-total", "pv-sumcard");
+        const tot = K.numCard(sc, sum, TS.x + TS.W / 2, NY, L.numH); tot.classList.add("pv-hide", "pv-total", "pv-sumcard"); grow(tot);
+        /* (user 2026-11-05: "before the 35 box comes ... we can put a dotted box with a question mark till the 35 box comes") a dashed
+           "?" box stands in the total's place from the moment the = does, and gives way to the total as it is said */
+        const qBox = K.numCard(sc, null, TS.x + TS.W / 2, NY, L.numH, "pv-q"); qBox.classList.add("pv-hide"); grow(qBox);
         const eqS = K.add(sc, "div", "pv-op pv-sym pv-hide", "font-size:54px"); eqS.textContent = "=";
         /* the whole sum stays on screen in ONE row: [23] + [12] = [35], each table under its number, so the bottom centre is
            free for the next button (user 2026-10-15). The row forms FIRST - the "=" comes as soon as the sum table stands
@@ -5221,14 +5445,15 @@ const PVModules = {
           const rowH = (L.tableY + Math.max(TA.H, TB.H, TS.H)) - (L.numY - 10), DY = Math.round(382 - (L.numY - 10) - rowH * s / 2);
           const dA = x0 - TA.x, dB = x0 + TA.W + GAP - TB.x, dSx = x0 + TA.W + TB.W + 2 * GAP - TS.x, dSy = L.tableY + DY - TS.y;
           const opY = L.tableY + DY + TA.H / 2 - 34, mv = (e, x, y)=> K.shift(e, x - e._x, y - e._y, ms);
-          K.setXY(eqS, x0 + TA.W + TB.W + GAP * 1.5, opY); K.setXY(tot, TS.x + dSx + TS.W / 2, NY + DY);   // (both wait hidden in their places)
+          let wrap = null, o0 = null, k0 = 1;
           /* a row wider than the card (a big sum: 86 = 8 rods) is scaled down round its top centre to fit, as it moves -
              frame by frame, each block's place on SCREEN going straight from where it is to where it ends (user 2026-11-04
              "the tables during animation go out of the box": moving out to the wide row's places while the scale shrank
              it round the centre, the row swung up to 62px past the card mid-way); both ends inside the card, so all of it is */
           if(tw > AV){ const ox = L.cx, oy = L.numY - 10 + DY, pX = x0 + TA.W + GAP / 2 - plus._x, pY = opY - plus._y;
-            const wrap = K.add(sc, "div", "pv-row", "position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;transform-origin:" + ox + "px " + oy + "px");
-            [...TA.all(), ...TA.ghosts, ...TB.all(), ...TB.ghosts, ...TS.all(), cA, cB, plus, eqS, tot].forEach(e =>{ if(e && e.parentNode === sc) wrap.appendChild(e); });
+            wrap = K.add(sc, "div", "pv-row", "position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;transform-origin:" + ox + "px " + oy + "px");
+            o0 = [ox, oy]; k0 = s;
+            [...TA.all(), ...TA.ghosts, ...TB.all(), ...TB.ghosts, ...TS.all(), cA, cB, plus].forEach(e =>{ if(e && e.parentNode === sc) wrap.appendChild(e); });
             const P = [[TA.all(), dA, DY], [TA.ghosts, dA, DY], [[cA], dA, DY], [TB.all(), dB, DY], [TB.ghosts, dB, DY], [[cB], dB, DY],
                        [TS.all(), dSx, dSy], [[plus], pX, pY]].flatMap(([els, dx, dy])=> els.filter(Boolean).map(e =>{
               if(e._gl){ const g = e._gl; e._gl = null; g.cancel(); } return { e, x: e._x, y: e._y, dx, dy }; }));
@@ -5242,10 +5467,61 @@ const PVModules = {
           } else await Promise.all([TA.move(dA, DY, ms), ...TA.ghosts.map(e => K.shift(e, dA, DY, ms)), K.shift(cA, dA, DY, ms),
             TB.move(dB, DY, ms), ...TB.ghosts.map(e => K.shift(e, dB, DY, ms)), K.shift(cB, dB, DY, ms),
             TS.move(dSx, dSy, ms).then(()=>{}), mv(plus, x0 + TA.W + GAP / 2, opY)]);
+          C.guard();
+          await C.wait(250);
+          /* ---- stage 2, the three tables now standing in one row (user 2026-11-05: the tables narrow "only when all 3 tables are in
+             1 row, not before that"; "Swiftie's head is colliding with the table"): they narrow to their blocks and close up, the
+             number boxes grow 1.2x (CS) from their bottom edge, the + goes between the boxes on their row, and the row stands clear
+             of Swiftie's head (it rises as far as it must). Everything moves together frame by frame on SCREEN (vis), in one wrap
+             scaled k round (oN) - so a row first scaled down to fit can come back up as it narrows. ---- */
+          const vis = (o, k, x, y)=> [o[0] + (x - o[0]) * k, o[1] + (y - o[1]) * k];
+          const c1 = [TA.slimW(Math.max(A.o, B.o), Math.max(A.t, B.t), 0), TB.slimW(Math.max(A.o, B.o), Math.max(A.t, B.t), 0), TS.slimW(S.o, S.t, 16)];
+          const W1 = c1.map(c => c.t + c.o), sum1 = W1[0] + W1[1] + W1[2], GAP1 = Math.max(48, Math.min(96, (AV - sum1) / 2)), tw1 = sum1 + 2 * GAP1, k1 = Math.min(1, AV / tw1);
+          /* the boxes and the signs keep their size on screen whatever the row's scale k1 (a long sum's row still fits by scaling
+             its tables, not its numbers): in the row's own units a box is CS * numH / k1 tall */
+          const gapCT = L.tableY - (NY + L.numH), maxH = Math.max(TA.H, TB.H, TS.H), hU = gapCT + CS * L.numH / k1 + maxH;   // (the row: grown boxes, the gap, the tables)
+          let top = Math.round(382 - hU * k1 / 2);                            // (its visual top: the row centred where it stood)
+          { const m = host.closest(".tut-card"), im = m && m.querySelector(".tut-mascot"), sr = sc.getBoundingClientRect(), kk = K.kNow();
+            if(im){ const r = im.getBoundingClientRect(), mTop = (r.top - sr.top) / kk, mRight = (r.right - sr.left) / kk;
+              const left = L.cx - tw1 * k1 / 2;
+              if(left < mRight + 8) top = Math.min(top, Math.round(mTop - 18 - hU * k1)); } }
+          top = Math.max(18, top);
+          const oN = [L.cx, top], Tu = top + CS * L.numH / k1 + gapCT;           // (oN: the row's top centre; Tu: the tables' top, unscaled)
+          /* every row element into one wrap scaled k0 round oN, keeping where it is on screen */
+          const els = [...TA.all(), ...TA.ghosts, ...TB.all(), ...TB.ghosts, ...TS.all(), cA, cB, plus, eqS, tot, qBox].filter(Boolean);
+          const vNow = els.map(e => vis(o0 || oN, k0, e._x, e._y));
+          const wrapN = K.add(sc, "div", "pv-row", "position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;transform-origin:" + oN[0] + "px " + oN[1] + "px;scale:" + k0);
+          const tStart = [TA, TB, TS].map(T =>({ cx: vis(o0 || oN, k0, T.x + T.W / 2, 0)[0], y: vis(o0 || oN, k0, 0, T.y)[1], t: T.tensW * k0, o: T.onesW * k0 }));
+          els.forEach((e, i)=>{ wrapN.appendChild(e); K.setXY(e, oN[0] + (vNow[i][0] - oN[0]) / k0, oN[1] + (vNow[i][1] - oN[1]) / k0); });
+          [TA, TB, TS].forEach((T, i)=>{ T.x = oN[0] + (tStart[i].cx - oN[0]) / k0 - T.W / 2; T.y = oN[1] + (tStart[i].y - oN[1]) / k0; });
+          if(wrap) wrap.remove();
+          /* where each ends (unscaled, in the wrap: shown at k1 round oN) */
+          const x0u = L.cx - tw1 / 2, cxU = [x0u + W1[0] / 2, x0u + W1[0] + GAP1 + W1[1] / 2, x0u + W1[0] + W1[1] + 2 * GAP1 + W1[2] / 2];
+          const boxBot = Tu - gapCT, boxMid = boxBot - CS * L.numH / k1 / 2;
+          const wA = cA.offsetWidth * CS / k1 / 2, wB = cB.offsetWidth * CS / k1 / 2, wT = tot.offsetWidth * CS / k1 / 2;
+          const plusU = (cxU[0] + wA + cxU[1] - wB) / 2, eqU = (cxU[1] + wB + cxU[2] - wT) / 2;
+          const cardS = [cA, cB].map(c =>({ c, x: oN[0] + (c._x - oN[0]) * k0, b: oN[1] + (c._y + L.numH - oN[1]) * k0 }));
+          const pS = vis(oN, k0, plus._x, plus._y + 27);
+          [cA, cB].forEach(c =>{ c.style.transformOrigin = "0 100%"; c.style.setProperty("--ps", CS / k1); });
+          plus.style.transformOrigin = "0 50%";
+          const st2 = q =>{ const k = k0 + (k1 - k0) * q, L1 = (a, b)=> a + (b - a) * q, loc = (v, i)=> oN[i] + (v - oN[i]) / k;
+            wrapN.style.scale = k.toFixed(4);
+            [TA, TB, TS].forEach((T, i)=>{ const s0 = tStart[i], vx = L1(s0.cx, oN[0] + (cxU[i] - oN[0]) * k1), vy = L1(s0.y, oN[1] + (Tu - oN[1]) * k1);
+              T.slimAt(L1(s0.t, c1[i].t * k1) / k, L1(s0.o, c1[i].o * k1) / k, loc(vx, 0), loc(vy, 1)); });
+            cardS.forEach((o, i)=>{ const vx = L1(o.x, oN[0] + (cxU[i] - oN[0]) * k1), vb = L1(o.b, oN[1] + (boxBot - oN[1]) * k1);
+              K.setXY(o.c, loc(vx, 0), loc(vb, 1) - L.numH); o.c.style.scale = (L1(k0, CS) / k).toFixed(4); });   // (on screen: from its size to CS)
+            K.setXY(plus, loc(L1(pS[0], oN[0] + (plusU - oN[0]) * k1), 0), loc(L1(pS[1], oN[1] + (boxMid - oN[1]) * k1), 1) - 27); plus.style.scale = (L1(k0, 1) / k).toFixed(4); };
+          await new Promise(res =>{ if(K.reduce()){ st2(1); return res(); }
+            const t0 = performance.now(), step = now =>{ const p = Math.min(1, Math.max(0, (now - t0) / 650)), q = p < .5 ? 2 * p * p : 1 - Math.pow(2 - 2 * p, 2) / 2;
+              st2(q); p < 1 ? requestAnimationFrame(step) : res(); }; requestAnimationFrame(step); });
+          [cA, cB].forEach(c => c.style.scale = CS / k1); plus.style.scale = 1 / k1;
+          [tot, qBox].forEach(e =>{ e.style.setProperty("--ps", CS / k1); e.style.scale = CS / k1; }); eqS.style.transformOrigin = "0 50%"; eqS.style.scale = 1 / k1;
+          /* the =, the total and its "?" wait hidden in their places on the row */
+          K.setXY(tot, cxU[2], boxMid - L.numH / 2); K.setXY(qBox, cxU[2], boxMid - L.numH / 2); K.setXY(eqS, eqU, boxMid - 27);
           C.guard(); }
-        K.show(eqS);
+        K.show(eqS); K.show(qBox); centerSigns(sc);
         await C.cue("total", [[0.02, ()=> K.sweep(TS.rods, 90)], [0.3, ()=> K.sweep(TS.cubes, 70)],   // (no column digits under the table)
-                              [d.sum_at || .75, ()=> K.show(tot)]]);
+                              [d.sum_at || .75, ()=>{ qBox.classList.add("pv-hide"); K.show(tot); }]]);
         sfxCorrect(); setSwMood("happy");
         await C.say("done");
         try{ confettiCannon(); }catch(e){}                                // (the confetti last, after the closing line - user 2026-10-22)
@@ -5303,18 +5579,33 @@ const PVModules = {
       /* alignment pass (user 2026-10-16): the same scale as the number pad's page - a bigger equation and blocks, the two
          tables an even gap apart round the centre, the sum table right under them - so the screen is filled, not top-left */
       const d = slide.data, K = PVK, sc = K.scene(host), C = K.ctx(slide, sc),
-            L = Object.assign({}, PV_LAY.main, { eqY: 142, eqH: 72, tableY: 236, cube: 27, blk: 24, pad: 10 });
+            L = Object.assign({}, PV_LAY.main, { eqY: 40, eqH: 72, tableY: 138, cube: 33, blk: 31, pad: 12 });   // (user 2026-11-05: no header now - the equation up into its room, its size kept; the tables and blocks bigger, "so the cubes are more visible": blocks 24 -> 31)
       state.ownsAudio = true; state.locked = false; setNavActive(false); $("navBtn").style.display = "none"; setSwMood("point"); pvReplay(C);
       const A = pvSplit(d.a), B = pvSplit(d.b), sum = d.a + d.b, S = pvSplit(sum), carry = A.o + B.o >= 10, tMax = Math.max(A.t, B.t, 3);
       const E = K.equation(sc, d.a, d.b, L.cx, L.eqY, L.eqH);
-      const TA = K.table(sc, { cx: L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: A.t, onesMax: 9 });
-      const TB = K.table(sc, { cx: L.cxR, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: tMax, tensFinal: B.t, onesMax: 9 });
+      /* the two tables side by side must fit the screen (1333, 36 clear each side, the + between them 84): their columns split to their
+         own blocks, and if a big pair still runs wider, the blocks step down 2px at a time (never below 22) */
+      /* (user 2026-11-05: "shouldn't both sides of the table be the same length and width ... the 3rd table in between the 2 above")
+         both tables, and both columns of each, one width - the widest column either needs at these blocks - so the pair is symmetric
+         and the sum table, centred under it, stands exactly between them; if the pair runs wider than the screen (1333, 36 clear each
+         side, the + 84 between), the blocks step down 2px at a time (never below 22) */
+      let TA, TB;
+      for(;;){ const mk = (n, cw)=> K.table(sc, { cx: n ? L.cxR : L.cxL, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, split: true, colW: cw, tensMax: tMax, tensFinal: (n ? B : A).t, onesMax: 9 });
+        const pa = mk(0), pb = mk(1), cw = Math.max(pa.tensW, pa.onesW, pb.tensW, pb.onesW); pa.el.remove(); pb.el.remove();
+        TA = mk(0, cw); TB = mk(1, cw);
+        /* with a ten to make, the sum table - centred - and the दहाई बनाओ button (~200) beside it must fit too, so it is never pushed aside */
+        let sumOk = true;
+        if(carry){ const t0 = K.table(sc, { cx: L.cx, y: L.tableY, cube: L.cube, blk: L.blk, pad: L.pad, split: true, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+          const w = 2 * Math.max(t0.tensW, t0.onesW); t0.el.remove(); sumOk = L.cx + w / 2 + 24 + 200 <= 1333 - 24; }
+        if((TA.W + 84 + TB.W <= 1333 - 72 && sumOk) || L.blk <= 22) break;
+        TA.el.remove(); TB.el.remove(); L.blk -= 2; L.cube -= 2; }
       { const GAP = 110, x0 = L.cx - (TA.W + GAP + TB.W) / 2;
         [[TA, x0], [TB, x0 + TA.W + GAP]].forEach(([T, x])=>{ const dx = x - T.x; T.x += dx; T.all().forEach(e => K.setXY(e, e._x + dx, e._y)); });
         L.sumY = L.tableY + TA.H + 22; }
       /* everything centres on the equation's axis, L.cx (review 2026-10-28: with two tables of different widths the gap's
          middle was used - the pair and the sum table stood up to 48px right of the equation) */
-      const TS = K.table(sc, { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o });
+      const TS = (()=>{ const o = { cx: L.cx, y: L.sumY, cube: L.cube, blk: L.blk, pad: L.pad, split: true, tensMax: Math.max(S.t, 3), tensFinal: S.t, onesMax: A.o + B.o };
+        const t0 = K.table(sc, o), cw = Math.max(t0.tensW, t0.onesW); t0.el.remove(); return K.table(sc, Object.assign(o, { colW: cw })); })();   // (its two columns equal too)
       TS.el.classList.add("pv-hide");
       const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:56px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, L.cx), L.tableY + TA.H / 2 - 36);
       const btn = carry ? K.makeBtnSide(sc, TS) : null;
@@ -5362,6 +5653,7 @@ const PVModules = {
       const E = { a: K.numCard(sc, d.a, L.cxL, L.eqY, L.eqH), plus: sym("+", L.cx), b: K.numCard(sc, d.b, L.cxR, L.eqY, L.eqH),
                   eq: sym("=", 885), q: K.numCard(sc, null, L.qx, L.eqY, L.eqH, "pv-q") };
       E.fill = n =>{ E.q.innerHTML = K.numHTML(n); E.q.classList.add("filled"); K.pop(E.q); K.settle(E.q); };
+      K.placeSlots(E.q); E.q.style.width = E.a.offsetWidth + "px";          // [place boxes] (before the layout below reads its width) - as wide as the question's cards (user 2026-11-05)
       const PADY = 286, PADH = 370, PADX = L.qx - 166, GAP = 44;               // the pad: its top, its height (3 x 4 keys), its left edge
       /* the two tables must fit LEFT of the pad (user 2026-10-22: the wider many-tens tables ran under it): from 40 to the
          pad's edge less 30; if they do not, they are drawn smaller - same proportions - until they do */
@@ -5390,9 +5682,9 @@ const PVModules = {
         /* the old format (user 2026-10-15 "bring the old format: the box in the bottom centre and the calculator below
            that"): the answer box under the tables; a tap on it opens the pad under it (the deck: "an answer counter below
            with a hand nudge. On tap, open the number pad"); the right answer flies up into the "?" */
-        await K.numpad(C, { answer: sum, eq: E, x: L.cx, y: L.tableY + TA.H + 18, reask: "prompt", target: E.q, cols: 3, padAt: { x: L.qx - 166, y: PADY },
+        await K.numpad(C, { answer: sum, eq: E, x: L.cx, y: L.tableY + TA.H + 18, reask: "prompt", target: E.q, cols: 3, padAt: { x: L.qx - 166, y: PADY }, split: true,
           onReady: P =>{ P.hide(true); C.cue("prompt", [[0.6, ()=>{ P.hide(false); P.open(); E.q.classList.remove("pulse"); }]]).then(()=> P.ready(), ()=>{}); },
-          onRight: ()=>{ E.fill(sum); },
+          onRight: ()=>{ E.q.classList.add("filled"); K.pop(E.q); K.settle(E.q); },   // (the two boxes keep their digits)
           ladder: async (n, P)=>{
             if(n === 1){ await C.say("try_again"); return; }
             if(n === 2){
@@ -5647,7 +5939,9 @@ const PVLanding = {
     const T = 2.2;   // (1.7 still read as fast - user 2026-10-15 "they are more faster now, reduce their speed")
     const q = (e, s)=> e.querySelector(s), wait = ms => new Promise(r => setTimeout(r, ms));
     const dir = s => s ? -1 : 1;                                                // toward the middle: the left child faces right
-    const sound = f =>{ try{ f(); }catch(e){} };
+    /* (user 2026-11-05: "unwanted SFX here and there") the landing's build plays on in the background once the lesson has started - its
+       whooshes and block clicks then sounded over the first page. Its sounds only while the landing is on screen */
+    const sound = f =>{ const sg = document.getElementById("startGate"); if(sg && sg.classList.contains("hidden")) return; try{ f(); }catch(e){} };
     /* each pose picture at the one scale, standing on the child's foot point; the blocks in the carry pose's hands */
     const layout = k =>{
       const ims = [...k.querySelectorAll(".sgp-pose")];
@@ -5879,6 +6173,7 @@ function mountSlideNow(idx){
     mountHost = inner;
   }
   mod.mount(mountHost, slide);
+  centerSigns(mountHost);
   // game-feel: animate the slide content in on every mount
   { const _sh = $("slideHost"); _sh.classList.remove("slide-in"); void _sh.offsetWidth; _sh.classList.add("slide-in"); }
 
@@ -6302,6 +6597,7 @@ const ASSET_SIZES = {
   "assets/pv_cube10.webp": 15724,
   "assets/pv_rod11.webp": 33128,
   "assets/sfx/bgm.ogg": 1443997,
+  "assets/sfx/sfx_block.ogg": 2961,
   "assets/sfx/sfx_confetti.ogg": 11582,
   "assets/sfx/sfx_correct.ogg": 10099,
   "assets/sfx/sfx_next.ogg": 1538,
@@ -6318,7 +6614,7 @@ const ASSET_SIZES = {
   "assets/sw_head_tryagain.webp": 48836,
   "assets/voiceover/sfx_celebrate.ogg": 8344,
   "assets/voiceover/vo_cel.ogg": 20859,
-  "assets/voiceover/vo_g1_ask.ogg": 14049,
+  "assets/voiceover/vo_g1_ask.ogg": 7313,
   "assets/voiceover/vo_g1_correct.ogg": 31878,
   "assets/voiceover/vo_g1_great.ogg": 10936,
   "assets/voiceover/vo_g1_hint_CA.ogg": 20401,
@@ -6375,8 +6671,8 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_t3_a_ones.ogg": 23224,
   "assets/voiceover/vo_t3_a_tens.ogg": 22295,
   "assets/voiceover/vo_t3_b_digits.ogg": 29583,
-  "assets/voiceover/vo_t3_b_ones.ogg": 24038,
-  "assets/voiceover/vo_t3_b_tens.ogg": 23196,
+  "assets/voiceover/vo_t3_b_ones.ogg": 13021,
+  "assets/voiceover/vo_t3_b_tens.ogg": 14744,
   "assets/voiceover/vo_t3_done.ogg": 32284,
   "assets/voiceover/vo_t3_intro.ogg": 28077,
   "assets/voiceover/vo_t3_know.ogg": 24821,
@@ -6385,7 +6681,7 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_t3_ones.ogg": 17770,
   "assets/voiceover/vo_t3_ones_sum.ogg": 32620,
   "assets/voiceover/vo_t3_place.ogg": 20468,
-  "assets/voiceover/vo_t3_tens.ogg": 15439,
+  "assets/voiceover/vo_t3_tens.ogg": 8749,
   "assets/voiceover/vo_t3_tens_sum.ogg": 35327,
   "assets/voiceover/vo_t3_total.ogg": 36287,
   "assets/voiceover/vo_t4_eq.ogg": 26778,
@@ -6407,7 +6703,7 @@ const ASSET_SIZES = {
   "assets/voiceover/vo_t6_tens.ogg": 15036,
   "assets/voiceover/vo_t6_tens_sum.ogg": 37898,
   "assets/voiceover/vo_t6_total.ogg": 34977,
-  "assets/voiceover/vo_t7_eq.ogg": 28792,
+  "assets/voiceover/vo_t7_eq.ogg": 17371,
   "assets/voiceover/vo_t7_total.ogg": 25501
 };
 /* @asset-sizes:end */

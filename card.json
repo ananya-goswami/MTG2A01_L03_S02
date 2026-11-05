@@ -254,9 +254,10 @@
     "b": 15,
     "build": [
      "swifty",
-     "swifty"
+     "child"
     ],
-    "auto": true,
+    "guide": true,
+    "across": { "o": "swifty", "t": "child" },
     "sum_at": 0.819,
     "intro_at": [
      0.577,
@@ -439,11 +440,11 @@
      "who": "pari"
     },
     "eq_at": [
-     0.054,
-     0.262,
+     0.059,
+     0.264,
      0.434,
-     0.632,
-     0.839
+     0.625,
+     0.818
     ]
    }
   },
@@ -463,6 +464,7 @@
     "hint_ca": "vo_g1_hint_CA"
    },
    "data": {
+    "no_head": true,
     "a": 28,
     "b": 15,
     "options": [
@@ -495,6 +497,7 @@
     "hint_ca": "vo_g2_hint_CA"
    },
    "data": {
+    "no_head": true,
     "a": 46,
     "b": 24,
     "options": [
@@ -527,6 +530,7 @@
     "hint_ca": "vo_g3_hint_CA"
    },
    "data": {
+    "no_head": true,
     "a": 58,
     "b": 36,
     "options": [
