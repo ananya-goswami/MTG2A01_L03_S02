@@ -7006,7 +7006,12 @@ function boot(){
      complete"; MTG2A04's QA 2026-10-23 BUG_01): it pops the moment the greeting ends - never before (S02's 10s greeting
      outlasts the title animation: the button used to come 1.4s before her last word) and no longer after the animation
      (S01's ran 2.6s past the greeting). The 18s watchdog still forces it - never stranded. */
-  const releaseStart = ()=>{ clearTimeout(_startWatchT); if(onLandingNow()) setStartBtnReady(true); };
+  /* (user 2026-11-05: "no disabled play button should be there" - "only after the animation is complete on the first screen will the
+     enabled play button come") it appears - enabled, popping, pulsing - only once the greeting is over AND the landing's build has
+     finished ("sg-intro-done"); before that it is not shown at all. The 18s watchdog (force) still brings it - never stranded */
+  const releaseStart = (force)=>{ clearTimeout(_startWatchT);
+    if(!force && !window.__sgIntroDone){ document.addEventListener("sg-intro-done", ()=>{ if(onLandingNow()) setStartBtnReady(true); }, { once: true }); return; }
+    if(onLandingNow()) setStartBtnReady(true); };
   /* user 2026-10-15 ("play button is coming really late after the animation is complete"): the greeting (6.8s / 10s)
      outlasts the first screen's build (~4s), so the button no longer waits for its end - it pops as the build is done,
      once the greeting is audibly playing (a blocked greeting: still released by its end / the first tap / the watchdog) */
