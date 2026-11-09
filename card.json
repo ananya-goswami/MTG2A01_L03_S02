@@ -259,6 +259,7 @@
     "guide": true,
     "across": { "o": "swifty", "t": "child" },
     "sum_at": 0.819,
+    "done_at": [0.274, 0.585, 0.484, 0.823, 0.706],
     "intro_at": [
      0.577,
      0.682
@@ -396,6 +397,7 @@
     "ghost_auto": false,
     "ghost_idle": 5000,
     "sum_at": 0.846,
+    "done_at": [0.297, 0.609, 0.484, 0.836, 0.754],
     "intro_at": [
      0.52,
      0.598
