@@ -3559,11 +3559,11 @@ function play(src, onEnd){
     a.onended = fire;
     /* the clip's blob: copy failed (Assets): the file's own URL, once; anything else - a silent beat, then on */
     a.onerror = ()=>{ if(tok !== _playTok) return;
-      if(!retried && /^blob:/.test(a.src)){ retried = true; a.src = src; a.play().catch(()=>{ if(tok === _playTok) setTimeout(fire, 1200); }); return; }
+      if(!retried && /^blob:/.test(a.src)){ retried = true; a.src = src; _voStart(a).catch(()=>{ if(tok === _playTok) setTimeout(fire, 1200); }); return; }
       setTimeout(fire, 1200); };
     a.setAttribute("data-asset", src);
     a.src = Assets.url(src); setPlaying(true);   // re-apply now the src is known, so the right chip lights
-    a.play().catch(()=>{ if(tok === _playTok){ VoLock.release(); setTimeout(fire, 1200); } });   // (refused: nothing sounds - no lock)
+    _voStart(a).catch(()=>{ if(tok === _playTok){ VoLock.release(); setTimeout(fire, 1200); } });   // (refused: nothing sounds - no lock)
     /* WATCHDOG: whatever waits on this clip's end (आगे, the next line, the play button) can never be stranded by a clip
        that stalls mid-way or never reports `ended`: the clip's remaining length + 3s grace, re-armed while it is still
        really moving on. No length yet (metadata stuck): 15s. */
@@ -3571,6 +3571,8 @@ function play(src, onEnd){
     const watch = ()=>{ if(done || tok !== _playTok) return;
       const left = isFinite(a.duration) && a.duration > 0 ? (a.duration - a.currentTime) / (a.playbackRate || 1) : 12;
       setTimeout(()=>{ if(done || tok !== _playTok) return;
+        // [tab pause] a clip held by a hidden tab is not stalled - it waits, and so does the watchdog
+        if(_voHeld()){ watch(); return; }
         if(!a.paused && !a.ended && a.currentTime > lastT + 0.05){ lastT = a.currentTime; watch(); } else fire(); }, Math.max(0, left) * 1000 + 3000);
     };
     watch();
@@ -3688,6 +3690,27 @@ function bgmPlay(track, onMissing){
 function bgmStart(){ if(!BGM.el) bgmPlay("bgm"); }
 document.addEventListener("visibilitychange", ()=>{ if(!BGM.el) return;
   if(document.hidden) BGM.el.pause(); else BGM.el.play().catch(()=>{}); });
+/* [tab pause] QA bug sheets (MTG2A04 / MTG2A03 / MTG2A01_L07: Hindi sheet BUG_10 / BUG_14 - ported 2026-11-10): a hidden tab used
+   to pause only the music - the voiceover, the sound effects and the WebAudio tones went on in the background and the screen moved
+   on without the child. Now all of it pauses, and the voiceover resumes from where it stopped when the tab is back. A clip asked to
+   start while the tab is hidden (an idle re-ask, the next line of a chain) waits for the tab (_voStart); play()'s watchdog waits with it. */
+let _tabHeld = null, _voDeferred = false;
+function _voStart(a){ if(document.hidden){ _voDeferred = true; return Promise.resolve(); } return a.play(); }
+function _voHeld(){ return document.hidden || !!_tabHeld || _voDeferred || document.documentElement.classList.contains("ask-rotate"); }
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden){
+    if(_tabHeld) return;
+    _tabHeld = { vo: !!currentAudio && !voEl.paused && !voEl.ended, sfx: _sfxPool.filter(a => !a.paused && !a.ended) };
+    if(_tabHeld.vo) voEl.pause();
+    _tabHeld.sfx.forEach(a =>{ try{ a.pause(); }catch(e){} });
+    if(_juiceAC && _juiceAC.state === "running") _juiceAC.suspend().catch(()=>{});
+  } else {
+    const h = _tabHeld; _tabHeld = null;
+    if(_juiceAC && _juiceAC.state === "suspended") _juiceAC.resume().catch(()=>{});
+    if(h) h.sfx.forEach(a => a.play().catch(()=>{}));
+    if((h && h.vo) || _voDeferred){ _voDeferred = false; if(currentAudio === voEl) voEl.play().catch(()=>{}); }
+  }
+});
 /* dynamic Swiftie buddy: swap pose + a little pop on every reaction (correct/wrong/explain/celebrate) */
 // [20a mascot-01] moods -> production EXPRESSIONS (head webp), not idle-gif basenames.
 //   Ported verbatim from HI01H01_L02_S04_dist (its app lines 2474-2493) together with the
@@ -4853,7 +4876,7 @@ Object.assign(PVK, (function(){
       S.rods.forEach((b, k)=> glide(b, S.tensXY(k, j + 1), 420, false));   // the rods there make room: the new place keeps the group centred
       const home = { x: rod._x, y: rod._y }, H = K.hand(sc);
       rod.classList.add("pv-grab", "pulse");
-      let misses = 0, idleT = 0, fin = false, ghosting = 0, drag = null;
+      let misses = 0, idleT = 0, fin = false, ghosting = 0, drag = null, homing = false;
       /* on the दहाई side: the rod's centre over the tens column (a little slack round it) */
       const near = (x, y)=>{ const cx = x + S.rW / 2, cy = y + S.rH / 2, m = 24;
         return cx > S.x - m && cx < S.x + S.tensW + m && cy > S.y - m && cy < S.y + S.H + m; };
@@ -4869,12 +4892,15 @@ Object.assign(PVK, (function(){
       const finish = ()=>{ if(fin) return; fin = true; clearTimeout(idleT); ghosting++; H.off(); H.el.remove();
         const p = P(); S.rods.push(rod); S.laneRod = null; S.relayout(420, rod); rod.classList.remove("pv-grab", "pulse", "pv-new"); rod.onpointerdown = null;
         rod.style.zIndex = 30; glide(rod, p, 260, false).then(()=>{ rod.style.zIndex = ""; if(rod.isConnected) try{ sfxCorrect(); }catch(e){} setTimeout(res, 200); }); };   // (the correct chime alone - no block pop under it)
+      /* (QA bug sheets, MTG2A04 BUG_05 "double tap on the block moved outside its area - it is placed in the incorrect position" -
+         ported 2026-11-10) a touch while the missed ten is still gliding home is ignored: it used to start a drag from where the
+         glide had begun, and the glide's end then snapped the rod home in the middle of it */
       const miss = async ()=>{ misses++; shake(rod, 7); try{ sfxWrongSoft(); }catch(e){}
-        await glide(rod, home, 380, false);
+        homing = true; await glide(rod, home, 380, false); homing = false;
         await ghost();   // (review 2026-11-04: "फिर से सोचिए और सही जगह चुनिए" played on a tap / short drag - "remove this VO and show only the ghost drag")
         arm(); };
       rod.onpointerdown = ev =>{
-        if(fin || !C.alive() || drag) return; ev.preventDefault(); stopNudge(); clearTimeout(idleT); ghosting++;
+        if(fin || !C.alive() || drag || homing) return; ev.preventDefault(); stopNudge(); clearTimeout(idleT); ghosting++;
         const k = K.kNow(); drag = { sx: ev.clientX, sy: ev.clientY, x0: rod._x, y0: rod._y, moved: 0 };
         rod.classList.add("lift"); rod.style.zIndex = 31;
         try{ rod.setPointerCapture(ev.pointerId); }catch(e){}
