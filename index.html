@@ -2821,7 +2821,8 @@ body.vo-lock .dev-nav{z-index:150001;}
      0.431,
      0.602,
      0.771
-    ]
+    ],
+    "total_at": 0.606
    }
   },
   {
@@ -2956,7 +2957,8 @@ body.vo-lock .dev-nav{z-index:150001;}
      0.434,
      0.625,
      0.818
-    ]
+    ],
+    "total_at": 0.634
    }
   },
   {
@@ -4255,10 +4257,12 @@ const PVK = (function(){
      style pop - a juicy pop, a rising bloop and a little sparkle (made for these games - not any game's own sound). The same for
      cubes, rods and the number keys; (until 2026-11-09 - see knock) each block landing in a run a step higher (C-major pentatonic: 1, 9/8,
      5/4, 3/2, 5/3, 2), the run starting over after a pause. Played from one decoded buffer (instant); the old procedural bloop if it cannot load. */
-  let _kBuf = null, _kLoad = null;
+  let _kBuf = null, _kLoad = null, _kFail = false;
   const kLoad = ()=>{ const c = typeof _ac === "function" && _ac(); if(!c || _kLoad) return _kLoad;
-    _kLoad = fetch(SFX_DIR + "sfx_block." + AUDIO_EXT).then(r => r.arrayBuffer()).then(b => new Promise((ok, no)=> c.decodeAudioData(b, ok, no))).then(buf => _kBuf = buf).catch(()=>{ _kBuf = null; });
+    _kLoad = fetch(SFX_DIR + "sfx_block." + AUDIO_EXT).then(r => r.arrayBuffer()).then(b => new Promise((ok, no)=> c.decodeAudioData(b, ok, no))).then(buf => _kBuf = buf).catch(()=>{ _kBuf = null; _kFail = true; });
     return _kLoad; };
+  /* resolves once the block sound is ready (or after ms, whichever is first) - a screen that sounds its blocks as they come in waits for it */
+  const kReady = ms => Promise.race([Promise.resolve(kLoad()), new Promise(r => setTimeout(r, ms == null ? 900 : ms))]);
   const kSynth = f =>{ const c = _ac(), t = c.currentTime, lp = c.createBiquadFilter(), out = c.createGain();
     lp.type = "lowpass"; lp.frequency.value = 2400; lp.Q.value = .4; out.gain.value = .3; lp.connect(out).connect(c.destination);
     [[1, .5, .26], [2, .08, .12]].forEach(([m, v, d])=>{ const o = c.createOscillator(), gn = c.createGain();
@@ -4269,8 +4273,11 @@ const PVK = (function(){
      thinner and less consistent. Please ensure the SFX maintains a consistent pitch, speed, and quality throughout") no more run up the
      pentatonic: that played the clip faster (playbackRate up to 2x) - higher, shorter and thinner with each block. Every block now plays
      sfx_block exactly as recorded - the same pitch, speed and length every time */
+  /* (user 2026-11-09, G1: "why I can hear 2 sfx here when the cubes are appearing?") a block sounded before sfx_block was decoded got the
+     procedural bloop instead - a second, different sound, then the real pop for the rest (a screen opened right after the page loads,
+     as the slide picker does). Only the real pop now: not yet decoded, the block is silent; the bloop only if the file cannot load */
   const knock = ()=>{ const c = typeof _ac === "function" && _ac(); if(!c) return;
-    if(!_kBuf){ kLoad(); kSynth(523.25); return; }
+    if(!_kBuf){ kLoad(); if(_kFail) kSynth(523.25); return; }
     const src = c.createBufferSource(), g = c.createGain(); src.buffer = _kBuf; g.gain.value = .7;
     src.connect(g).connect(c.destination); src.start(); };
   /* (SME review 2026-11-09, the guided pages: "when the blocks for both numbers appear automatically ... a bubble/pop SFX should play")
@@ -4476,7 +4483,7 @@ const PVK = (function(){
     setXY(e, cx, y); return e;
   }
 
-  return { reduce, px, wait, ROD, CUBE, FIT, dashBox, kNow, add, setXY, xy, knock, fillPop, tableSfx, pop, enter, ADD_STEP, show, shake, repulse, softGlow, scene, ctx, run, block, glide, follow, shift,
+  return { reduce, px, wait, ROD, CUBE, FIT, dashBox, kNow, add, setXY, xy, knock, fillPop, kReady, tableSfx, pop, enter, ADD_STEP, show, shake, repulse, softGlow, scene, ctx, run, block, glide, follow, shift,
            hand, centre, numHTML, numCard, lightDigit, equation, settle, person };
 })();
 
@@ -5252,7 +5259,12 @@ const PVModules = {
       const hideAll = list =>{ list.forEach(e =>{ e.style.transition = "none"; e.classList.add("pv-hide"); }); void sc.offsetWidth; list.forEach(e => e.style.transition = ""); };
       const showGroup = (p, g)=>{ K.show(p); g.all().forEach((b, i)=> setTimeout(()=> K.show(b), 120 + i * 55)); };
       if(asking) hideAll([pA, pB, ...gA.all(), ...gB.all(), cA, plus, cB, eqs, cQ]);
-      else if(d.signs || d.eq_at) hideAll([plus, eqs, cQ]);   // (the sum page: its + and = come on "जोड़" / "बराबर" - user 2026-10-15)
+      /* (user 2026-11-09: "at this point the whole equation should be already visible, only the highlight part will come along the VO")
+         the sum page opens on the whole equation, a + b = c - its total too: nothing comes in with the VO any more, only the highlights
+         (each part lit as it is said) and the blocks gathering into the third column. (Since 2026-10-15 the +, the = and the total had
+         come in on their words.) */
+      else if(d.eq_at){ cQ.innerHTML = K.numHTML(sum); cQ.classList.add("filled"); }
+      else if(d.signs) hideAll([plus, eqs, cQ]);   // (an older sum page without eq_at: its + and = come on "जोड़" / "बराबर" - user 2026-10-15)
       /* every block into the third column; ten ones (if there are) gathered into one new rod there */
       async function together(){
         const tA = pvSplit(d.a), tB = pvSplit(d.b), t = tA.t + tB.t, u = tA.o + tB.o, G = K.group(sc, sum, COL[2], BOT, BH), L = G.layout(t, u);
@@ -5301,12 +5313,14 @@ const PVModules = {
              also be highlighted as it is spoken"): data.eq_at = the starts of "a", "जोड़", "b", "बराबर", "c" in the clip
              (fractions, measured from the VO) - each part pops / comes in and is lit on its word, the one before it unlit */
           if(d.eq_at){ const at = d.eq_at, parts = [cA, plus, cB, eqs, cQ], say = i => parts.forEach((e, j)=> e.classList.toggle("pv-say", j === i));
-            await C.cue("eq", [[at[0], ()=>{ say(0); K.pop(cA); K.sweep(gA.all(), 0); }], [at[1], ()=>{ K.show(plus); say(1); }],
-                               [at[2], ()=>{ say(2); K.pop(cB); K.sweep(gB.all(), 0); }], [at[2] + .1, ()=>{ moving = together(); }],
-                               [at[3], ()=>{ K.show(eqs); K.show(cQ); say(3); }], [at[4], ()=>{ K.show(cQ); cQ.innerHTML = K.numHTML(sum); cQ.classList.add("filled"); K.pop(cQ); say(4); }]]);
+            await C.cue("eq", [[at[0], ()=>{ say(0); K.sweep(gA.all(), 0); }], [at[1], ()=> say(1)],
+                               [at[2], ()=>{ say(2); K.sweep(gB.all(), 0); }], [at[2] + .1, ()=>{ moving = together(); }],
+                               [at[3], ()=> say(3)], [at[4], ()=> say(4)]]);
             await C.wait(350); say(-1);
             if(moving) await moving; C.guard();
-            await C.cue("total", [[0.1, ()=> K.sweep(together.blocks || [], 70)], [0.65, ()=> K.pop(cQ)]]);
+            /* the total line ("... कुल मिलाकर c ब्लॉक्स हैं"): the total lights as it is said (data.total_at, measured from the VO) - it no
+               longer pops, which blinked the box out and back in */
+            await C.cue("total", [[0.1, ()=> K.sweep(together.blocks || [], 70)], [d.total_at || .6, ()=> say(4)]]).finally(()=> say(-1));
             setNavActive(true); return; }
           /* each number's blocks glow as it is said, with its box's pop (user 2026-10-15); d.b_at = where the second
              number is said in the "eq" clip (measured from the VO) */
@@ -5647,6 +5661,7 @@ const PVModules = {
       /* a very wide sum table (many tens) steps left so the button keeps its place with a clear 24px gap */
       if(btn){ const dx = Math.min(0, btn._x - 24 - (TS.x + TS.W)); if(dx){ TS.x += dx; TS.all().forEach(e => K.setXY(e, e._x + dx, e._y)); } }
       K.run(C, async ()=>{
+        await K.kReady(); C.guard();                                    // (every block's pop the same sound, from the first - user 2026-11-09)
         await Promise.all([TA.fill(d.a, null, true), TB.fill(d.b, null, true)]); await C.wait(250);   // (the blocks pop in with their sound - SME review 2026-11-09)
         await C.cue("prompt", [[0.3, ()=>{ K.showTable(TS); if(btn){ K.show(btn); btn.classList.add("off"); } }]]);
         await K.mergeChild(C, [TA, TB], TS, btn); C.guard();
