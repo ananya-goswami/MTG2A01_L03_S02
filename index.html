@@ -2769,6 +2769,8 @@ body.vo-lock .dev-nav{z-index:150001;}
      "child"
     ],
     "guide": true,
+    "ghost_auto": true,
+    "ghost_idle": 2000,
     "across": { "o": "swifty", "t": "child" },
     "sum_at": 0.819,
     "done_at": [0.274, 0.419, 0.484, 0.585, 0.706],
@@ -5249,8 +5251,11 @@ function pvTapOnce(C, btn){
   return new Promise(res =>{ let idleT = 0;
     const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(C.alive() && btn.onclick){ PVK.repulse(btn, true); placeNudge(btn); arm(); } }, IDLE_MS); };   // the decks: the button pulsates (no SFX - review 2026-10-27) + the hand on it (review 2026-10-28)
     btn.classList.remove("off"); btn.classList.add("pulse");
-    /* (user 2026-11-05: "remove the hand nudge from the दहाई बनाओ button, only after 7 seconds show the hand nudge") it pulses from the
-       start; the hand comes with the 7s idle (arm) - no longer at once (review 2026-11-04, T1) */
+    /* (SME review 2026-11-10, T1 / slide 3 / slide 6: "the hand nudge should appear immediately along with the button and pulsating
+       effect, rather than after 7 seconds of inactivity") the hand on it at once, with the pulse - as soon as the button has popped in
+       (450ms: placed on its final size). (From 2026-11-05 it had come only with the 7s idle - the user's call then; the SME's now.)
+       The 7s idle still re-pulses it with the hand */
+    setTimeout(()=>{ if(C.alive() && btn.onclick) placeNudge(btn); }, 450);
     btn.onclick = ()=>{ if(!C.alive()) return; btn.onclick = null; clearTimeout(idleT); stopNudge(); btn.classList.remove("pulse"); holdTurn(true); res(); };
     arm(); });
 }
@@ -5491,14 +5496,19 @@ const PVModules = {
         if(carry){
           await C.cue("know", [[0.3, ()=> K.ring(TS, true)]]);
           const btn = makeB; K.show(btn);
-          if(by("o") === "swifty"){ const H = K.hand(sc); await Promise.all([C.say("make"), C.wait(700).then(()=> H.tap(K.centre(btn, sc)))]);
+          /* (SME review 2026-11-10, slide 3: "the button is currently tapped automatically. Instead, the button should pulsate with a hand
+             nudge, allowing the child to tap it. Similarly ... the newly formed tens rod ... should not move automatically. A repeated
+             ghost drag animation should guide the child, while the actual dragging should be performed by the child") making the ten and
+             placing it are the child's on every page - Swifty taking the ones across (data.across.o) no longer takes these too; his hand
+             does them only in a fully automatic demo (data.auto) */
+          if(d.auto){ const H = K.hand(sc); await Promise.all([C.say("make"), C.wait(700).then(()=> H.tap(K.centre(btn, sc)))]);
             H.off(); await C.wait(200); H.el.remove(); }
           else await Promise.all([C.say("make"), pvTapOnce(C, btn)]);
           C.guard();
           btn.classList.add("pv-gone");
           const rod = await K.makeTen(TS); C.guard();
           GameBus.emit("pv_ten_made", { slide_id: slide.id });
-          if(by("o") === "swifty"){                                       // Swifty's hand carries the new ten across
+          if(d.auto){                                                     // Swifty's hand carries the new ten across (a fully automatic demo only)
             const H = K.hand(sc), p = TS.tensXY(TS.rods.length, TS.rods.length + 1);
             await C.say("place"); H.on({ x: rod._x + TS.rW / 2, y: rod._y + TS.rH * .55 }); await C.wait(320); H.el.classList.add("press");
             await Promise.all([K.putRod(TS, rod), H.to({ x: p.x + TS.rW / 2, y: p.y + TS.rH * .55 }, 620)]);
@@ -5636,14 +5646,29 @@ const PVModules = {
         await C.wait(300);
         await C.say("count_intro");
         for(let i = 1; i <= 10; i++){ const c = T.cubes[i - 1]; c.classList.add("pv-on"); K.pop(c); await C.sayNum(i); }
-        K.ring(T, true); K.show(btn);
+        K.ring(T, true);
         await C.say("know");
+        /* (SME review 2026-11-10, T1: the button "currently appears during the VO 'हम जानते हैं कि दस इकाइयाँ एक दहाई बनाती हैं।' Instead,
+           it should appear with the next VO, 'इस बटन पर टैप करिए और दहाई बनाइए।'") it comes as that line starts - pulsing, the hand on it */
+        K.show(btn);
         await Promise.all([C.say("make"), pvTapOnce(C, btn)]); C.guard();
         btn.classList.add("pv-gone"); T.cubes.forEach(c => c.classList.remove("pv-on"));
         const rod = await K.makeTen(T); C.guard();
         GameBus.emit("pv_ten_made", { slide_id: slide.id });
         await C.cue("made", [[0.1, ()=> K.sweep([rod])]]);
-        await C.cue("move", [[0.35, ()=> K.putRod(T, rod)]]);
+        /* (SME review 2026-11-10, T1: "the newly formed tens rod automatically moves to the tens column. Instead, a hand/ghost drag
+           animation should demonstrate dragging the rod to the tens column") as "अब इस दहाई को दहाई की जगह पर रखते हैं" is said, Swifty's
+           hand presses the new ten, lifts it and drags it into the tens column - the rod under the hand all the way (one straight glide,
+           the hand's own) - and lets go there */
+        let dragging = null;
+        await C.cue("move", [[0.3, ()=>{ dragging = (async ()=>{
+          const H = K.hand(sc), p = T.tensXY(T.rods.length, T.rods.length + 1), grip = q =>({ x: q.x + T.rW / 2, y: q.y + T.rH * .55 });
+          H.on(grip({ x: rod._x, y: rod._y })); await K.wait(380); H.el.classList.add("press"); rod.classList.add("lift");
+          T.rods.push(rod); T.laneRod = null; rod.classList.remove("pv-grab", "pulse", "pv-new"); rod.style.zIndex = 30; T.relayout(900, rod);
+          await Promise.all([K.glide(rod, p, 900, false), H.to(grip(p), 900)]);
+          rod.classList.remove("lift"); rod.style.zIndex = ""; if(rod.isConnected) K.knock("t");
+          H.el.classList.remove("press"); await K.wait(250); H.off(); await K.wait(250); H.el.remove(); })(); }]]);
+        if(dragging) await dragging; C.guard();
         await C.wait(400);
         await C.say("rest_intro");
         for(let i = 1; i <= T.cubes.length; i++){ const c = T.cubes[i - 1]; c.classList.add("pv-on"); K.pop(c); await C.sayNum(i); }

@@ -257,6 +257,8 @@
      "child"
     ],
     "guide": true,
+    "ghost_auto": true,
+    "ghost_idle": 2000,
     "across": { "o": "swifty", "t": "child" },
     "sum_at": 0.819,
     "done_at": [0.274, 0.419, 0.484, 0.585, 0.706],
