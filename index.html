@@ -1922,6 +1922,9 @@ body.vo-lock .dev-nav{z-index:150001;}
   -webkit-tap-highlight-color:transparent;transition:background .25s,color .25s,opacity .3s;}
 .pv-make.pv-make-l{transform:none;}
 .pv-make.off{background:#EDEDED;color:#B9B9B9;box-shadow:0 4px 0 #D6D6D6;}
+/* (QA bug sheets, Money game BUG_04 "the button is clickable although it doesn't emit any event - disable the clicking behaviour")
+   off (grey) it takes no tap at all and shows no hand cursor - it used to swallow taps that did nothing */
+.pv-make.off{cursor:default;pointer-events:none !important;}
 .pv-make.pulse{animation:pvBtnPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite;}
 /* the dotted outlines are SVG (PVK.dashBox): one dot missing, travelling round */
 .pv-dash{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;}
@@ -3541,7 +3544,12 @@ function replayTap(slide, src){
     count: state.audioReplays, src: src, ignored_while_playing: busy });
   return !busy;
 }
+/* (QA bug sheets, Capacity BUG_05) when the last voiceover ended: an idle re-ask waits for IDLE_MS of quiet after it - a line the child
+   replays with the speaker included - so it never cuts that line, nor follows straight on after it */
+let _voEndAt = -1e9;
+function voQuietLeft(){ return isPlaying ? IDLE_MS : Math.max(0, IDLE_MS - (performance.now() - _voEndAt)); }
 function stopAudio(){
+  _voEndAt = performance.now();
   _playTok++;
   if(currentAudio){ try{ currentAudio.pause(); }catch(e){} currentAudio=null; }
   VoLock.release();
@@ -3551,7 +3559,7 @@ function stopAudio(){
 function play(src, onEnd){
   stopAudio(); setPlaying(true);
   const tok = _playTok;
-  let done=false; const fire=()=>{ if(done || tok !== _playTok) return; done=true; currentAudio=null; VoLock.release(); setPlaying(false); if(onEnd) onEnd(); };
+  let done=false; const fire=()=>{ if(done || tok !== _playTok) return; done=true; _voEndAt = performance.now(); currentAudio=null; VoLock.release(); setPlaying(false); if(onEnd) onEnd(); };
   if(src) VoLock.arm(src);   // [vo-lock] no tap from the moment the line is asked for
   if(src){
     const a = voEl; currentAudio = a;
@@ -3563,7 +3571,10 @@ function play(src, onEnd){
       setTimeout(fire, 1200); };
     a.setAttribute("data-asset", src);
     a.src = Assets.url(src); setPlaying(true);   // re-apply now the src is known, so the right chip lights
-    _voStart(a).catch(()=>{ if(tok === _playTok){ VoLock.release(); setTimeout(fire, 1200); } });   // (refused: nothing sounds - no lock)
+    /* (QA bug sheets: Money game BUG_01 "the speaker is in animated state when the page is not even clicked", Capacity BUG_03 "without
+       any playback the speaker should be blue") a line the browser will not play yet (no tap on the page so far) no longer shows the
+       speaker playing - grey and animated for the 1.2s silent beat with nothing sounding: it is back to its normal blue at once */
+    _voStart(a).catch(()=>{ if(tok === _playTok){ VoLock.release(); setPlaying(false); speakersBusy(false, true); setTimeout(fire, 1200); } });   // (refused: nothing sounds - no lock)
     /* WATCHDOG: whatever waits on this clip's end (आगे, the next line, the play button) can never be stranded by a clip
        that stalls mid-way or never reports `ended`: the clip's remaining length + 3s grace, re-armed while it is still
        really moving on. No length yet (metadata stuck): 15s. */
@@ -5015,8 +5026,11 @@ Object.assign(PVK, (function(){
           /* + the hand on it (review 2026-10-27: "on the third incorrect attempt, add a hand nudge"), once the cards stand
              still (.mq-opts glides .5s when the help has moved it) */
           setTimeout(()=>{ if(C.alive() && !over) placeNudge(right); }, 600); } };
-      const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{
+      const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(function tick(){
         if(!C.alive() || busy || over || layer3) return;   // (no idle line once the hand shows the answer - MTG2A04 QA BUG_06 / BUG_08)
+        /* (QA bug sheets, Capacity BUG_05 "the VO of the speaker button gets overridden by the idle VO") a line still sounding - the child's
+           speaker replay - is never cut, and the re-ask waits for 7s of quiet after it rather than following straight on */
+        const q = voQuietLeft(); if(q > 30){ idleT = setTimeout(tick, q); return; }
         /* the idle reminder never locks the cards: a tap while it speaks cuts it short and counts (it used to set busy -
            every tap during the reminder was swallowed) */
         reasking = true; C.say(cfg.reask || "ask").then(()=>{ if(reasking){ reasking = false; arm(); } }, ()=>{}); }, IDLE_MS); };
@@ -5145,7 +5159,8 @@ Object.assign(PVK, (function(){
         slot.innerHTML = typed.map(d => '<span class="pv-ch">' + d + '</span>').join("") + (full ? "" : '<span class="pv-caret">|</span>');
         slot.classList.toggle("on", open && !full); if(ok) okState(); };
       render();                                                    // the cursor shows from the start
-      const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(()=>{ if(!C.alive() || busy || over) return;
+      const arm = ()=>{ clearTimeout(idleT); idleT = setTimeout(function tick(){ if(!C.alive() || busy || over) return;
+        const q = voQuietLeft(); if(q > 30){ idleT = setTimeout(tick, q); return; }   // (7s of quiet after the last line - a speaker replay included: never cut, never straight after it - Capacity BUG_05)
         if(SPLIT){ if(guide != null){ lightSplit(true); arm(); return; } if(!open && started) placeNudge(cellOf(place)); }
         else if(!open) placeNudge(ans); else if(guide != null){ lightKey(); arm(); return; } else if(typed.length >= N) K.repulse(ok);   // the answer counter's hand (the decks); the hand on the keys: no idle line
         reasking = true; C.say(cfg.reask || "prompt").then(()=>{ if(reasking){ reasking = false; arm(); } }, ()=>{}); }, IDLE_MS); };   // (never locks the pad)
