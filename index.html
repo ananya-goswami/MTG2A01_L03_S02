@@ -5422,7 +5422,7 @@ const PVModules = {
       const card = host.closest(".tut-card"), cardR = card ? (card.getBoundingClientRect().right - sc.getBoundingClientRect().left) / K.kNow() - card.clientLeft : 1333;
       const makeB = carry ? K.makeBtnSide(sc, TS, cardR) : null;
       if(makeB){ const dx = Math.min(0, makeB._x - 24 - (TS.x + TS.W)); if(dx){ TS.x += dx; TS.all().forEach(e => K.setXY(e, e._x + dx, e._y)); } }
-      const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:54px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, L.cx, 84, [cA], [cB]), L.tableY + TA.H / 2 - 34);
+      const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:54px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, TS.x + TS.W / 2, 84, [cA], [cB]), L.tableY + TA.H / 2 - 34);   /* the two number tables centred on the sum table below (QA 2026-11-20 "neeche wala box should be centre aligned with respect to the two boxes above"): a sum table stepped left for the दहाई बनाओ button takes the pair with it */
       /* the tables come one at a time (SME review): the first number's at the start, the second's once the first is
          built, the sum table once both numbers are built (user 2026-10-15) - the same in auto */
       /* hidden AT ONCE, with no fade (review 2026-11-04, S02 T3: "three placeholder PV tables briefly appear and disappear
