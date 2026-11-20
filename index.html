@@ -5497,12 +5497,14 @@ const PVModules = {
         await across("o"); C.guard();
         await C.cue("ones_sum", [[0.02, ()=> K.sweep(TS.cubes)]]);
         if(carry){
-          if(shiftX){ const ms = 800;                                     // (~45px/s: a calm glide, all as one)
+          await C.cue("know", [[0.3, ()=> K.ring(TS, true)]]);
+          /* the group makes room for the button at the moment it comes (user 2026-11-20: the glide came ~3s before the button,
+             at the start of the "know" line) - the ring (TS.extra) moves with its table; the button pops in as the glide ends */
+          if(shiftX){ const ms = 700;                                     // (~50px/s: a calm glide, all as one)
             await Promise.all([TA.move(shiftX, 0, ms), ...TA.ghosts.map(e => K.shift(e, shiftX, 0, ms)), K.shift(cA, shiftX, 0, ms),
               TB.move(shiftX, 0, ms), ...TB.ghosts.map(e => K.shift(e, shiftX, 0, ms)), K.shift(cB, shiftX, 0, ms),
               TS.move(shiftX, 0, ms), ...TS.ghosts.map(e => K.shift(e, shiftX, 0, ms)), K.shift(plus, shiftX, 0, ms)]);
-            C.guard(); await C.wait(150); }
-          await C.cue("know", [[0.3, ()=> K.ring(TS, true)]]);
+            C.guard(); }
           const btn = makeB; K.show(btn);
           /* (SME review 2026-11-10, slide 3: "the button is currently tapped automatically. Instead, the button should pulsate with a hand
              nudge, allowing the child to tap it. Similarly ... the newly formed tens rod ... should not move automatically. A repeated
