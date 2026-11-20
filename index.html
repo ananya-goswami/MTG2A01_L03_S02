@@ -5421,8 +5421,11 @@ const PVModules = {
          the table without its extra width, so it still clears Swiftie in the card's corner */
       const card = host.closest(".tut-card"), cardR = card ? (card.getBoundingClientRect().right - sc.getBoundingClientRect().left) / K.kNow() - card.clientLeft : 1333;
       const makeB = carry ? K.makeBtnSide(sc, TS, cardR) : null;
-      if(makeB){ const dx = Math.min(0, makeB._x - 24 - (TS.x + TS.W)); if(dx){ TS.x += dx; TS.all().forEach(e => K.setXY(e, e._x + dx, e._y)); } }
-      const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:54px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, TS.x + TS.W / 2, 84, [cA], [cB]), L.tableY + TA.H / 2 - 34);   /* the two number tables centred on the sum table below (QA 2026-11-20 "neeche wala box should be centre aligned with respect to the two boxes above"): a sum table stepped left for the दहाई बनाओ button takes the pair with it */
+      /* (QA 2026-11-20: "overall right side there is a lot of space ... when it comes shift the below box a little left smoothly") the three
+         tables stand centred in the card while they are built; only when a ten is to be made - just before its ring and the button -
+         does the whole group glide left together (shiftX), so the sum table stays centred under the two number tables */
+      const shiftX = makeB ? Math.min(0, makeB._x - 24 - (TS.x + TS.W)) : 0;
+      const plus = K.add(sc, "div", "pv-op pv-sym", "font-size:54px"); plus.textContent = "+"; K.setXY(plus, K.pair(TA, TB, L.cx, 84, [cA], [cB]), L.tableY + TA.H / 2 - 34);
       /* the tables come one at a time (SME review): the first number's at the start, the second's once the first is
          built, the sum table once both numbers are built (user 2026-10-15) - the same in auto */
       /* hidden AT ONCE, with no fade (review 2026-11-04, S02 T3: "three placeholder PV tables briefly appear and disappear
@@ -5494,6 +5497,11 @@ const PVModules = {
         await across("o"); C.guard();
         await C.cue("ones_sum", [[0.02, ()=> K.sweep(TS.cubes)]]);
         if(carry){
+          if(shiftX){ const ms = 800;                                     // (~45px/s: a calm glide, all as one)
+            await Promise.all([TA.move(shiftX, 0, ms), ...TA.ghosts.map(e => K.shift(e, shiftX, 0, ms)), K.shift(cA, shiftX, 0, ms),
+              TB.move(shiftX, 0, ms), ...TB.ghosts.map(e => K.shift(e, shiftX, 0, ms)), K.shift(cB, shiftX, 0, ms),
+              TS.move(shiftX, 0, ms), ...TS.ghosts.map(e => K.shift(e, shiftX, 0, ms)), K.shift(plus, shiftX, 0, ms)]);
+            C.guard(); await C.wait(150); }
           await C.cue("know", [[0.3, ()=> K.ring(TS, true)]]);
           const btn = makeB; K.show(btn);
           /* (SME review 2026-11-10, slide 3: "the button is currently tapped automatically. Instead, the button should pulsate with a hand
