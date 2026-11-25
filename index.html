@@ -1757,6 +1757,10 @@ body.vo-speaking .sg-vo,body.vo-speaking .audio-chip,body.vo-speaking .tut-audio
    gate is up (body.gating: from its first frame until the next screen is in) every speaker behind it stays grey and untappable - it
    used to go live as Swiftie's line ended (300ms after it) while she was still on the gate, and before the line began */
 body.gating .sg-vo,body.gating .audio-chip,body.gating .tut-audio{filter:grayscale(1) opacity(.5);pointer-events:none;cursor:default;}
+/* (QA 2026-11-25, slides 11-14: "just before the next slide, a tap on the speaker plays the current screen's VO") from completeSlide until
+   the next screen is in (body.slide-leaving) the speakers stay grey and untappable - completeSlide hands the turn back, which made them
+   live again while the confetti finished and the next slide loaded */
+body.slide-leaving .sg-vo,body.slide-leaving .audio-chip,body.slide-leaving .tut-audio{filter:grayscale(1) opacity(.5);pointer-events:none;cursor:default;}
 /* [vo-lock] review 2026-11-04 ("all options and other interactive elements should remain disabled during VO playback and
    become tappable only when the child is expected to interact"; MTG2A04's [vo-lock]): a clear layer over everything the game
    shows takes every tap while a voiceover speaks and through Swiftie's whole turn (VoLock, holdTurn). The phase card is
@@ -6229,6 +6233,7 @@ let _mountTok = 0;
 function mountSlide(idx){ const t = ++_mountTok; Assets.whenSlide(idx, ()=>{ if(t === _mountTok) mountSlideNow(idx); }); }
 function mountSlideNow(idx){
   state.idx = idx;
+  document.body.classList.remove("slide-leaving");
   holdTurn(false);                       // [your turn] (a screen's own script takes the turn - PVK.run)
   state.slideStart = Date.now();
   state.attempts = 0; state.selectedKey = null; state.locked = false;
@@ -6264,7 +6269,7 @@ function mountSlideNow(idx){
   // audio chip = replay the slide audio. Prefer a module-supplied replay (teach slides own their
   // count_intro/explain sequence, which autoPlayChain deliberately skips), else replay the chain.
   $("audioChip").onclick = ()=>{
-    if(!replayTap(slide, "header_chip")) return;
+    if(document.body.classList.contains("slide-leaving") || !replayTap(slide, "header_chip")) return;
     if(state.replayAudio) state.replayAudio(); else autoPlayChain(slide);
   };
 
@@ -6292,7 +6297,7 @@ function mountSlideNow(idx){
     const inner = document.createElement("div"); inner.className = "tut-content";
     card.insertBefore(inner, card.querySelector(".tut-mascot"));
     card.querySelector(".tut-audio").onclick = ()=>{
-      if(!replayTap(slide, "tut_chip")) return;
+      if(document.body.classList.contains("slide-leaving") || !replayTap(slide, "tut_chip")) return;
       if(state.replayAudio) state.replayAudio(); else autoPlayChain(slide);
     };
     $("slideHost").appendChild(card);
@@ -6584,6 +6589,7 @@ function completeSlide(success){
     // last slide is CELEBRATION; nothing more
     return;
   }
+  document.body.classList.add("slide-leaving");   // the slide is done: no speaker replay of its lines until the next one mounts (QA 2026-11-25)
   // advance only AFTER the correct-answer confetti has landed (to the gate AND to the next slide alike).
   const fromIdx = state.idx, nextIdx = state.idx + 1;
   const next = CARD.slides[nextIdx];
